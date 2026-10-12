@@ -1,20 +1,22 @@
-// StickySortable - drag-and-drop reordering, built to stand alone (no
-// dependency on sticky.js's own scroll/hash machinery) so a consumer who
-// only wants sorting doesn't pay for sticky.js's DOMContentLoaded-triggered
-// global scroll/wheel/hashchange handlers. Pointer Events (not HTML5 drag-
-// and-drop) so a custom placeholder and touch both work with one code path -
-// requires touch-action: none on the handle in CSS.
+// StickySortable - drag-and-drop reordering, standing alone: it needs the
+// core (Flow) for the scroller to autoscroll, and jQuery for its $.fn plugin
+// only, so a consumer who only wants sorting pays for none of the scroll
+// effects. Pointer Events (not HTML5 drag-and-drop) so a custom placeholder
+// and touch both work with one code path - requires touch-action: none on
+// the handle in CSS.
 (function (root, factory) {
 
-    if (typeof define === 'function' && define.amd) {
-        define(['jquery'], factory);
-    } else if (typeof exports === 'object') {
-        module.exports = factory(require('jquery'));
-    } else {
-        root.StickySortable = factory(root.jQuery);
-    }
+    var core = root.Flow && root.Flow.core === true ? root.Flow : (typeof require === 'function' ? require('./core.js') : null);
+    if (!core) throw new Error('sortable.js: load core.js first');
 
-})(this, function ($) {
+    var api = factory(root, core, core.jquery());
+    if (typeof module === 'object' && module.exports) module.exports = api;
+    root.StickySortable = api;
+    core.sortable = api;
+
+})(typeof window !== 'undefined' ? window : this, function (window, Flow, $) {
+
+    var document = window.document;
 
     var defaults = {
         handle: null,          // selector, relative to the item, or null to drag the whole item
@@ -43,22 +45,17 @@
         onMerge: null,         // function(draggedEl, targetEl, container) - fires on drop instead of onChange, only when armed
     };
 
+    // The scroller the list autoscrolls while an item is dragged to its edge:
+    // the closest ancestor that scrolls (the core's), the page otherwise.
     function closestScrollable(el) {
-        var node = el.parentElement;
-        while (node && node !== document.body) {
-            var style = getComputedStyle(node);
-            var overflowY = style.overflowY;
-            if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight) {
-                return node;
-            }
-            node = node.parentElement;
-        }
-        return document.scrollingElement || document.documentElement;
+        var node = el.parentElement ? Flow.closestScrollable(el.parentElement) : undefined;
+        if (!node || node === document.documentElement) return document.scrollingElement || document.documentElement;
+        return node;
     }
 
     function StickySortable(container, options) {
         this.container = container;
-        this.options = $.extend({}, defaults, options);
+        this.options = Object.assign({}, defaults, options);
         this.scroller = closestScrollable(container);
         this.dragging = null;
         this.placeholder = null;
@@ -519,13 +516,17 @@
         }
     };
 
-    $.fn.stickySortable = function (options) {
-        return this.each(function () {
-            if (!this._stickySortable) {
-                this._stickySortable = new StickySortable(this, options);
-            }
-        });
-    };
+    if ($) {
+        $.fn.stickySortable = function (options) {
+            return this.each(function () {
+                if (!this._stickySortable) {
+                    this._stickySortable = new StickySortable(this, options);
+                }
+            });
+        };
+    }
+
+    StickySortable.defaults = defaults;
 
     return StickySortable;
 });

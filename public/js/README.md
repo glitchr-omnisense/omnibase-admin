@@ -1,33 +1,28 @@
 # Vendored assets
 
-`jquery.min.js`, `transparent.js`/`transparent.css`, `sticky-sortable.js` and
+`jquery.min.js`, `core.js`, `transparent.js`/`transparent.css`, `sticky-sortable.js` and
 `graph.js`/`layout.js`/`graph.css` are plain, unbundled copies — this package has no Encore/webpack build step
 of its own. They are loaded as ordinary `<script>`/`<link>` tags so the
 admin's own in-page navigation uses the exact same SPA engine as the rest of
 the product and the website-in-website overlay, instead of a second library
 (Turbo/Hotwired).
 
-To update after a `@glitchr/transparentjs` release (the repository is glitchr-studio/transparentjs;
-the package is not on npm, sites install it from the repository):
+To update after a `@glitchr/flowjs` release (the repository is glitchr-studio/flowjs; it succeeds
+transparentjs, stickyjs and ajaxer; the package is not on npm, sites install it from the repository,
+pinned to a commit). The navigation and the sortable need the library's core, loaded before them:
 
-    cp <transparent-repo>/src/js/transparent.js public/js/transparent.js
-    cp <transparent-repo>/src/css/index.scss     public/css/transparent.css
+    cp <flowjs-repo>/src/js/core.js         public/js/core.js
+    cp <flowjs-repo>/src/js/transparent.js  public/js/transparent.js
+    cp <flowjs-repo>/src/js/sortable.js     public/js/sticky-sortable.js   # StickySortable, superadmin customize-mode only
+    cp <flowjs-repo>/src/css/navigation.scss public/css/transparent.css
     # jquery.min.js: cp node_modules/jquery/dist/jquery.min.js public/js/jquery.min.js
 
-Currently vendored at transparentjs 3.0.31 (glitchr-studio/transparentjs 3a26e56) / jquery 3.7.1.
-Both files carry the version and the commit on their first line, and are the library's own,
-unedited: a fix the back office needs goes into transparentjs first (a new version), then is
-copied here - the copy had drifted some 2 500 lines from the library through fixes made only here.
-
-To update after a `@glitchr/stickyjs` release (superadmin customize-mode
-drag-and-drop only - written directly in the same plain-UMD, global-jQuery
-style as this copy, so it's copy-as-is, no build step):
-
-    cp <stickyjs-repo>/src/js/sortable.js public/js/sticky-sortable.js
-
-Currently vendored at stickyjs 1.1.0. Loaded only for `ROLE_SUPERADMIN`
-(see `layout.html.twig`'s topbar block) - moderators/admins never download
-it.
+Currently vendored at flowjs 1.0.0 (glitchr-studio/flowjs 07eaaa2e1c5ed49049b29505daca3ea8247d3850) / jquery 3.7.1.
+The four files are the library's own, byte for byte (no line added): `core.js` says `Flow.version`,
+`transparent.js` `Transparent.version`. A fix the back office needs goes into flowjs first, then is
+copied here. `layout.html.twig` loads `core.js` first, then `transparent.js`; `sticky-sortable.js` (the
+file name kept; it is flowjs's `sortable.js`) is loaded only for `ROLE_SUPERADMIN`
+(see `layout.html.twig`'s topbar block) - moderators/admins never download it.
 
 To update after a `@glitchr/graphjs` release (github.com/glitchr-studio/graphjs;
 a layered directed graph that is dragged and zoomed - HTML nodes, SVG edges,
@@ -47,9 +42,9 @@ listens to `transparent:load`); `window.Graph` is the class. See
 `docs/graphs.md`.
 
 IMPORTANT: this is not the only copy in this app. The public site (host
-page) consumes `@glitchr/transparent` via `assets/app-defer.js` from
-`node_modules/@glitchr/transparent`, which is a hand-copy too (the package
-has never actually been `npm publish`ed). Both copies must be updated
+page) consumes `@glitchr/flowjs` via `assets/app-defer.js` from
+`node_modules/@glitchr/flowjs`, installed from the repository at a commit (the package
+is not on npm yet). Both copies must be updated
 together or the host and the admin overlay run different versions of the
 SAME library at the same time - this caused real, hard-to-diagnose bugs
 (missing loading spinner, no close fade, iframe background bleed-through)
