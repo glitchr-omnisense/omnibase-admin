@@ -8,8 +8,7 @@ the product and the website-in-website overlay, instead of a second library
 (Turbo/Hotwired).
 
 To update after a `@glitchr/flowjs` release (the repository is glitchr-studio/flowjs; it succeeds
-transparentjs, stickyjs and ajaxer; the package is not on npm, sites install it from the repository,
-pinned to a commit). The navigation and the sortable need the library's core, loaded before them:
+transparentjs, stickyjs and ajaxer; the package is on npm, `@glitchr/flowjs`, and sites take it from there). The navigation and the sortable need the library's core, loaded before them:
 
     cp <flowjs-repo>/src/js/core.js         public/js/core.js
     cp <flowjs-repo>/src/js/transparent.js  public/js/transparent.js
@@ -18,6 +17,8 @@ pinned to a commit). The navigation and the sortable need the library's core, lo
     # jquery.min.js: cp node_modules/jquery/dist/jquery.min.js public/js/jquery.min.js
 
 Currently vendored at flowjs 1.0.0 (glitchr-studio/flowjs 07eaaa2e1c5ed49049b29505daca3ea8247d3850) / jquery 3.7.1.
+flowjs 1.0.1 (b763778) changes none of the three (core, navigation, sortable): only `ajaxer.js`, which the back office does not load
+(it loads neither sticky, nor stops, nor ajaxer), so they stay at the 1.0.0 files, byte for byte the 1.0.1 ones.
 The four files are the library's own, byte for byte (no line added): `core.js` says `Flow.version`,
 `transparent.js` `Transparent.version`. A fix the back office needs goes into flowjs first, then is
 copied here. `layout.html.twig` loads `core.js` first, then `transparent.js`; `sticky-sortable.js` (the
@@ -43,8 +44,7 @@ listens to `transparent:load`); `window.Graph` is the class. See
 
 IMPORTANT: this is not the only copy in this app. The public site (host
 page) consumes `@glitchr/flowjs` via `assets/app-defer.js` from
-`node_modules/@glitchr/flowjs`, installed from the repository at a commit (the package
-is not on npm yet). Both copies must be updated
+`node_modules/@glitchr/flowjs`, installed from npm. Both copies must be updated
 together or the host and the admin overlay run different versions of the
 SAME library at the same time - this caused real, hard-to-diagnose bugs
 (missing loading spinner, no close fade, iframe background bleed-through)
