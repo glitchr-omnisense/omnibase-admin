@@ -3177,6 +3177,8 @@
             }
         </style>
         <script src="{{ asset('bundles/admin/js/jquery.min.js') }}"></script>
+        {# flowjs' core first (Flow: the scrollers, the page-loaded moments); the navigation and the sortable need it #}
+        <script src="{{ asset('bundles/admin/js/core.js') }}"></script>
         <script src="{{ asset('bundles/admin/js/transparent.js') }}"></script>
         {# An ES module (it imports ./layout.js beside it): deferred, and it
            starts every [data-graph] of the page - again after each in-admin
