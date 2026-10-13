@@ -16,9 +16,10 @@ transparentjs, stickyjs and ajaxer; the package is on npm, `@glitchr/flowjs`, an
     cp <flowjs-repo>/src/css/navigation.scss public/css/transparent.css
     # jquery.min.js: cp node_modules/jquery/dist/jquery.min.js public/js/jquery.min.js
 
-Currently vendored at flowjs 1.0.0 (glitchr-studio/flowjs 07eaaa2e1c5ed49049b29505daca3ea8247d3850) / jquery 3.7.1.
-flowjs 1.0.1 (b763778) changes none of the three (core, navigation, sortable): only `ajaxer.js`, which the back office does not load
-(it loads neither sticky, nor stops, nor ajaxer), so they stay at the 1.0.0 files, byte for byte the 1.0.1 ones.
+Currently vendored at flowjs 1.0.3 (glitchr-studio/flowjs 79f1c4f270aad0359ed38c7c4af0a3fc35998572) / jquery 3.7.1.
+On npm as well: core.js, transparent.js, sticky-sortable.js (sortable.js) and transparent.css (navigation.scss) are the 1.0.3 files: the 1.0.3 fixes
+the sort of a list in a box that scrolls sideways only (a back office table), Back to a long page, and a request without an
+answer (the page stays under the overlay). The back office loads neither sticky, nor stops, nor ajaxer.
 The four files are the library's own, byte for byte (no line added): `core.js` says `Flow.version`,
 `transparent.js` `Transparent.version`. A fix the back office needs goes into flowjs first, then is
 copied here. `layout.html.twig` loads `core.js` first, then `transparent.js`; `sticky-sortable.js` (the
