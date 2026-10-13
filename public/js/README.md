@@ -16,10 +16,10 @@ transparentjs, stickyjs and ajaxer; the package is on npm, `@glitchr/flowjs`, an
     cp <flowjs-repo>/src/css/navigation.scss public/css/transparent.css
     # jquery.min.js: cp node_modules/jquery/dist/jquery.min.js public/js/jquery.min.js
 
-Currently vendored at flowjs 1.0.4 (glitchr-studio/flowjs 5258cb5d8c68df56f7c4797508aac428268c48a6) / jquery 3.7.1.
-On npm as well: core.js and transparent.js are the 1.0.4 files, sticky-sortable.js (sortable.js) and transparent.css (navigation.scss)
-are unchanged since 1.0.3. In 1.0.4 a scroll of the core's always ends and calls back once (arrived, interrupted, replaced), and a link
-to an anchor of the page writes its hash on arrival only. The back office loads neither sticky, nor stops, nor ajaxer.
+Currently vendored at flowjs 1.1.0 (glitchr-studio/flowjs 4fd2f82d3b664e9112187c92cf207d32dacb98db) / jquery 3.7.1.
+On npm as well: core.js is the 1.1.0 file (its `Flow.version` only: 1.1.0 adds two options to the magnets of sticky, which the back
+office does not load); transparent.js is unchanged since 1.0.4, sticky-sortable.js (sortable.js) and transparent.css (navigation.scss)
+since 1.0.3. The back office loads neither sticky, nor stops, nor ajaxer.
 The four files are the library's own, byte for byte (no line added): `core.js` says `Flow.version`,
 `transparent.js` `Transparent.version`. A fix the back office needs goes into flowjs first, then is
 copied here. `layout.html.twig` loads `core.js` first, then `transparent.js`; `sticky-sortable.js` (the
