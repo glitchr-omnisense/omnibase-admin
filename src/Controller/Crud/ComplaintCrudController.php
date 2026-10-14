@@ -57,12 +57,12 @@ class ComplaintCrudController extends AbstractCrudController
         yield DateTimeField::new('createdAt', '@admin.complaint.created_at');
         yield TextField::new('statusLabel', '@admin.complaint.status');
         yield TextField::new('complainantName', '@admin.complaint.complainant');
-        yield TextField::new('targetName', '@admin.complaint.target');
+        yield TextField::new('targetName', '@admin.complaint.target')->setRequired(false);
         yield TextField::new('targetStatus', '@admin.complaint.target_status')->onlyOnDetail();
-        yield TextField::new('source', '@admin.complaint.source');
-        yield TextField::new('locationName', '@admin.complaint.location')->hideOnIndex();
+        yield TextField::new('source', '@admin.complaint.source')->setRequired(false);
+        yield TextField::new('locationName', '@admin.complaint.location')->setRequired(false)->hideOnIndex();
         yield TextareaField::new('text', '@admin.complaint.text');
-        yield TextareaField::new('answer', '@admin.complaint.answer')->hideOnIndex();
+        yield TextareaField::new('answer', '@admin.complaint.answer')->setRequired(false)->hideOnIndex();
         yield TextField::new('handledBy', '@admin.complaint.handled_by')->onlyOnDetail();
         yield DateTimeField::new('handledAt', '@admin.complaint.handled_at')->onlyOnDetail();
     }
