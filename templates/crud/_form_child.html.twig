@@ -1,0 +1,37 @@
+{#- One field of a CRUD form, in the grid of crud/_form.html.twig: a row
+    spanning the field's columns (->setColumns(), 12 without), or the bare
+    input of a hidden field.
+
+    Hidden is the field's own type, not a parent of it: the editor (EditorType,
+    WysiwygType) is a hidden input that its script fills, and laid bare in the
+    grid it took one column of twelve - the text of a card or a sequence was
+    written in a narrow strip, without its label. -#}
+{% if child.vars.block_prefixes|slice(-2, 1)|first == 'hidden' %}
+    {# The CSRF field (and any other HiddenType, e.g. a plain
+       entity id) has no Symfony core hidden_label block to fall
+       back to - lookup falls through to this theme's own
+       form2_label (form_div_layout.html.twig), which always
+       renders a real label-wrapper + debug badge. Every single
+       create/edit form on this admin was showing a visible
+       "Csrf token" label above its own hidden input, found live
+       comparing against production (which renders it as a bare
+       input, no label at all). Skipping the whole .form-row
+       wrapper too, not just the label - its own margin-bottom
+       would otherwise leave a blank gap in the grid for content
+       that's never visible either way. #}
+    {{ form_widget(child) }}
+{% else %}
+{# ->setColumns(N) on the field descriptor becomes a 12-column
+   CSS grid span here - no explicit value spans the full width,
+   matching how most fields are already declared. Values are
+   historically Bootstrap-style ("col-md-6") as well as bare
+   integers ("6") - splitting on '-' and taking the last chunk
+   normalizes both to just the trailing number. #}
+{% set columns = child.vars.row_attr['data-columns']|default(null) %}
+<div class="form-row" style="--col-span: {{ columns is null ? 12 : (columns|split('-')|last) }};">
+    {{ form_label(child) }}
+    {{ form_widget(child) }}
+    <div class="form-errors">{{ form_errors(child) }}</div>
+    {{ form_help(child) }}
+</div>
+{% endif %}
