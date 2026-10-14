@@ -212,3 +212,41 @@ entity a readable address, store the slug (`#[Slugify]` on a column).
 
 An address by id keeps working for every record, and a GET by an identifier
 that is not the canonical one is redirected to it.
+
+## A field is required when the record needs it
+
+A field without `->setRequired(false)` is required, and the back office does
+not send a form with a required field left empty: an optional picture, link or
+date marked required stopped every save. `Base\Admin\Test\CrudFieldsTestCase`
+checks a bundle's screens against its entities, without a kernel; each bundle
+extends it once:
+
+```php
+final class CrudRequiredFieldsTest extends CrudFieldsTestCase
+{
+    protected static function sourceDirectory(): string
+    {
+        return __DIR__.'/../../src';
+    }
+}
+```
+
+On the new and edit forms of every CRUD controller under that directory:
+
+- only what the record needs is required: a column neither nullable nor
+  defaulted (in the mapping, on the property, by the constructor), a join
+  column that is not nullable, a `NotBlank`, `NotNull` or `Count(min: 1)`
+  constraint, a setter that refuses null - and a thread's title, the field a
+  slug follows, or what `requiredByTheScreen()` gives a reason for;
+- what the record needs is required, unless `filledByTheScreen()` says who
+  fills it (a number given when the record is persisted);
+- a field left optional takes an empty value: an empty text, number or date
+  sends null, so its setter accepts null, or the field says what empty is
+  (`setEmptyData()`);
+- one field per property (two fields on one property are one form field, the
+  last), and a slug follows a field of the form (`setTargetFieldName()`).
+
+A form the screen does not open (new or edit disabled) is not checked;
+`skipped()` names a controller that cannot be read in an installation (a
+package its entity needs is missing), `services()` what `configureFields()`
+reads that a stub does not give.
