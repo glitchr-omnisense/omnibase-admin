@@ -19,7 +19,8 @@
     ],
     "autoload": {
         "psr-4": {
-            "Base\\Admin\\": "./src"
+            "Base\\Admin\\": "./src",
+            "Base\\Admin\\Test\\": "./testing"
         }
     },
     "autoload-dev": {

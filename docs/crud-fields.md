@@ -218,8 +218,10 @@ that is not the canonical one is redirected to it.
 A field without `->setRequired(false)` is required, and the back office does
 not send a form with a required field left empty: an optional picture, link or
 date marked required stopped every save. `Base\Admin\Test\CrudFieldsTestCase`
-checks a bundle's screens against its entities, without a kernel; each bundle
-extends it once:
+(`testing/`, outside `src/`: glitchr/omnibase loads every class of a bundle's
+`src/` when it boots, and this one extends PHPUnit's `TestCase`, which an
+application's console does not always have) checks a bundle's screens against
+its entities, without a kernel; each bundle extends it once:
 
 ```php
 final class CrudRequiredFieldsTest extends CrudFieldsTestCase
