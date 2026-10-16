@@ -5,8 +5,10 @@
     Hidden is the field's own type, not a parent of it: the editor (EditorType,
     WysiwygType) is a hidden input that its script fills, and laid bare in the
     grid it took one column of twelve - the text of a card or a sequence was
-    written in a narrow strip, without its label. -#}
-{% if child.vars.block_prefixes|slice(-2, 1)|first == 'hidden' %}
+    written in a narrow strip, without its label. The CSRF field is a HiddenType
+    whose own prefix is csrf_token (FormTypeCsrfExtension's block_prefix): it
+    counts as hidden too, or it shows a "Csrf token" row under every form. -#}
+{% if child.vars.block_prefixes|slice(-2, 1)|first in ['hidden', 'csrf_token'] %}
     {# The CSRF field (and any other HiddenType, e.g. a plain
        entity id) has no Symfony core hidden_label block to fall
        back to - lookup falls through to this theme's own

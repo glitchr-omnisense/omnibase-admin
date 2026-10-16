@@ -33,7 +33,7 @@ class FormGridTest extends KernelTestCase
         static::getContainer()->get('request_stack')->push($request);
     }
 
-    private function grid(): \DOMXPath
+    private function grid(bool $csrf = false): \DOMXPath
     {
         $builder = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get('doctrine')))
             ->createFormBuilder(new Comment(), [
@@ -41,6 +41,10 @@ class FormGridTest extends KernelTestCase
                 EditorField::new('content', 'Text'),
             ], formOptions: ['csrf_protection' => false]);
         $builder->add('marker', HiddenType::class, ['mapped' => false]);
+        if ($csrf) {
+            // The field Symfony's FormTypeCsrfExtension adds: a HiddenType whose block prefix is csrf_token.
+            $builder->add('_token', HiddenType::class, ['mapped' => false, 'block_prefix' => 'csrf_token', 'data' => 'token']);
+        }
 
         $html = static::getContainer()->get('twig')->createTemplate(
             "{% form_theme form with ['@Admin/crud/form_theme.html.twig'] %}".
@@ -73,5 +77,15 @@ class FormGridTest extends KernelTestCase
         $this->assertStringContainsString('--col-span: 6', $name->item(0)->getAttribute('style'));
 
         $this->assertSame(1, $grid->query('//div[contains(@class, "form-grid")]/input[@type="hidden"][@id="crud_form_marker"]')->length, 'the hidden input, bare: no row, no label');
+    }
+
+    public function testTheCsrfTokenStaysABareInput(): void
+    {
+        $grid = $this->grid(csrf: true);
+
+        $token = $grid->query('//input[@type="hidden"][@id="crud_form__token"]');
+        $this->assertSame(1, $token->length, 'the form carries its token');
+        $this->assertSame(0, $grid->query('//div[contains(@class, "form-row")][.//input[@id="crud_form__token"]]')->length, 'no row of its own, no "Csrf token" label');
+        $this->assertSame(1, $grid->query('//div[contains(@class, "form-grid")]/input[@id="crud_form__token"]')->length, 'the bare input in the grid');
     }
 }
