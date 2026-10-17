@@ -9,6 +9,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ (page_title ?? app.site.title ?? 'login.title'|trans({}, 'admin'))|striptags }}</title>
+    {{ include('@Admin/_site_icons.html.twig') }}
     <script>
         (function () {
             var saved = localStorage.getItem('admin-theme');

@@ -11,6 +11,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block page_title %}Admin{% endblock %}</title>
+    {% block head_icons %}{{ include('@Admin/_site_icons.html.twig') }}{% endblock %}
     {# Applied before any CSS paints, not after - reading this in a normal
        body-level script would show the light theme for one frame then
        flash to dark. "auto" (the default - no explicit choice saved yet)
