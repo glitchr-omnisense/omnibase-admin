@@ -20,7 +20,7 @@ A page of the site that should open the same way, outside `/admin`, asks for it:
 ```
 
 transparentjs opens such a page as a floating, dockable panel over the site when a
-link matches its `nest` patterns (`Base.boot({nest: ['/admin*']})`, glitchr/omnibase's
+link matches its `nest` patterns (`Base.boot({nest: ['/admin*']})`, omniscient/omnibase's
 `assets/boot.js`). An application deletes its `App\EventSubscriber\NestHeaderSubscriber`.
 
 ## The sidebar, on every screen
@@ -110,7 +110,7 @@ loader's); deleting it hands the pages over to this one.
 
 ## Reports (complaints)
 
-`Base\Entity\User\Complaint` (glitchr/omnibase) gets its screen:
+`Base\Entity\User\Complaint` (omniscient/omnibase) gets its screen:
 `Base\Admin\Controller\Crud\ComplaintCrudController` (`/admin/complaints`, route
 `admin_crud_complaints_index`). Read only - a report comes from the site - with three
 actions: handled, dismissed, reopened (`Complaint::settle()`, by the signed-in staff
@@ -129,7 +129,7 @@ yield MenuItem::block('admin_complaints', 'Signalements');
 
 `Base\Admin\Controller\Crud\TextOverrideCrudController` (`/admin/text-overrides`):
 any text of the `messages` catalogue rewritten for one language
-(`Base\Entity\Layout\TextOverride`, glitchr/omnibase). The list of keys shows each
+(`Base\Entity\Layout\TextOverride`, omniscient/omnibase). The list of keys shows each
 text's current wording in the site's first enabled locale.
 
 ```php
@@ -139,7 +139,7 @@ yield MenuItem::linkToCrud(\Base\Entity\Layout\TextOverride::class, 'Textes du s
 ## Opening hours
 
 `Base\Admin\Controller\HoursController` serves `/admin/hours` (`admin_hours`, ROLE_ADMIN;
-routed by the `base_admin` loader): what glitchr/omnibase's `OpeningHours` reads
+routed by the `base_admin` loader): what omniscient/omnibase's `OpeningHours` reads
 everywhere - the footer, the day an order is for, the time slots, the page's JSON-LD.
 
 - **The usual week**: seven days, up to three slots each (`Base\Entity\Hours\WeekDayHours`);
@@ -163,7 +163,7 @@ yield MenuItem::linkToRoute('admin_hours', [], 'Horaires', 'fa-solid fa-clock');
 
 `Base\Admin\Controller\Crud\RedirectionCrudController` (`/admin/redirections`): the old
 addresses of a site taken over and where each leads now (`Base\Entity\Layout\Redirection`,
-glitchr/omnibase - see its `docs/40-commons/redirections.md`). An old address is typed
+omniscient/omnibase - see its `docs/40-commons/redirections.md`). An old address is typed
 or pasted whole and kept as its path; the list is sorted by visitors carried, with the
 date each was last used.
 
@@ -175,7 +175,7 @@ yield MenuItem::linkToCrud(\Base\Entity\Layout\Redirection::class, 'Redirections
 
 `Base\Admin\Settings\BusinessSettingsSection` (90) adds to the settings page
 `base.settings.phone` and `base.settings.address.{street, postal_code, locality, region, country}`:
-what glitchr/omnibase's `local_business_jsonld()` prints, ahead of `base.local_business`
+what omniscient/omnibase's `local_business_jsonld()` prints, ahead of `base.local_business`
 in the configuration.
 
 ## Tests
