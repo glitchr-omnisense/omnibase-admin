@@ -1,0 +1,5 @@
+{#- The site's icon in the back office's tab (admin_site_icons(), SiteIconTwigExtension):
+    without a link the browser asked for /favicon.ico, a 404 on most sites. -#}
+{%- for icon in admin_site_icons() %}
+    <link rel="{{ icon.rel }}"{% if icon.type %} type="{{ icon.type }}"{% endif %}{% if icon.sizes %} sizes="{{ icon.sizes }}"{% endif %} href="{{ icon.href starts with 'data:' ? icon.href : asset(icon.href) }}">
+{%- endfor %}
