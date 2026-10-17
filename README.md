@@ -1,6 +1,6 @@
 # Base Bundle — Admin
 
-Administration backoffice extension for [`glitchr/omnibase`](https://gitlab.glitchr.dev/public-repository/symfony/bundle/base): dynamic CRUD controllers, dashboard, menus and field-based form generation — with no dependency on `easycorp/easyadmin-bundle`.
+Administration backoffice extension for [`omniscient/omnibase`](https://gitlab.glitchr.dev/public-repository/symfony/bundle/base): dynamic CRUD controllers, dashboard, menus and field-based form generation — with no dependency on `easycorp/easyadmin-bundle`.
 
 This package owns the `Base\Admin\` namespace. It is a from-scratch replacement for EasyAdmin, designed around three ideas:
 
@@ -28,7 +28,7 @@ return [
 
 - PHP 8.1+
 - Symfony 6.0+ / 7.0+ / 8.0+
-- `glitchr/omnibase` 3.0+
+- `omniscient/omnibase` 3.0+
 
 ## Documentation
 
