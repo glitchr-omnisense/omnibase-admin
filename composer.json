@@ -34,7 +34,8 @@
         "symfony/dependency-injection": "^6.0|^7.0|^8.0",
         "symfony/http-kernel": "^6.0|^7.0|^8.0",
         "symfony/form": "^6.0|^7.0|^8.0",
-        "omniscient/omnibase": "3.0.*-dev"
+        "omnibridge/symfony": "1.x-dev",
+        "omniscient/omnibase": "3.0.*-dev || 4.0.*-dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.6",
