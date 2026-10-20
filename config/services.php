@@ -275,6 +275,7 @@ return function (ContainerConfigurator $configurator) {
             service('localizer')->nullOnInvalid(),
             tagged_iterator('base.admin.dashboard_controller'),
             service(\Base\Admin\Security\CrudAccessChecker::class),
+            service('security.csrf.token_manager')->nullOnInvalid(),
         ]);
 
     // The system pages (settings, API keys) and the sections that fill them:

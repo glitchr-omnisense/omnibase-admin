@@ -14,6 +14,7 @@ use Base\Admin\Security\CrudAccessChecker;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -38,7 +39,21 @@ class MenuBuilder
         protected readonly ?\Base\Service\LocalizerInterface $localizer = null,
         protected readonly iterable $dashboardControllers = [],
         protected readonly ?CrudAccessChecker $crudAccessChecker = null,
+        protected readonly ?CsrfTokenManagerInterface $csrfTokenManager = null,
     ) {
+    }
+
+    /**
+     * The sign-out link's parameters: the CSRF token the firewall's logout
+     * asks where it has `enable_csrf` (omnibase's Base\Security\SignOut, under
+     * Symfony's default names), harmless where it has not. Without it a page
+     * of another site could sign the administrator out by a plain GET.
+     *
+     * @return array<string, string>
+     */
+    protected function logoutParameters(): array
+    {
+        return null === $this->csrfTokenManager ? [] : ['_csrf_token' => $this->csrfTokenManager->getToken('logout')->getValue()];
     }
 
     /**
@@ -127,7 +142,7 @@ class MenuBuilder
 
         $items[] = MenuItemFactory::linkToRoute('user_settings', [], $this->translator->trans('menu.settings', [], 'admin'), 'fa-solid fa-user-gear');
 
-        $items[] = MenuItemFactory::linkToRoute('security_logout', [], $this->translator->trans('menu.logout', [], 'admin'), 'fa-solid fa-arrow-right-from-bracket');
+        $items[] = MenuItemFactory::linkToRoute('security_logout', $this->logoutParameters(), $this->translator->trans('menu.logout', [], 'admin'), 'fa-solid fa-arrow-right-from-bracket');
 
         return $this->resolve($items);
     }
@@ -294,7 +309,7 @@ class MenuBuilder
             MenuItem::TYPE_ROUTE => $this->urlGenerator->generate($item->getRouteName(), $item->getRouteParameters()),
             MenuItem::TYPE_URL, MenuItem::TYPE_SUBMENU => $item->getUrl(),
             MenuItem::TYPE_DASHBOARD => $this->urlGenerator->generate('admin'),
-            MenuItem::TYPE_LOGOUT => $this->urlGenerator->generate('security_logout'),
+            MenuItem::TYPE_LOGOUT => $this->urlGenerator->generate('security_logout', $this->logoutParameters()),
             default => null,
         });
     }

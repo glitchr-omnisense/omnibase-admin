@@ -14,6 +14,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Tests\Base\Admin\Router\Fixtures\Crud\ReportCrudController;
@@ -36,6 +39,53 @@ class MenuBuilderTest extends TestCase
             $this->createStub(LayoutStore::class),
             $this->createStub(LayoutArranger::class),
         );
+    }
+
+    /**
+     * The account menu's sign-out carries the CSRF token the firewall's logout
+     * asks (`logout: { enable_csrf: true }`): a plain GET from another page
+     * no longer signs the administrator out. Without a token manager, the
+     * bare address, as before.
+     */
+    public function testTheSignOutLinkCarriesTheLogoutToken(): void
+    {
+        $urls = new class implements UrlGeneratorInterface {
+            private RequestContext $context;
+
+            public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH): string
+            {
+                return '/' . $name . ($parameters ? '?' . http_build_query($parameters) : '');
+            }
+
+            public function setContext(RequestContext $context): void
+            {
+                $this->context = $context;
+            }
+
+            public function getContext(): RequestContext
+            {
+                return $this->context ??= new RequestContext();
+            }
+        };
+        $tokens = $this->createStub(CsrfTokenManagerInterface::class);
+        $tokens->method('getToken')->willReturnCallback(static fn (string $id) => new CsrfToken($id, 'token-of-' . $id));
+        $build = fn (?CsrfTokenManagerInterface $manager) => new MenuBuilder(
+            $this->createStub(AdminRouteRegistry::class),
+            $this->createStub(AdminUrlGenerator::class),
+            $urls,
+            new RequestStack(),
+            $this->createStub(TranslatorInterface::class),
+            $this->createStub(AuthorizationCheckerInterface::class),
+            $this->createStub(LayoutStore::class),
+            $this->createStub(LayoutArranger::class),
+            csrfTokenManager: $manager,
+        );
+
+        $items = $build($tokens)->buildUserMenuDefault(null);
+        $this->assertSame('/security_logout?_csrf_token=token-of-logout', end($items)->getLinkUrl());
+
+        $items = $build(null)->buildUserMenuDefault(null);
+        $this->assertSame('/security_logout', end($items)->getLinkUrl());
     }
 
     public function testNestsItemsFollowingASectionUnderIt(): void
