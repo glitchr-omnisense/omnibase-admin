@@ -6,7 +6,7 @@ use Base\Demo\DemoMode;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Tests\Base\Admin\FirewallSessionTrait;
 
 /**
  * The demonstration's banner in the back office: a screen of the layout
@@ -17,6 +17,8 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
  */
 class DemoBannerTest extends KernelTestCase
 {
+    use FirewallSessionTrait;
+
     /** @var object[] */
     private array $users = [];
 
@@ -71,8 +73,7 @@ class DemoBannerTest extends KernelTestCase
         $this->users[] = $user;
 
         $session = $container->get('session.factory')->createSession();
-        $session->set('_security_main', serialize(new UsernamePasswordToken($user, 'main', $user->getRoles())));
-        $session->save();
+        self::signInto($session, $user, '/admin/hours');
 
         $request = Request::create('/admin/hours');
         $request->cookies->set($session->getName(), $session->getId());
