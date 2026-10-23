@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Tests\Base\Admin\FirewallSessionTrait;
 
 /**
  * The opening-hours screen (/admin/hours) as an administrator uses it: the
@@ -21,6 +21,8 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
  */
 class HoursControllerTest extends KernelTestCase
 {
+    use FirewallSessionTrait;
+
     private EntityManagerInterface $em;
     private SessionInterface $session;
     /** @var object[] */
@@ -77,8 +79,7 @@ class HoursControllerTest extends KernelTestCase
         $this->users[] = $user;
 
         $this->session = static::getContainer()->get('session.factory')->createSession();
-        $this->session->set('_security_main', serialize(new UsernamePasswordToken($user, 'main', $user->getRoles())));
-        $this->session->save();
+        self::signInto($this->session, $user, '/admin/hours');
     }
 
     /** @param array<string, mixed> $parameters */
