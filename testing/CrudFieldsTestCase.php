@@ -127,6 +127,18 @@ abstract class CrudFieldsTestCase extends TestCase
     }
 
     /**
+     * Slugs typed as they are, following no field, and why: controller class
+     * => [property => reason] (a key such as a setting's path, not made from a
+     * title).
+     *
+     * @return array<class-string, array<string, string>>
+     */
+    protected static function typedSlugs(): array
+    {
+        return [];
+    }
+
+    /**
      * Controllers left out, and why: one that cannot be read here (a class of
      * an optional package its entity needs, absent from this installation).
      *
@@ -246,6 +258,9 @@ abstract class CrudFieldsTestCase extends TestCase
                     continue;
                 }
                 $target = $field->getFormTypeOptions()['target'] ?? null;
+                if (null === $target && isset(static::typedSlugs()[$controller][$field->getProperty()])) {
+                    continue;
+                }
                 if (null === $target) {
                     $problems[] = $screen.': '.$field->getProperty().' follows nothing';
                 } elseif (!\in_array(explode('.', ltrim($target, '.'))[0], $properties, true)) {

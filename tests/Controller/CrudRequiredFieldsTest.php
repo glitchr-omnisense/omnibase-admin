@@ -18,6 +18,16 @@ final class CrudRequiredFieldsTest extends CrudFieldsTestCase
         return __DIR__.'/../../src';
     }
 
+    protected static function typedSlugs(): array
+    {
+        return [
+            \Base\Admin\Controller\Crud\Layout\SettingCrudController::class => [
+                'path' => 'a setting\'s key (app.site.title), typed: no title to make it from',
+                'bag' => 'the key of the settings it belongs with, typed as the path is',
+            ],
+        ];
+    }
+
     protected function services(): array
     {
         // The wordings' screen offers the keys of the site's catalogue, in its first language.
