@@ -10,6 +10,10 @@ use Base\Bundle\AbstractBaseBundle;
 use Base\Traits\SingletonTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+// The former names of the core's screens that moved here (src/Resources/former-names.php), also
+// when this bundle's autoload files were not dumped (a checkout mounted over an installed copy).
+require_once __DIR__.'/Resources/former-names.php';
+
 class AdminBundle extends AbstractBaseBundle
 {
     // Gives this bundle its own singleton storage instead of sharing

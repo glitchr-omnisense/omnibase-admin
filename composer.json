@@ -21,7 +21,10 @@
         "psr-4": {
             "Base\\Admin\\": "./src",
             "Base\\Admin\\Test\\": "./testing"
-        }
+        },
+        "files": [
+            "src/Resources/former-names.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

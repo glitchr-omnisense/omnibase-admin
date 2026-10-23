@@ -83,8 +83,10 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     /**
      * Convention: App\Controller\Admin\Crud\Xxx\YyyCrudController maps to
      * App\Entity\Xxx\Yyy. Override for non-conventional locations.
+     * \Admin\Controller\Crud\: this bundle's screens of the core's entities
+     * (Base\Admin\Controller\Crud\User\GroupCrudController for Base\Entity\User\Group).
      */
-    public static array $crudNamespaceCandidates = ['\\Controller\\Crud\\', '\\Controller\\Admin\\Crud\\', '\\Controller\\Backoffice\\Crud\\'];
+    public static array $crudNamespaceCandidates = ['\\Controller\\Crud\\', '\\Controller\\Admin\\Crud\\', '\\Admin\\Controller\\Crud\\', '\\Controller\\Backoffice\\Crud\\'];
 
     public static function getEntityFqcn(): string
     {

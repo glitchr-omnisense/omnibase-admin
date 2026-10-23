@@ -299,6 +299,26 @@ return function (ContainerConfigurator $configurator) {
     // the opening hours (the usual week, the days off: Base\Entity\Hours\*),
     // and the phone and address the page's LocalBusiness JSON-LD reads.
     $services->set(\Base\Admin\Controller\Crud\RedirectionCrudController::class)->autowire()->autoconfigure();
+
+    // The screens of the core's own entities (accounts, groups, permissions, connections, tags, taxa,
+    // settings, images, attribute adapters, pages), here since omniscient/omnibase 4.0: they extend
+    // this bundle's AbstractCrudController. An application replaces one by a controller of its own
+    // for the same entity (AdminRouteRegistry: App\ wins); src/Resources/former-names.php keeps their
+    // former names, Base\Controller\Backoffice\Crud\*, for one release.
+    foreach ([
+        \Base\Admin\Controller\Crud\UserCrudController::class,
+        \Base\Admin\Controller\Crud\User\ConnectionCrudController::class,
+        \Base\Admin\Controller\Crud\User\GroupCrudController::class,
+        \Base\Admin\Controller\Crud\User\PermissionCrudController::class,
+        \Base\Admin\Controller\Crud\Thread\TagCrudController::class,
+        \Base\Admin\Controller\Crud\Thread\TaxonCrudController::class,
+        \Base\Admin\Controller\Crud\Layout\ImageCrudController::class,
+        \Base\Admin\Controller\Crud\Layout\SettingCrudController::class,
+        \Base\Admin\Controller\Crud\Layout\Attribute\AdapterCrudController::class,
+        \Base\Admin\Controller\Crud\Layout\Widget\PageCrudController::class,
+    ] as $controller) {
+        $services->set($controller)->autowire()->autoconfigure()->tag('controller.service_arguments');
+    }
     $services->set(\Base\Admin\Settings\BusinessSettingsSection::class)->autowire()->autoconfigure();
     $services->set(\Base\Admin\Controller\HoursController::class)
         ->autowire()->autoconfigure()->public()
