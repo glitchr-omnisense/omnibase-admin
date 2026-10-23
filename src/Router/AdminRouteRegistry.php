@@ -156,6 +156,10 @@ class AdminRouteRegistry
 
     public function getRouteName(string $controllerFqcn, string $action = 'index'): string
     {
+        if (class_exists(\Base\Routing\AdminRouteNames::class)) {
+            return \Base\Routing\AdminRouteNames::route($this->getSlug($controllerFqcn), $action);
+        }
+
         return self::ROUTE_PREFIX . str_replace(['-', '/'], '_', $this->getSlug($controllerFqcn)) . '_' . $action;
     }
 
@@ -184,6 +188,13 @@ class AdminRouteRegistry
      */
     public static function slugify(string $controllerFqcn): string
     {
+        // omniscient/omnibase 4's framework-free rule, which a host without this bundle names a
+        // record's edit page by (Base\Routing\AdminRouteNames, audit R24); the same rule below
+        // for a core 3.x, which has none.
+        if (class_exists(\Base\Routing\AdminRouteNames::class)) {
+            return \Base\Routing\AdminRouteNames::slugify($controllerFqcn);
+        }
+
         $name = preg_replace('/CrudController$/', '', $controllerFqcn);
         $pos = strpos($name, 'Crud\\');
         $name = false !== $pos ? substr($name, $pos + 5) : substr($name, (int) strrpos($name, '\\') + 1);
