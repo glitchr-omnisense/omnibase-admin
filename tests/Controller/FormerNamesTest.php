@@ -54,4 +54,18 @@ final class FormerNamesTest extends TestCase
         self::assertSame('Base\\Admin\\Controller\\Crud\\User\\GroupCrudController', AbstractCrudController::getCrudControllerFqcn('Base\\Entity\\User\\Group'));
         self::assertSame('Base\\Admin\\Controller\\Crud\\UserCrudController', UserRole::getCrudController(UserRole::ADMIN));
     }
+
+    public function testTheCoresSwappedNameOfAScreenIsNotTakenForTheScreen(): void
+    {
+        // The core's BaseBundle declares each class of this bundle under a swapped name too
+        // (Base\Admin\Controller\X also as Base\Controller\Admin\X): the "\Controller\Admin\Crud\"
+        // candidate found it first, and the tags field of a blog post's form linked to a screen
+        // AdminRouteRegistry does not know (500 on /admin/posts/new).
+        $swapped = 'Base\\Controller\\Admin\\Crud\\Thread\\TagCrudController';
+        if (!class_exists($swapped, false)) {
+            class_alias('Base\\Admin\\Controller\\Crud\\Thread\\TagCrudController', $swapped);
+        }
+
+        self::assertSame('Base\\Admin\\Controller\\Crud\\Thread\\TagCrudController', AbstractCrudController::getCrudControllerFqcn('Base\\Entity\\Thread\\Tag'));
+    }
 }
