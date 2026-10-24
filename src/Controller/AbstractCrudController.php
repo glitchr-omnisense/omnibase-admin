@@ -146,13 +146,13 @@ abstract class AbstractCrudController extends AbstractController implements Crud
             $baseVariant = preg_replace('/^App\\\\/', 'Base\\', $controllerFqcn);
 
             if (class_exists($appVariant)) {
-                return $appVariant;
+                return self::declaredName($appVariant);
             }
 
             if (null === $fallback) {
                 foreach (array_unique([$controllerFqcn, $baseVariant]) as $candidate) {
                     if (class_exists($candidate)) {
-                        $fallback = $candidate;
+                        $fallback = self::declaredName($candidate);
                         break;
                     }
                 }
@@ -166,6 +166,19 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         return null !== get_parent_class($entityFqcn) && false !== get_parent_class($entityFqcn)
             ? static::getCrudControllerFqcn(get_parent_class($entityFqcn))
             : null;
+    }
+
+    /**
+     * The class a candidate name stands for: the core's BaseBundle declares each
+     * class of a bundle under a swapped name too (Base\Admin\Controller\Crud\X
+     * is also Base\Controller\Admin\Crud\X, a class_alias), which the
+     * "\Controller\Admin\Crud\" candidate finds before this bundle's own
+     * "\Admin\Controller\Crud\" - and AdminRouteRegistry knows the screens by
+     * their declared names only ("... is not a registered admin CRUD controller").
+     */
+    private static function declaredName(string $class): string
+    {
+        return (new \ReflectionClass($class))->getName();
     }
 
     // -----------------------------------------------------------------
