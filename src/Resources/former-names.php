@@ -2,7 +2,7 @@
 
 /*
  * The former names of the back office's screens that moved from the core
- * (omniscient/omnibase 4.0, Base\Controller\Backoffice\Crud\*) to this bundle
+ * (omnisense/omnibase 4.0, Base\Controller\Backoffice\Crud\*) to this bundle
  * (Base\Admin\Controller\Crud\*): they extend this bundle's
  * AbstractCrudController, which the core alone does not have - a dependency in
  * the wrong direction, which the core's CI (its package job, PHPStan) showed.
@@ -33,7 +33,7 @@ spl_autoload_register(static function (string $class): void {
     ];
 
     if (isset($moved[$class]) && class_exists($moved[$class])) {
-        @trigger_error(sprintf('Since omnibase/admin (omniscient/omnibase 4.0): "%s" is "%s".', $class, $moved[$class]), \E_USER_DEPRECATED);
+        @trigger_error(sprintf('Since omnibase/admin (omnisense/omnibase 4.0): "%s" is "%s".', $class, $moved[$class]), \E_USER_DEPRECATED);
         class_alias($moved[$class], $class);
     }
 });

@@ -301,7 +301,7 @@ return function (ContainerConfigurator $configurator) {
     $services->set(\Base\Admin\Controller\Crud\RedirectionCrudController::class)->autowire()->autoconfigure();
 
     // The screens of the core's own entities (accounts, groups, permissions, connections, tags, taxa,
-    // settings, images, attribute adapters, pages), here since omniscient/omnibase 4.0: they extend
+    // settings, images, attribute adapters, pages), here since omnisense/omnibase 4.0: they extend
     // this bundle's AbstractCrudController. An application replaces one by a controller of its own
     // for the same entity (AdminRouteRegistry: App\ wins); src/Resources/former-names.php keeps their
     // former names, Base\Controller\Backoffice\Crud\*, for one release.

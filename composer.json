@@ -9,7 +9,7 @@
         "crud",
         "dashboard"
     ],
-    "homepage": "https://github.com/glitchr-studio/omnibase-admin",
+    "homepage": "https://github.com/glitchr-omnisense/omnibase-admin",
     "license": "MIT",
     "authors": [
         {
@@ -38,7 +38,7 @@
         "symfony/http-kernel": "^6.0|^7.0|^8.0",
         "symfony/form": "^6.0|^7.0|^8.0",
         "omnibridge/symfony": "1.x-dev",
-        "omniscient/omnibase": "3.0.*-dev || 4.0.*-dev"
+        "omnisense/omnibase": "3.0.*-dev || 4.0.*-dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.6",
