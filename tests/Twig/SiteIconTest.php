@@ -11,7 +11,7 @@ use Twig\TwigFunction;
 /**
  * The back office's tab shows the site's icon: its pages linked none, so the
  * browser asked for /favicon.ico, a 404 on the sites that keep their icons
- * under public/assets/ico/ alone (monica, juriste, notaire, omniscient,
+ * under public/assets/ico/ alone (monica, juriste, notaire, omnisense,
  * latoucheoriginale...).
  */
 class SiteIconTest extends TestCase

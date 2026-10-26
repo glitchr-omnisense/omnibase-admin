@@ -8,7 +8,7 @@ use Base\Enum\UserRole;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The core's screens moved here (omniscient/omnibase 4.0): their former names,
+ * The core's screens moved here (omnisense/omnibase 4.0): their former names,
  * Base\Controller\Backoffice\Crud\*, are the moved classes themselves for one
  * release (src/Resources/former-names.php) - an alias, not a subclass - and the
  * screens keep their slugs, so their routes and addresses.

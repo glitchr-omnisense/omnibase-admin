@@ -188,7 +188,7 @@ class AdminRouteRegistry
      */
     public static function slugify(string $controllerFqcn): string
     {
-        // omniscient/omnibase 4's framework-free rule, which a host without this bundle names a
+        // omnisense/omnibase 4's framework-free rule, which a host without this bundle names a
         // record's edit page by (Base\Routing\AdminRouteNames, audit R24); the same rule below
         // for a core 3.x, which has none.
         if (class_exists(\Base\Routing\AdminRouteNames::class)) {
