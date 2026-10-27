@@ -32,7 +32,14 @@ return [
 
 ## Documentation
 
-Contextual, on-the-fly documentation for backoffice users is provided by the companion package [`omnibase/docs`](https://gitlab.glitchr.dev/public-repository/symfony/bundle/base/extension/wikidoc), which plugs into this bundle's help panel.
+The manual is in [docs/](docs/index.md): [installation](docs/installation.md),
+[writing a CRUD](docs/crud-controllers.md), [the dashboard and the menu](docs/dashboard.md),
+[CRUD fields](docs/crud-fields.md), [who may write in a CRUD](docs/crud-access.md),
+[system pages](docs/system-pages.md), [graphs](docs/graphs.md), the
+[configuration reference](docs/configuration.md) and the [reference](docs/reference.md)
+(routes, Twig, listeners, voter).
+
+Contextual, on-the-fly documentation for backoffice users is provided by the companion package [`omnibase/docs`](https://github.com/glitchr-omnisense/omnibase-docs), which plugs into this bundle's help panel.
 
 ## Tests
 

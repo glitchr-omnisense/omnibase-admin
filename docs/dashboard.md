@@ -1,0 +1,120 @@
+---
+title: The dashboard and the menu
+order: 25
+---
+
+# The dashboard and the menu
+
+## The dashboard controller's hooks
+
+`Base\Admin\Controller\AbstractDashboardController::index()` renders
+`@Admin/dashboard.html.twig` with the widgets the hooks give, through
+`MenuBuilder` (each item's visibility checked, the stored customisation applied):
+
+| Hook | Default | What it gives |
+|---|---|---|
+| `configureWidgetItems()` | `[]` | The dashboard's groups: sections (or submenus) with their links, and blocks. Without any, the dashboard falls back to one card per registered CRUD |
+| `configureDashboardBlockItems()` | `welcome` (size 5, no background) and `analytics_card` (size 3) | The built-in blocks, kept whether or not `configureWidgetItems()` calls its parent |
+| `configureMenuBeforeItems()` | `[]` | The sidebar's first entries |
+| `configureMenuItems()` | nothing when the dashboard has groups, else one entry per registered CRUD | The sidebar's own entries (the system pages, as a rule) |
+| `configureMenuAfterItems()` | `[]` | The sidebar's last entries |
+| `configureUserMenu()` | `MenuBuilder::buildUserMenuDefault()` | The account menu |
+| `configureSidebarBlockItems()` | the `analytics_widget` block | The block under the sidebar's icons |
+
+How the sidebar is assembled from these is in
+[System pages](system-pages.md#the-sidebar-on-every-screen). A super-administrator
+customises the dashboard in place (order, size, hidden, background); the layout is
+kept per scope (`LayoutScope::DASHBOARD`, `SIDEBAR`, `CRUD`) by `LayoutStore` and
+saved through `admin_layout_save`.
+
+## `MenuItem`
+
+`Base\Admin\Config\MenuItem`'s factories build `Base\Admin\Config\Menu\MenuItem`s:
+
+| Factory | Item |
+|---|---|
+| `MenuItem::linkToCrud($entityFqcn, $label = null, $icon = null)` | The CRUD registered for that class, else for its nearest parent class |
+| `MenuItem::linkToRoute($route, $parameters = [], $label = null, $icon = null)` | A route |
+| `MenuItem::linkToUrl($label, $icon, $url)` | An address |
+| `MenuItem::linkToDashboard($label, $icon = null)` | The dashboard |
+| `MenuItem::linkToLogout($label, $icon = null)`, `linkToExitImpersonation($label, $icon = null)` | Sign out; leave an impersonation |
+| `MenuItem::section($label = null, $icon = null)` | A group, its links given by `setSubItems([...])` |
+| `MenuItem::subMenu($label, $icon = null, $url = null)` | A submenu |
+| `MenuItem::block($blockName, $label = null, $icon = null, $instanceKey = null, $params = [])` | A widget of a widget type (below); `$instanceKey` keeps each instance's customisation apart |
+
+An item takes `setCrudAction('new')` (a "create" shortcut), `setPermission($attribute)`
+(shown only to whom it is granted), `setBadge()`, `setLinkTarget()`,
+`setDescription()`, `setCssClass()`, `setSize()`, `setHeight()`, `setBackground()`,
+`setHidden()`.
+
+```php
+public function configureWidgetItems(): iterable
+{
+    yield MenuItem::section('menu.section.blog', 'fa-solid fa-newspaper')->setSubItems([
+        MenuItem::linkToCrud(Article::class, 'menu.item.articles', 'fa-solid fa-newspaper'),
+        MenuItem::linkToCrud(Article::class, 'menu.item.articles', 'fa-solid fa-plus-circle')->setCrudAction('new'),
+    ]);
+
+    yield MenuItem::block('analytics_card', 'Last 30 days', 'fa-solid fa-chart-line', '30d', ['days' => 30]);
+}
+```
+
+## Widget types
+
+A block names a widget type by its name. The bundle registers:
+
+| Name | Class | Parameters | What it shows |
+|---|---|---|---|
+| `welcome` | `WelcomeWidgetType` | | The greeting |
+| `analytics_card` | `AnalyticsCardWidgetType` | `days` (14), `series` | The site's traffic, day by day (`Base\Service\Analytics`), with the timeline's events; `series` the lines plotted (all but bots and AI by default) |
+| `entity_views` | `EntityViewsWidgetType` | `days` (14), `entityClass`, `entityId`, `series` | The page views of one record, or of every record of a class |
+| `counter` | `CounterWidgetType` | `mode` (`views` or `records`), `days` (14), `entityClass`, `entityId`, `countClass`, `scopeId`, `scopeClass`, `states`, `series` | One number and its trend: the views of a record, or how many records there are (narrowed to a parent and to states) |
+| `composite` | `CompositeWidgetType` | `panes`: a list of `{type, label, params}` | Two or more widgets of the registered types side by side in one card |
+| `admin_complaints` | `ComplaintsWidgetType` | | The open reports |
+
+All but `composite` and `admin_complaints` are in the palette a
+super-administrator adds widgets from (`PaletteDashboardWidgetTypeInterface`).
+
+## Writing a widget type
+
+A service implementing `Base\Admin\Widget\DashboardWidgetTypeInterface` is a
+widget type (autoconfigured, tag `base.admin.dashboard_widget_type`):
+
+```php
+namespace App\Admin\Widget;
+
+use Base\Admin\Config\Menu\MenuItem;
+use Base\Admin\Widget\DashboardWidgetTypeInterface;
+
+final class OpenOrdersWidgetType implements DashboardWidgetTypeInterface
+{
+    public function __construct(private readonly OrderRepository $orders)
+    {
+    }
+
+    public static function getName(): string
+    {
+        return 'open_orders';
+    }
+
+    public function getTemplate(): string
+    {
+        return 'admin/widget/open_orders.html.twig';
+    }
+
+    public function getTemplateVars(MenuItem $widget): array
+    {
+        return ['count' => $this->orders->countOpen($widget->getParams()['days'] ?? 7)];
+    }
+}
+```
+
+and the dashboard yields `MenuItem::block('open_orders', 'Open orders', 'fa-solid fa-box')`.
+Implementing `PaletteDashboardWidgetTypeInterface` instead (`getDefaultLabel()`,
+`getDefaultIcon()`) also puts it in the palette (tag
+`base.admin.dashboard_widget_type.palette`). In a template,
+`dashboard_widget_type(name)` gives the type.
+
+The timeline the analytics widgets draw reads the services implementing the
+core's `Base\Service\TimelineEventProviderInterface` (tag
+`base.admin.timeline_event_provider`).

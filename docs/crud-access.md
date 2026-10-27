@@ -1,3 +1,8 @@
+---
+title: Who may write in a CRUD
+order: 32
+---
+
 # Who may write in a CRUD
 
 A CRUD's list and detail pages are read by whoever enters the back office

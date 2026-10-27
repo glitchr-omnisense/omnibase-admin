@@ -1,3 +1,8 @@
+---
+title: CRUD fields
+order: 30
+---
+
 # CRUD fields
 
 A CRUD controller yields its fields from `configureFields()`
