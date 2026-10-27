@@ -1,3 +1,8 @@
+---
+title: Graphs in the back office
+order: 38
+---
+
 # Graphs in the back office
 
 [`@glitchr/graphjs`](https://github.com/glitchr-studio/graphjs) 1.0.0 - a

@@ -1,3 +1,8 @@
+---
+title: System pages, nest, reports, site texts
+order: 35
+---
+
 # System pages, nest, reports, site texts
 
 What omnibase/admin gives every site so that none keeps a copy of its own.
