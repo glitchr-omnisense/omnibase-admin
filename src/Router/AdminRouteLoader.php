@@ -12,16 +12,18 @@ use Symfony\Component\Routing\RouteCollection;
 /**
  * Generates the conventional CRUD routes for every registered controller:
  *
- *   {prefix}/{slug}            admin_crud_{slug}_index        GET
- *   {prefix}/{slug}/new        admin_crud_{slug}_new          GET|POST
- *   {prefix}/{slug}/{entityId} admin_crud_{slug}_detail       GET
- *   {prefix}/{slug}/{entityId}/edit    ..._edit               GET|POST
- *   {prefix}/{slug}/{entityId}/delete  ..._delete             POST
- *   {prefix}/{slug}/{entityId}/toggle  ..._toggle             PATCH
- *   {prefix}/{slug}/batch      admin_crud_{slug}_batch_delete POST
+ *   {prefix}/{slug}                    admin_crud_{slug}_index             GET
+ *   {prefix}/{slug}/new                admin_crud_{slug}_new               GET|POST
+ *   {prefix}/{slug}/batch-delete       admin_crud_{slug}_batchDelete       POST
+ *   {prefix}/{slug}/{entityId}         admin_crud_{slug}_detail            GET
+ *   {prefix}/{slug}/{entityId}/edit    admin_crud_{slug}_edit              GET|POST
+ *   {prefix}/{slug}/{entityId}/delete  admin_crud_{slug}_delete            POST
+ *   {prefix}/{slug}/{entityId}/toggle  admin_crud_{slug}_toggle            PATCH
+ *   {prefix}/{slug}/{entityId}/collection/{field}  admin_crud_{slug}_collectionEntries  GET
  *
  * plus one route per #[AdminAction] method a controller declares, named
- * the same way (admin_crud_{slug}_{method}) - see Base\Admin\Attribute\AdminAction.
+ * the same way (admin_crud_{slug}_{method}) and added before the {entityId}
+ * routes - see Base\Admin\Attribute\AdminAction.
  *
  * Loaded with: $routes->import('.', 'base_admin') in the app's routing config.
  */

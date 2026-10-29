@@ -1,12 +1,12 @@
 # Base Bundle — Admin
 
-Administration backoffice extension for [`omnisense/omnibase`](https://gitlab.glitchr.dev/public-repository/symfony/bundle/base): dynamic CRUD controllers, dashboard, menus and field-based form generation — with no dependency on `easycorp/easyadmin-bundle`.
+Administration backoffice extension for [`omnisense/omnibase`](https://github.com/glitchr-omnisense/omnibase): dynamic CRUD controllers, dashboard, menus and field-based form generation — with no dependency on `easycorp/easyadmin-bundle`.
 
 This package owns the `Base\Admin\` namespace. It is a from-scratch replacement for EasyAdmin, designed around three ideas:
 
-- **One field system, everywhere.** `Base\Admin\Field\XxxField` descriptors pre-wire `Base\Field\Type\XxxType` — genuine Symfony Form types living in `base-bundle` — so the exact same form fields work inside the admin and in any regular controller or frontend form.
+- **One field system, everywhere.** `Base\Admin\Field\XxxField` descriptors pre-wire `Base\Field\Type\XxxType` — genuine Symfony Form types living in `omnisense/omnibase` — so the exact same form fields work inside the admin and in any regular controller or frontend form.
 - **A simple, direct CRUD pipeline.** `AbstractCrudController` actions are plain, linear, overridable controller methods (`index`, `detail`, `edit`, `new`, `delete`) — no event-dispatch indirection, no builder/DTO duplication.
-- **Website-in-website UX.** The admin mounts as a [transparentJS](https://gitlab.glitchr.dev/public-repository/javascript/transparent) overlay over the current page: opening the admin is a real navigation to a real URL, and the top-left "×" instantly returns to the exact page you were on. Without transparentJS, every link degrades to a regular full page load.
+- **Website-in-website UX.** The admin mounts as a [transparentJS](https://github.com/glitchr-studio/flowjs) (now `@glitchr/flowjs`) overlay over the current page: opening the admin is a real navigation to a real URL, and the top-left "×" instantly returns to the exact page you were on. Without transparentJS, every link degrades to a regular full page load.
 
 ## Installation
 
@@ -28,7 +28,7 @@ return [
 
 - PHP 8.1+
 - Symfony 6.0+ / 7.0+ / 8.0+
-- `omnisense/omnibase` 3.0+
+- `omnisense/omnibase` 3.0 or 4.0
 
 ## Documentation
 
