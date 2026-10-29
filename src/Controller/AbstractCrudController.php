@@ -918,12 +918,14 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         // itself, so an explicit declaration still wins.
         $entityFqcn = static::getEntityFqcn();
         if (null === $filters->get('state') && \is_subclass_of($entityFqcn, \Base\Entity\Thread::class)) {
-            $filters->add(\Base\Admin\Filter\Filter::new('state', 'État')->asChoice([
-                'Publié' => \Base\Enum\ThreadState::PUBLISH,
-                'Brouillon' => \Base\Enum\ThreadState::DRAFT,
-                'Programmé' => \Base\Enum\ThreadState::FUTURE,
-                'Caché' => \Base\Enum\ThreadState::SECRET,
-                'Archivé' => \Base\Enum\ThreadState::ARCHIVE,
+            // value => label, as every choice filter: the labels are the core's enum words, in
+            // the reader's language, and "State" the forms domain's.
+            $filters->add(\Base\Admin\Filter\Filter::new('state', 'State')->asChoice([
+                \Base\Enum\ThreadState::PUBLISH => '@enums.thread_state.state_publish._singular',
+                \Base\Enum\ThreadState::DRAFT => '@enums.thread_state.state_draft._singular',
+                \Base\Enum\ThreadState::FUTURE => '@enums.thread_state.state_future._singular',
+                \Base\Enum\ThreadState::SECRET => '@enums.thread_state.state_publish_secret._singular',
+                \Base\Enum\ThreadState::ARCHIVE => '@enums.thread_state.state_publish_archive._singular',
             ]));
         }
 
@@ -933,15 +935,25 @@ abstract class AbstractCrudController extends AbstractController implements Crud
             if (\Base\Admin\Filter\Filter::TYPE_TEXT !== $filter->getType() || !$metadata->hasField($property)) {
                 continue;
             }
-            match ($metadata->getTypeOfField($property)) {
-                'boolean' => $filter->asBoolean(),
-                'integer', 'smallint', 'bigint', 'float', 'decimal' => $filter->asNumeric(),
-                'date', 'datetime', 'datetime_immutable', 'date_immutable' => $filter->asDate(),
-                default => null,
-            };
+            static::guessFilterType($filter, (string) $metadata->getTypeOfField($property));
         }
 
         return $filters;
+    }
+
+    /**
+     * A filter added by its property alone, by the column's Doctrine type: boolean, numeric, or a
+     * date range for every moment - Doctrine's dates and the core's utc_datetime(_immutable).
+     */
+    protected static function guessFilterType(\Base\Admin\Filter\Filter $filter, string $doctrineType): void
+    {
+        match ($doctrineType) {
+            'boolean' => $filter->asBoolean(),
+            'integer', 'smallint', 'bigint', 'float', 'decimal' => $filter->asNumeric(),
+            'date', 'date_immutable', 'datetime', 'datetime_immutable', 'datetimetz', 'datetimetz_immutable',
+            'utc_datetime', 'utc_datetime_immutable' => $filter->asDate(),
+            default => null,
+        };
     }
 
     protected function applyFilters(QueryBuilder $queryBuilder, \Base\Admin\Filter\Filters $filters, array $filterValues): void

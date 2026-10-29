@@ -203,12 +203,11 @@ explicitly: `asBoolean()`, `asDate()` (a `from`/`to` range), `asNumeric()` (`=`,
 or `applyWith(callable)` for a query of its own. A CRUD of a `Thread` gets a
 `state` filter unless it declares one.
 
-> [!WARNING]
-> Known defect: a property mapped with the core's `utc_datetime` or `utc_datetime_immutable`
-> (every moment of omnibase's entities, see the core's "Time and time zones") is not guessed
-> as a date: `add('createdAt')` gives a text filter. Declare it with
-> `Filter::new('createdAt')->asDate()`. The default `state` filter's labels are written in
-> French in the code (`Publié`, `Brouillon`...), not translated.
+A property added by its name alone is guessed from its column: a boolean, a number, or a date
+range for every moment (`date`, `datetime`, `datetimetz` and the core's `utc_datetime`, each
+mutable or immutable). The default `state` filter is labelled `State` (the `forms` domain) and
+offers the states by their value, with the core's enum words (`published`, `draft`...) in the
+reader's language.
 
 ## Hooks
 
