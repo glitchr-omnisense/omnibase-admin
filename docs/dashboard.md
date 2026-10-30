@@ -115,6 +115,34 @@ Implementing `PaletteDashboardWidgetTypeInterface` instead (`getDefaultLabel()`,
 `base.admin.dashboard_widget_type.palette`). In a template,
 `dashboard_widget_type(name)` gives the type.
 
+### A settings panel from markup
+
+A widget type's template gets a settings panel in the layout editor with no
+script of its own: a toggle `[data-widget-settings-toggle]` (give it the
+`item-settings` class: it shows only while customizing), a panel
+`[data-widget-settings-panel]` (with `hidden`, and the `widget-settings-panel`
+class for the editor's style) whose fields name the parameter they set, and
+the two buttons:
+
+```twig
+<button type="button" class="item-settings" data-widget-settings-toggle><i class="fa-solid fa-ellipsis-vertical"></i></button>
+<div class="widget-settings-panel" data-widget-settings-panel hidden>
+    <select data-widget-param="days"><option value="7">7 days</option><option value="30">30 days</option></select>
+    <label><input type="checkbox" data-widget-param="sites" value="3"> Strasbourg</label>
+    <label><input type="checkbox" data-widget-param="compact" data-widget-param-bool> Compact</label>
+    <button type="button" data-widget-settings-cancel>Cancel</button>
+    <button type="button" data-widget-settings-apply>Apply</button>
+</div>
+```
+
+Opening it reads the block's live parameters back into the fields; applying
+merges them into `data-widget-params` (a select, a radio or a text field its
+value, a number field a number; checkboxes sharing a name a list, digits as
+integers, an empty list removed so the widget's default applies; a checkbox
+with `data-widget-param-bool` a boolean). "Terminé" saves them with the
+layout and reloads the dashboard, which renders the widget with them.
+omnibase/ledger's bank cards use it for their period and accounts.
+
 The timeline the analytics widgets draw reads the services implementing the
 core's `Base\Service\TimelineEventProviderInterface` (tag
 `base.admin.timeline_event_provider`).
