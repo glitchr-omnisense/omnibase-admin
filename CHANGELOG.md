@@ -37,6 +37,9 @@
   its own script in the layout for its settings (docs/dashboard.md).
 
 ### Fixed
+- `crud/field/money`: an amount stored in cents shows in euros again - 1 480 € showed 14,80 €.
+  omnibase's `format_currency` takes minor units (its `scale`, 100 by default) and the template
+  divided by 100 first; cents now go in as they are, an amount in units with `{scale: 1}`.
 - On a phone (720px and less) every dashboard card takes the line: the grid's stored column count,
   set inline, outweighed the one-column rule, so a span-1 card kept its desktop width (the 240px
   floor) beside empty space and a span-2 card overflowed the page.

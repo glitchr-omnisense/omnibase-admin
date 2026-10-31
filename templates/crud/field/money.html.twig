@@ -4,6 +4,7 @@
 {%- else -%}
     {%- set currency = field.customOption('currency') ?? 'EUR' -%}
     {%- set storedAsCents = field.customOption('storedAsCents') ?? true -%}
-    {%- set amount = storedAsCents ? raw / 100 : raw -%}
-    <span class="field-money">{{ amount|format_currency(currency) }}</span>
+    {# omnibase's format_currency takes minor units (its "scale", 100 by default): cents go in as they
+       are - divided here too, 1 480 € showed 14,80 € -, an amount in units with scale 1. #}
+    <span class="field-money">{{ raw|format_currency(currency, storedAsCents ? {} : {scale: 1}) }}</span>
 {%- endif -%}
