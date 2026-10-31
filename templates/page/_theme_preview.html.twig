@@ -1,0 +1,113 @@
+{# The settings page's two colours, tried before they are saved: a colour
+   picker beside each field (admin.theme.primary / .secondary, text fields
+   holding #rrggbb - empty is the default), and every change re-derived by
+   the server (SystemController::themePreview(), the same Palette the layout
+   uses) and applied to the whole page at once through <style id="admin-theme">,
+   plus a small sample of what the colours touch. Saving the form keeps them. #}
+{% set _colors = admin_theme_colors() %}
+<section class="theme-preview" hidden data-theme-preview data-url="{{ path('admin_settings_theme') }}" aria-live="polite">
+    <h2 class="theme-preview-title">{{ 'page.settings.theme.preview'|trans({}, 'admin') }}</h2>
+    <div class="theme-preview-sample">
+        <p class="theme-preview-text">{{ 'page.settings.theme.preview_text'|trans({}, 'admin') }} <span class="theme-preview-muted">{{ 'page.settings.theme.preview_row'|trans({}, 'admin') }}</span> · <a href="#" onclick="return false">{{ 'page.settings.theme.preview_link'|trans({}, 'admin') }}</a></p>
+        <div class="theme-preview-row"><span class="theme-preview-dot"></span>{{ 'page.settings.theme.preview_row'|trans({}, 'admin') }}<span class="theme-preview-pill">{{ 'page.settings.theme.preview_button'|trans({}, 'admin') }}</span></div>
+        <div class="theme-preview-bars" aria-hidden="true">
+            {% for h in [40, 65, 52, 80, 60, 92] %}<span style="--h: {{ h }}%"><i class="is-1"></i><i class="is-2" style="height: {{ (h * 0.6)|round }}%"></i></span>{% endfor %}
+        </div>
+    </div>
+    <ul class="theme-preview-notes" data-theme-notes></ul>
+    <button type="button" class="btn" data-theme-reset>{{ 'page.settings.theme.preview_reset'|trans({}, 'admin') }}</button>
+</section>
+<style>
+    .theme-preview { margin: 0 0 1.5rem; padding: 1.25rem 1.5rem; border: 1px solid var(--admin-border); border-radius: var(--admin-card-radius); background: var(--admin-surface); }
+    .theme-preview-title { margin: 0 0 .9rem; font-size: var(--admin-fs-lg); font-weight: 700; }
+    .theme-preview-sample { display: grid; gap: .8rem; }
+    .theme-preview-text { margin: 0; }
+    .theme-preview-text a { color: var(--admin-accent); font-weight: 600; }
+    .theme-preview-muted { color: var(--admin-muted); }
+    .theme-preview-row { display: flex; align-items: center; gap: .6rem; padding: .65rem .8rem; border-radius: 10px; background: var(--admin-tint); font-weight: 600; }
+    .theme-preview-dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--admin-accent); }
+    .theme-preview-pill { margin-left: auto; padding: .3rem .8rem; border-radius: 999px; background: var(--admin-accent); color: var(--admin-on-accent); font-size: var(--admin-fs-sm); }
+    .theme-preview-bars { display: flex; align-items: flex-end; gap: .6rem; height: 4.5rem; padding-top: .3rem; border-bottom: 1px solid var(--admin-border); }
+    .theme-preview-bars span { position: relative; flex: 1; max-width: 2.4rem; height: var(--h); display: flex; align-items: flex-end; gap: 3px; }
+    .theme-preview-bars i { flex: 1; border-radius: 4px 4px 0 0; }
+    .theme-preview-bars .is-1 { height: 100%; background: var(--admin-series-1); }
+    .theme-preview-bars .is-2 { background: var(--admin-series-2); }
+    .theme-preview-notes { margin: .9rem 0 0; padding: 0; list-style: none; color: var(--admin-muted); font-size: var(--admin-fs-sm); }
+    .theme-preview-notes:empty { display: none; }
+    .theme-preview-notes li::before { content: "\f05a"; font-family: "Font Awesome 6 Free"; font-weight: 900; margin-right: .4rem; color: var(--admin-accent); }
+    .theme-preview > [data-theme-reset] { margin-top: .9rem; }
+    .theme-color { display: flex; align-items: center; gap: .6rem; }
+    .theme-color input[type=color] { flex: 0 0 auto; width: 2.6rem; height: 2.4rem; padding: 2px; border: 1px solid var(--admin-border); border-radius: 8px; background: var(--admin-surface); cursor: pointer; }
+    .theme-color input[type=text] { flex: 1; }
+</style>
+<script>
+(function init() {
+    // Rendered above the fields it enhances: on a full load, wait for them.
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init, { once: true }); return; }
+    var panel = document.querySelector('[data-theme-preview]');
+    if (!panel || panel.dataset.ready) return;
+    panel.dataset.ready = '1';
+    var defaults = {{ {primary: _colors.primary, secondary: _colors.secondary}|json_encode|raw }};
+    var form = panel.closest('form') || document.getElementById('admin-form');
+    var field = function (key) { return (form || document).querySelector('input[name*="admin-theme-' + key + '"]:not([type=color])'); };
+    var valid = function (v) { return /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test((v || '').trim()); };
+    var full = function (v) { v = v.trim().replace(/^#/, ''); return '#' + (v.length === 3 ? v.replace(/./g, '$&$&') : v).toLowerCase(); };
+    var timer = null;
+
+    function apply() {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            var p = field('primary'), s = field('secondary');
+            var url = new URL(panel.dataset.url, location.href);
+            if (p && valid(p.value)) url.searchParams.set('primary', full(p.value));
+            if (s && valid(s.value)) url.searchParams.set('secondary', full(s.value));
+            fetch(url, { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) {
+                    if (!data) return;
+                    var style = document.getElementById('admin-theme');
+                    if (style) style.textContent = data.css;
+                    var notes = panel.querySelector('[data-theme-notes]');
+                    notes.innerHTML = '';
+                    (data.notes || []).forEach(function (n) { var li = document.createElement('li'); li.textContent = n; notes.appendChild(li); });
+                });
+        }, 120);
+    }
+
+    ['primary', 'secondary'].forEach(function (key) {
+        var input = field(key);
+        if (!input || input.dataset.themeEnhanced) return;
+        input.dataset.themeEnhanced = '1';
+        input.placeholder = defaults[key];
+        input.setAttribute('spellcheck', 'false');
+        var picker = document.createElement('input');
+        picker.type = 'color';
+        picker.value = valid(input.value) ? full(input.value) : defaults[key];
+        picker.setAttribute('aria-label', (input.labels && input.labels[0] ? input.labels[0].textContent.trim() : key));
+        var wrap = document.createElement('div');
+        wrap.className = 'theme-color';
+        input.parentNode.insertBefore(wrap, input);
+        wrap.appendChild(picker);
+        wrap.appendChild(input);
+        picker.addEventListener('input', function () { input.value = picker.value; apply(); });
+        input.addEventListener('input', function () { if (valid(input.value)) picker.value = full(input.value); apply(); });
+    });
+
+    // Beside the two fields it previews, below the second one.
+    var anchor = field('secondary') || field('primary');
+    var row = anchor && (anchor.closest('.form-entity') || anchor.closest('.form-group'));
+    if (row && row.parentNode) row.parentNode.insertBefore(panel, row.nextSibling);
+    panel.hidden = false;
+
+    panel.querySelector('[data-theme-reset]').addEventListener('click', function () {
+        ['primary', 'secondary'].forEach(function (key) {
+            var input = field(key);
+            if (!input) return;
+            input.value = '';
+            var picker = input.parentNode.querySelector('input[type=color]');
+            if (picker) picker.value = {{ {primary: admin_theme_defaults().primary, secondary: admin_theme_defaults().secondary}|json_encode|raw }}[key];
+        });
+        apply();
+    });
+})();
+</script>

@@ -284,6 +284,15 @@ return function (ContainerConfigurator $configurator) {
     $services->set(\Base\Admin\Settings\SettingsSections::class)
         ->args([tagged_iterator('base.admin.settings_section')]);
     $services->set(\Base\Admin\Settings\SiteSettingsSection::class)->autowire()->autoconfigure();
+    // The back office's two colours: the settings (admin.theme.*), else the
+    // configuration (admin.theme), else the defaults; every colour token
+    // derives from them (Base\Admin\Theme\Palette).
+    $services->set(\Base\Admin\Theme\AdminTheme::class)
+        ->args([service(\Base\Service\SettingBagInterface::class)->nullOnInvalid(), '%admin.theme.primary%', '%admin.theme.secondary%']);
+    $services->set(\Base\Admin\Settings\ThemeSettingsSection::class)->autowire()->autoconfigure();
+    $services->set(\Base\Admin\Twig\AdminThemeTwigExtension::class)
+        ->args([service(\Base\Admin\Theme\AdminTheme::class)])
+        ->tag('twig.extension');
     $services->set(\Base\Admin\Settings\SpamKeySection::class)->autowire()->autoconfigure();
     $services->set(\Base\Admin\Controller\SystemController::class)
         ->autowire()->autoconfigure()->public()

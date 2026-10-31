@@ -153,7 +153,7 @@ the chrome:
 tinted rows that alternate, the label bold on the left, an icon, the value right-aligned, or an
 action as a small button (`.dash-row-action`) - no underlined link lists. `.dash-empty` is a
 quiet centred empty state. On a phone (720px and less) every card takes the line, but a
-`.dash-card--compact` (one figure and its context) sits two to a row. Labels are in the text
+`.dash-card--compact` (one figure and its context) sits two to a row on a small tablet (561-720px), alone on a phone. Labels are in the text
 face at a readable size: no small capitals.
 
 ### A settings panel from markup

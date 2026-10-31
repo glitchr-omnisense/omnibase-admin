@@ -44,6 +44,19 @@ class AdminConfiguration extends AbstractBaseConfiguration
                 // wins. Both URL GENERATION and URL RESOLUTION read this,
                 // so narrowing it can never produce a link the admin
                 // cannot follow - only shorter URLs.
+                // The back office's two colours, when the settings page
+                // (admin.theme.primary / .secondary) leaves them empty:
+                //
+                //     admin:
+                //         theme: { primary: '#2e7d32', secondary: '#3e2723' }
+                ->arrayNode('theme')
+                    ->info('The back office\'s colours: every colour token derives from them, light and dark, kept readable. The settings page overrides them.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('primary')->info('The accent: links, buttons, focus rings, the active menu entry, the first chart series (#rrggbb).')->defaultValue(\Base\Admin\Theme\Palette::DEFAULT_PRIMARY)->end()
+                        ->scalarNode('secondary')->info('The ink: text, muted text, borders, the second chart series (#rrggbb).')->defaultValue(\Base\Admin\Theme\Palette::DEFAULT_SECONDARY)->end()
+                    ->end()
+                ->end()
                 ->arrayNode('url_identifier')
                     ->info('Readable identifiers used in admin URLs instead of the numeric id.')
                     ->addDefaultsIfNotSet()

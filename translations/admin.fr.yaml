@@ -242,6 +242,22 @@ page.settings.field:
     address_locality: Adresse - ville
     address_region: Adresse - région
     address_country: Adresse - pays
+    theme_primary: Couleur principale
+    theme_primary_help: "Liens, boutons, entrée active du menu, première série des graphiques. Vide : %default%."
+    theme_secondary: Couleur secondaire
+    theme_secondary_help: "Texte, bordures, seconde série des graphiques. Vide : %default%."
+page.settings.theme:
+    preview: Aperçu
+    preview_text: Un texte courant, un texte discret et un lien.
+    preview_link: un lien
+    preview_button: Bouton
+    preview_row: Ligne survolée
+    preview_reset: Couleurs par défaut
+    adjusted:
+        text: La couleur secondaire est assombrie pour que le texte reste lisible.
+        accent: La couleur principale est assombrie pour que les liens et boutons restent lisibles.
+        focus: L'anneau de focus est renforcé pour rester visible.
+        series-2: La seconde série des graphiques est ajustée pour rester visible.
 page.apikey.field:
     akismet: Akismet
 page.hours:

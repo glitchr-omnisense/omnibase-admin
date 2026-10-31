@@ -113,6 +113,47 @@ An application that still routes its own `App\Controller\Admin\SystemController`
 under `admin_settings`/`admin_apikey` keeps it (its routes are imported after the
 loader's); deleting it hands the pages over to this one.
 
+## The back office's colours
+
+Two colours per site, and every colour of the back office derives from them, in the
+light and the dark theme: the **primary** (`admin.theme.primary`) is the accent - links,
+buttons, focus rings, the active menu entry, the first chart series, the faint tint of
+the page and of a hovered row; the **secondary** (`admin.theme.secondary`) is the ink -
+text, muted text, borders, the second chart series, the hue of the dark theme's page.
+
+A site sets them, by priority:
+
+1. on the settings page (`/admin/settings`, "Couleur principale" / "Couleur secondaire",
+   `ThemeSettingsSection`): a colour picker beside each field, and a live preview -
+   the whole page takes the colours as they are chosen (`admin_settings_theme`
+   answers the tokens a pair gives), saved with the form; empty is the next level;
+2. in its configuration, the default of every install of that site:
+
+   ```yaml
+   # config/packages/admin.yaml
+   admin:
+       theme: { primary: '#2e7d32', secondary: '#3e2723' }
+   ```
+
+3. else the bundle's: indigo `#3a47d5` and navy `#1b2140`.
+
+`Base\Admin\Theme\Palette` derives the tokens (`--admin-bg`, `-surface`, `-border`,
+`-text`, `-muted`, `-accent`, `-on-accent`, `-accent-soft`, `-tint`, `-tint-strong`,
+`-focus`, `-series-1`, `-series-2`) and keeps them readable (WCAG AA): text and links
+at 4.5:1 against what they sit on (body text 7:1), a focus ring and a chart mark at
+3:1; a colour that falls short is moved towards black (light) or white (dark) until it
+reaches it, and the settings page says so under the preview. The text on a filled
+button is white or the ink, whichever reads better (`--admin-on-accent`). The dark
+theme's page is always dark, whatever the secondary. The layout prints them in
+`<style id="admin-theme">` (Twig `admin_theme_css()`), after its own tokens; a bundle's
+card that draws with `--admin-accent`, `--admin-series-1/2` and `--admin-tint` follows
+the site's colours without a line of its own.
+
+The type follows one scale on a 16px root, the system font stack: body text 15px
+(`--admin-fs-md`), labels and meta 13-14px (`--admin-fs-xs`, `--admin-fs-sm`), card
+titles 17px (`--admin-fs-lg`), page titles 24px (`--admin-fs-xl`), headline figures
+28px (`--admin-fs-num`); never small capitals.
+
 ## Reports (complaints)
 
 `Base\Entity\User\Complaint` (omnisense/omnibase) gets its screen:

@@ -57,6 +57,18 @@
             --admin-radius: 8px;
             --admin-card-radius: 16px;
             --admin-card-shadow: 0 1px 2px rgba(27, 33, 64, .04), 0 6px 20px rgba(27, 33, 64, .06);
+            {# The colour tokens a button's or a badge's text takes on the
+               accent, and a focus ring: re-derived from the site's colours by
+               <style id="admin-theme"> below (Base\Admin\Theme\Palette). #}
+            --admin-on-accent: #fff; --admin-focus: var(--admin-accent);
+            --admin-accent-soft: #e7e9fa; --admin-series-1: var(--admin-accent); --admin-series-2: var(--admin-text);
+            {# The type scale, on a 16px root: body text at 15px, labels and
+               meta at 13-14px, card titles at 17px, page titles at 24px,
+               headline figures at 28px. The system font stack, no web font.
+               Labels are never set in small capitals. #}
+            --admin-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            --admin-fs-xs: .8125rem; --admin-fs-sm: .875rem; --admin-fs-md: .9375rem;
+            --admin-fs-lg: 1.0625rem; --admin-fs-xl: 1.5rem; --admin-fs-num: 1.75rem;
             {# Not an admin token - base-async's own. It ships
                `.text-muted{color:var(--text-muted)!important}` but only
                DEFINES --text-muted inside a scope this admin never gets
@@ -207,11 +219,11 @@
         .admin-active-users-trigger { width: auto; padding: 0 .5rem 0 .3rem; border-radius: 999px; gap: .25rem; }
         .admin-active-avatars { display: flex; }
         .admin-avatar-initial { display: flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
-            background: var(--admin-accent); color: #fff; font-size: .7rem; font-weight: 700; border: 2px solid var(--admin-surface); flex-shrink: 0; }
+            background: var(--admin-accent); color: var(--admin-on-accent, #fff); font-size: .7rem; font-weight: 700; border: 2px solid var(--admin-surface); flex-shrink: 0; }
         .admin-active-avatars .admin-avatar-initial + .admin-avatar-initial { margin-left: -.5rem; }
         .admin-active-count { font-size: .72rem; color: var(--admin-muted); font-weight: 600; }
         .admin-active-users-list { min-width: 220px; }
-        .dropdown-heading { padding: .5rem .8rem .3rem; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--admin-muted); }
+        .dropdown-heading { padding: .55rem .8rem .3rem; font-size: var(--admin-fs-xs); font-weight: 600; color: var(--admin-muted); }
         .admin-active-user-row { display: flex; align-items: center; gap: .5rem; padding: .4rem .8rem; font-size: .85rem; }
         .admin-active-user-row .admin-avatar-initial { border: 0; }
         .admin-active-user-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -220,8 +232,13 @@
         * { box-sizing: border-box; }
         {# The back office reads small and dense: its own root size (it is its own document, in the site's frame), so
            every rem-sized title, button and badge comes down with the text. #}
-        html { font-size: 14px; }
-        body { margin: 0; font: 13.5px/1.5 system-ui, -apple-system, sans-serif; background: var(--admin-bg); color: var(--admin-text); }
+        {# 16px root, 15px body text (it was 14 and 13.5: read as too small
+           on every page). Everything sized in rem - this layout's rules and
+           the bundles' cards alike - grows with it. #}
+        html { font-size: 16px; }
+        body { margin: 0; font: var(--admin-fs-md)/1.6 var(--admin-font); background: var(--admin-bg); color: var(--admin-text);
+               -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+        :focus-visible { outline-color: var(--admin-focus); }
         .admin-shell { display: flex; min-height: 100vh; }
         {# Without this, .admin-shell's flex layout stretches .admin-aside to
            match .admin-main's full content height, so on any page taller
@@ -363,14 +380,14 @@
            container (a padded .section div vs an unpadded <li>) they're
            actually sitting in. #}
         .admin-menu .section { display: flex; align-items: center; justify-content: space-between;
-            padding: .9rem 0 .3rem 1.25rem; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--admin-muted); }
+            padding: 1.1rem 0 .35rem 1.25rem; font-size: var(--admin-fs-sm); font-weight: 600; color: var(--admin-muted); }
         {# flex:1 so this - not the trailing item-controls - is what
            absorbs the row's leftover space; keeps icon+label pinned left
            regardless of whether item-controls is even present. #}
         .admin-menu .section-label { display: flex; align-items: center; flex: 1; min-width: 0; gap: .3rem; }
         .admin-menu .section-label i { width: 1.1rem; text-align: center; }
         .admin-menu .section-group > ul { list-style: none; margin: 0; padding: 0; }
-        .admin-menu a { display: flex; align-items: center; padding: .45rem 1.25rem; color: inherit; text-decoration: none; border-left: 3px solid transparent; min-width: 0; }
+        .admin-menu a { display: flex; align-items: center; padding: .5rem 1.25rem; color: inherit; text-decoration: none; border-left: 3px solid transparent; min-width: 0; }
         .admin-menu li:hover > a { background: var(--admin-bg); }
         .admin-menu .selected > a { border-left-color: var(--admin-accent); color: var(--admin-accent); font-weight: 600; }
         .admin-menu a i { width: 1.1rem; text-align: center; margin-right: .3rem; flex-shrink: 0; }
@@ -530,7 +547,7 @@
            in NORMAL expanded mode too, duplicating the section's own label
            right underneath it. Scoped through .admin-menu li to match or
            beat that specificity instead of relying on source-order luck. #}
-        .admin-menu li.flyout-heading { display: none; padding: .3rem 1rem .5rem; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--admin-muted); }
+        .admin-menu li.flyout-heading { display: none; padding: .3rem 1rem .5rem; font-size: var(--admin-fs-sm); font-weight: 600; color: var(--admin-muted); }
         html.is-sidebar-collapsed .section-group > ul li.flyout-heading { display: block; }
         #admin-sidebar-collapse-toggle i { transition: transform .15s; }
         html.is-sidebar-collapsed #admin-sidebar-collapse-toggle i { transform: rotate(180deg); }
@@ -587,7 +604,7 @@
         @supports (background: color-mix(in srgb, red 8%, transparent)) {
             .admin-resize-ghost { background: color-mix(in srgb, var(--admin-accent) 8%, transparent); }
         }
-        .admin-resize-ghost-badge { position: absolute; top: .5rem; right: .5rem; background: var(--admin-accent); color: #fff;
+        .admin-resize-ghost-badge { position: absolute; top: .5rem; right: .5rem; background: var(--admin-accent); color: var(--admin-on-accent, #fff);
             font-size: .75rem; font-weight: 600; padding: .2rem .6rem; border-radius: 999px; }
         {# Armed while dragging one dashboard card over the INNER zone of
            another (see sticky-sortable.js's mergeable/findMergeTarget) -
@@ -656,7 +673,7 @@
         .admin-sidebar-stats.is-open { display: block; }
         [data-stats-toggle][aria-expanded="true"] { color: var(--admin-accent); border-color: var(--admin-accent); background: var(--admin-surface); }
         .admin-sidebar-stats .admin-analytics { font-size: .8rem; color: var(--admin-muted); }
-        .admin-sidebar-stats .analytics-window { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; margin: .5rem 0 .2rem; }
+        .admin-sidebar-stats .analytics-window { font-size: var(--admin-fs-xs); font-weight: 600; margin: .5rem 0 .2rem; }
         .admin-sidebar-stats .analytics-window:first-child { margin-top: 0; }
         .admin-sidebar-stats .row { margin: .1rem 0; }
         .admin-account { position: relative; }
@@ -690,9 +707,9 @@
         .admin-usermenu-avatar-empty {
             display: inline-flex; align-items: center; justify-content: center; color: var(--admin-muted); }
         .admin-usermenu-identity { display: flex; flex-direction: column; min-width: 0; gap: .1rem; }
-        .admin-usermenu-label { font-size: 13px; color: var(--admin-muted); line-height: 1.25; }
+        .admin-usermenu-label { font-size: var(--admin-fs-xs); color: var(--admin-muted); line-height: 1.25; }
         .admin-usermenu-name {
-            font-size: 14px; font-weight: 400; line-height: 1.25;
+            font-size: var(--admin-fs-md); font-weight: 400; line-height: 1.25;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         {# Qualified with .admin-menu li: that rule sets display:flex and a
            min-height of 2.4rem on every item, which outranked a bare
@@ -769,7 +786,7 @@
            title stays put and everything else accumulates beneath it. #}
         .admin-header { display: flex; align-items: center; gap: 1rem; margin: 0 -2rem 1.25rem; padding: 1rem 2rem;
                         position: sticky; top: 3.3rem; z-index: 14; background: var(--admin-bg); }
-        .admin-header h1 { margin: 0; font-size: 1.35rem; }
+        .admin-header h1 { margin: 0; font-size: var(--admin-fs-xl); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
         {# Detail-page shape: the record's own name is the heading and the
            CRUD name drops to a small line beneath it. The name can be a
            full article title, so it wraps rather than stretching the
@@ -901,7 +918,7 @@
         .page-icon-cell { display: flex; align-items: center; justify-content: center; width: 2.1rem; height: 2.1rem;
                           border: 1px solid transparent; border-radius: 6px; background: none; color: inherit; font-size: 1rem; cursor: pointer; }
         .page-icon-cell:hover { border-color: var(--admin-accent); color: var(--admin-accent); background: var(--admin-bg); }
-        .admin-header-subtitle { font-size: .82rem; color: var(--admin-muted); margin-top: .2rem; }
+        .admin-header-subtitle { font-size: var(--admin-fs-sm); color: var(--admin-muted); margin-top: .25rem; }
         .admin-header-note { font-size: .82rem; color: var(--admin-muted); margin-top: .15rem; }
         {# The action row keeps its natural width; the TITLE gives ground. With
            both free to size themselves the heading took 551px of a 1165px
@@ -1033,6 +1050,12 @@
            cap only means "this is the action" while its neighbours lack one - so
            the cap is reserved for the committing action and everything else is
            neutral. #}
+        {# An action a bundle declared without a class (an <a> in the page's
+           action row) reads as one of the row's buttons, not as a raw blue
+           underlined link. #}
+        .global-actions > a:not([class*="btn"]) { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .9rem; border-radius: 3px;
+            line-height: 1.2; font-size: .9rem; color: inherit; text-decoration: none; white-space: nowrap; }
+        .global-actions > a:not([class*="btn"]):hover { color: color-mix(in srgb, var(--admin-accent) 72%, var(--admin-text)); background: color-mix(in srgb, var(--admin-accent) 10%, transparent); }
         .btn { --btn-tone: var(--admin-accent); }
         .btn-primary { --btn-tone: var(--admin-accent); }
         .btn-success { --btn-tone: var(--admin-success); }
@@ -1171,7 +1194,8 @@
            sticky sidebar/header) or squeezes columns unreadably thin. #}
         .table-responsive { overflow-x: auto; }
         table.datagrid { width: 100%; min-width: max-content; border-collapse: collapse; }
-        .datagrid th, .datagrid td { text-align: left; padding: .6rem .9rem; border-bottom: 1px solid var(--admin-border); white-space: nowrap; }
+        .datagrid th, .datagrid td { text-align: left; padding: .8rem 1rem; border-bottom: 1px solid var(--admin-border); white-space: nowrap; }
+        .datagrid th { font-size: var(--admin-fs-sm); font-weight: 600; color: var(--admin-muted); }
         .datagrid th a { color: inherit; text-decoration: none; }
         {# Tinted header row, like production's. Two reasons, one of them a
            correctness fix rather than taste: the sticky actions cell below
@@ -1183,7 +1207,7 @@
            indistinguishable from its siblings and anchors the header at the
            same time. #}
         .datagrid thead th { background: var(--admin-bg); }
-        .datagrid tr:hover td { background: var(--admin-bg); }
+        .datagrid tr:hover td { background: var(--admin-tint); }
         {# Row actions stay pinned to the right edge while the rest of the
            row scrolls under them (requested: keep view/edit/delete fixed,
            make the other columns scrollable). Wide grids scroll far enough
@@ -1214,7 +1238,7 @@
                      position: sticky; bottom: 0; z-index: 7;
                      background: var(--admin-surface); border-top: 1px solid var(--admin-border); }
         .paginator .pages { margin-left: auto; display: flex; gap: .25rem; }
-        .paginator .page-current { background: var(--admin-accent); border-color: var(--admin-accent); color: #fff; cursor: default; }
+        .paginator .page-current { background: var(--admin-accent); border-color: var(--admin-accent); color: var(--admin-on-accent, #fff); cursor: default; }
         .paginator .pages-ellipsis { border: none; background: none; cursor: default; }
         dialog#admin-confirm { border: 1px solid var(--admin-border); border-radius: var(--admin-radius); background: var(--admin-surface);
                                color: inherit; padding: 1.5rem; max-width: 420px; box-shadow: 0 18px 50px rgba(0,0,0,.25); }
@@ -1259,7 +1283,7 @@
            were removed from this same page). #}
         form.admin-form .system-form-group-title { font-size: 1rem; font-weight: 700; margin: 0 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--admin-border); }
         form.admin-form .system-form-group-title:not(:first-child) { margin-top: 2rem; }
-        form.admin-form label { display: block; font-weight: 600; margin-bottom: .3rem; }
+        form.admin-form label { display: block; font-weight: 600; margin-bottom: .4rem; font-size: var(--admin-fs-md); }
         {# `color: inherit` next to `font: inherit`, and it is not decoration:
            form controls are the one place `color` does NOT inherit. The UA
            gives input/select/textarea `color: fieldtext` (and buttons
@@ -1272,6 +1296,7 @@
            `color-scheme` declaration up in :root fixes the same root cause
            for the native chrome CSS can't reach - keep both. #}
         form.admin-form input[type=text], form.admin-form input[type=email], form.admin-form input[type=number],
+        form.admin-form input[type=tel], form.admin-form input[type=url], form.admin-form input[type=search],
         form.admin-form input[type=password], form.admin-form select, form.admin-form textarea {
             width: 100%; padding: .5rem .65rem; border: 1px solid var(--admin-border); border-radius: 6px; font: inherit; color: inherit; background: var(--admin-surface);
         }
@@ -1428,7 +1453,7 @@
         :root[data-theme="dark"] .select2-results__option[aria-selected="true"]:not(.select2-results__option--highlighted) {
             background: var(--admin-bg); color: var(--admin-muted);
         }
-        :root[data-theme="dark"] .select2-results__option--highlighted { background: var(--admin-accent) !important; color: #fff !important; }
+        :root[data-theme="dark"] .select2-results__option--highlighted { background: var(--admin-accent) !important; color: var(--admin-on-accent, #fff) !important; }
         :root[data-theme="dark"] .select2-results__group { color: var(--admin-muted); }
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) .select2-container--bootstrap4 .select2-selection {
@@ -1451,7 +1476,7 @@
             :root:not([data-theme="light"]) .select2-results__option[aria-selected="true"]:not(.select2-results__option--highlighted) {
                 background: var(--admin-bg); color: var(--admin-muted);
             }
-            :root:not([data-theme="light"]) .select2-results__option--highlighted { background: var(--admin-accent) !important; color: #fff !important; }
+            :root:not([data-theme="light"]) .select2-results__option--highlighted { background: var(--admin-accent) !important; color: var(--admin-on-accent, #fff) !important; }
             :root:not([data-theme="light"]) .select2-results__group { color: var(--admin-muted); }
         }
         {# The system-settings pages (API keys, site settings) build their
@@ -2478,12 +2503,12 @@
            and .dash-card-panel, the white card. .dash-rows are tinted rows that
            alternate, the label bold on the left, the value on the right;
            .dash-empty a quiet centred empty state. A .dash-card--compact sits
-           two to a row on a phone. #}
+           two to a row on a small tablet, one on a phone. #}
         .dash-card { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: var(--widget-height, 0); }
         .dash-card-head { display: flex; align-items: center; gap: .45rem; min-height: 1.9rem; margin: 0 0 .55rem; padding: 0 .1rem; }
         .dash-card-titles { display: grid; gap: .05rem; min-width: 0; }
-        .dash-card-title { margin: 0; font-size: 1.02rem; font-weight: 700; color: var(--admin-text); line-height: 1.25; min-width: 0; }
-        .dash-card-sub { font-size: .8rem; color: var(--admin-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .dash-card-title { margin: 0; font-size: var(--admin-fs-lg); font-weight: 700; color: var(--admin-text); line-height: 1.25; min-width: 0; }
+        .dash-card-sub { font-size: var(--admin-fs-xs); color: var(--admin-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
         .dash-card-actions { margin-left: auto; display: inline-flex; align-items: center; gap: .15rem; flex: none; }
         .dash-card-action { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 8px; color: var(--admin-muted); text-decoration: none; font-size: .82rem; }
         .dash-card-action:hover, .dash-card-action:focus-visible { background: var(--admin-tint-strong); color: var(--admin-accent); }
@@ -2494,18 +2519,22 @@
         .widget-block.no-card-bg .dash-card-panel { background: transparent; box-shadow: none; padding: 0; }
         body.is-customizing .dash-card-head { padding-right: 7rem; }
         .dash-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: .2rem; }
-        .dash-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .3rem .7rem; padding: .6rem .75rem; border-radius: 10px; font-size: .88rem; color: var(--admin-text); text-decoration: none; }
+        .dash-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .3rem .7rem; padding: .65rem .8rem; border-radius: 10px; font-size: var(--admin-fs-sm); color: var(--admin-text); text-decoration: none; }
         .dash-rows > :nth-child(odd) > .dash-row, .dash-rows > .dash-row:nth-child(odd) { background: var(--admin-tint); }
         .dash-row-icon { color: var(--admin-accent); width: 1.1rem; text-align: center; font-size: .85rem; }
         .dash-row-label { font-weight: 600; min-width: 0; }
-        .dash-row-label small { display: block; font-weight: 400; color: var(--admin-muted); font-size: .78rem; margin-top: .05rem; }
+        .dash-row-label small { display: block; font-weight: 400; color: var(--admin-muted); font-size: var(--admin-fs-xs); margin-top: .1rem; }
         .dash-row-value { font-weight: 700; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
         a.dash-row:hover { background: var(--admin-tint-strong); }
-        .dash-row-action { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .65rem; border-radius: 999px; background: var(--admin-accent); color: #fff; font-size: .78rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
-        .dash-row-action:hover { filter: brightness(1.08); color: #fff; }
+        .dash-row-action { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .65rem; border-radius: 999px; background: var(--admin-accent); color: var(--admin-on-accent, #fff); font-size: .78rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+        .dash-row-action:hover { filter: brightness(1.08); color: var(--admin-on-accent, #fff); }
         .dash-empty { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 6rem; color: var(--admin-muted); font-size: .95rem; }
-        @media (max-width: 720px) {
+        {# Two compact cards to a row on a small tablet; on a phone, at the
+           15px body text, one - two side by side cut every row's label. #}
+        @media (min-width: 561px) and (max-width: 720px) {
             .widget-grid > .widget-block:has(> .dash-card--compact) { flex-basis: calc(50% - .375rem); min-width: 0; }
+        }
+        @media (max-width: 720px) {
             .dash-card-panel { padding: 1rem 1.05rem; }
         }
         {# .composite-pane shares this same <ul><li><a> markup (see
@@ -2619,7 +2648,7 @@
         .analytics-range-picker.is-loading { opacity: .5; }
         .analytics-range-btn { border: 1px solid var(--admin-border); background: transparent; color: var(--admin-muted); font-size: .78rem; font-weight: 600; padding: .3rem .75rem; border-radius: 999px; cursor: pointer; transition: background .15s ease, color .15s ease, border-color .15s ease; }
         .analytics-range-btn:hover { border-color: var(--admin-accent); color: var(--admin-text); }
-        .analytics-range-btn.is-active { background: var(--admin-accent); border-color: var(--admin-accent); color: #fff; }
+        .analytics-range-btn.is-active { background: var(--admin-accent); border-color: var(--admin-accent); color: var(--admin-on-accent, #fff); }
         .analytics-chart-wrap { position: relative; height: 240px; }
         {# Pinned-day marker: a vertical rule at the clicked point, drawn as
            a DOM overlay rather than a Chart.js plugin so it needs nothing
@@ -2913,7 +2942,7 @@
         body:not(.is-customizing) [data-action-row] .is-hidden { display: none; }
         body.is-customizing [data-action-row] .is-hidden { opacity: .38; text-decoration: line-through; }
         .filter-count { display: inline-flex; align-items: center; justify-content: center; min-width: 1.15rem; height: 1.15rem; padding: 0 .3rem;
-            margin-left: .35rem; border-radius: 999px; background: var(--admin-accent); color: #fff; font-size: .7rem; font-weight: 700; }
+            margin-left: .35rem; border-radius: 999px; background: var(--admin-accent); color: var(--admin-on-accent, #fff); font-size: .7rem; font-weight: 700; }
         .filter-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; padding: .75rem .9rem; margin-bottom: 1rem;
                       background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); }
         .filter-bar label { display: flex; flex-direction: column; gap: .2rem; font-size: .82rem; color: var(--admin-muted); }
@@ -3117,9 +3146,8 @@
                 content: attr(data-label);
                 flex: 0 0 40%;
                 color: var(--admin-muted);
-                font-size: .78rem;
-                text-transform: uppercase;
-                letter-spacing: .03em;
+                font-size: var(--admin-fs-sm);
+                font-weight: 600;
                 {# The td carries an inline text-align from the field's own
                    textAlign option, which a ::before inherits - so a column
                    configured to centre its values centred its LABEL too, and
@@ -3198,6 +3226,12 @@
         .manual-meta { text-align: right; color: var(--admin-muted); font-size: .82rem; margin-bottom: .5rem; }
         .manual-excerpt { color: var(--admin-muted); }
     </style>
+    {# The site's two colours (admin.theme.primary / .secondary, or the
+       configuration's admin.theme): every colour token above derived from
+       them, light and dark, kept readable (Base\Admin\Theme\Palette). After
+       the hand-written tokens, so it wins; the settings page swaps its
+       text for a live preview. #}
+    <style id="admin-theme">{{ admin_theme_css() }}</style>
     {% endblock %}
     {% block form_assets %}
         {# base-bundle's prebuilt widget bundles (select2, editor, datetime,

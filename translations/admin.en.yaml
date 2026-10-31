@@ -242,6 +242,22 @@ page.settings.field:
     address_locality: Address - town
     address_region: Address - region
     address_country: Address - country
+    theme_primary: Primary colour
+    theme_primary_help: "Links, buttons, the active menu entry, the first chart series. Empty: %default%."
+    theme_secondary: Secondary colour
+    theme_secondary_help: "Text, borders, the second chart series. Empty: %default%."
+page.settings.theme:
+    preview: Preview
+    preview_text: Body text, muted text and a link.
+    preview_link: a link
+    preview_button: Button
+    preview_row: Hovered row
+    preview_reset: Default colours
+    adjusted:
+        text: The secondary colour is darkened so that text stays readable.
+        accent: The primary colour is darkened so that links and buttons stay readable.
+        focus: The focus ring is strengthened to stay visible.
+        series-2: The second chart series is adjusted to stay visible.
 page.apikey.field:
     akismet: Akismet
 page.hours:
