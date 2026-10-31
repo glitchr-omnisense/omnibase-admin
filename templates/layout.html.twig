@@ -46,11 +46,17 @@
                re-declared in each dark block: it is a normal property, not
                a custom one, so it does not follow --admin-* automatically. #}
             color-scheme: light;
-            --admin-bg: #f6f7f9; --admin-surface: #fff; --admin-border: #e3e6ea;
-            --admin-text: #1f2429; --admin-muted: #6b7683; --admin-accent: #2563eb;
+            {# One dark navy for text and an indigo accent on a light, faintly blue
+               page; the cards white, without a border, lifted by a soft shadow.
+               Text greys are navy greys: no grey on grey. #}
+            --admin-bg: #f4f5fa; --admin-surface: #fff; --admin-border: #e6e8f1;
+            --admin-text: #1b2140; --admin-muted: #5d6486; --admin-accent: #3a47d5;
+            --admin-tint: #f3f4fa; --admin-tint-strong: #e9ebf6;
             --admin-aside-w: 260px;
-            --admin-danger: #dc2626; --admin-success: #16a34a; --admin-warning: #d97706;
+            --admin-danger: #d9363e; --admin-success: #138a4c; --admin-warning: #c46a00;
             --admin-radius: 8px;
+            --admin-card-radius: 16px;
+            --admin-card-shadow: 0 1px 2px rgba(27, 33, 64, .04), 0 6px 20px rgba(27, 33, 64, .06);
             {# Not an admin token - base-async's own. It ships
                `.text-muted{color:var(--text-muted)!important}` but only
                DEFINES --text-muted inside a scope this admin never gets
@@ -92,9 +98,11 @@
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) {
                 color-scheme: dark;
-                --admin-bg: #16181d; --admin-surface: #1e2127; --admin-border: #2c3038;
-                --admin-text: #e6e8eb; --admin-muted: #8b94a1; --admin-accent: #6ea8fe;
-                --admin-danger: #f87171; --admin-success: #4ade80; --admin-warning: #fbbf24;
+                --admin-bg: #11131b; --admin-surface: #1a1d29; --admin-border: #2a2e3f;
+                --admin-text: #e8eaf4; --admin-muted: #9ca2c0; --admin-accent: #8d9bff;
+                --admin-tint: #212536; --admin-tint-strong: #2a2f44;
+                --admin-danger: #f47b80; --admin-success: #4cc98a; --admin-warning: #f0b14a;
+                --admin-card-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
                 {# base-bundle's form-type-editor.css reads this to repaint
                    EditorJS headings, hardcoded black otherwise (invisible
                    against this dark background - reported live on an
@@ -104,9 +112,11 @@
         }
         :root[data-theme="dark"] {
             color-scheme: dark;
-            --admin-bg: #16181d; --admin-surface: #1e2127; --admin-border: #2c3038;
-            --admin-text: #e6e8eb; --admin-muted: #8b94a1; --admin-accent: #6ea8fe;
-            --admin-danger: #f87171; --admin-success: #4ade80; --admin-warning: #fbbf24;
+            --admin-bg: #11131b; --admin-surface: #1a1d29; --admin-border: #2a2e3f;
+            --admin-text: #e8eaf4; --admin-muted: #9ca2c0; --admin-accent: #8d9bff;
+            --admin-tint: #212536; --admin-tint-strong: #2a2f44;
+            --admin-danger: #f47b80; --admin-success: #4cc98a; --admin-warning: #f0b14a;
+            --admin-card-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
             --editor-heading-color: var(--admin-text);
         }
         {# Sticky at top:0 with no shadow, only a 1px border, gave the bar no
@@ -964,6 +974,8 @@
                 order: 3; width: 100%; margin-left: 0; justify-content: flex-start; }
         }
         .card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); }
+        {# A dashboard card: no border, a large radius, a soft shadow. #}
+        .widget-block > .card, .widget-block > .analytics-card.card { border: 0; border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); }
         {# Generic "no card chrome" toggle any dashboard widget can carry
            (see MenuItem::$background's own docblock) - .widget-group IS
            its own .card (same div, see that template's own comment) so
@@ -2439,12 +2451,63 @@
            column width itself is set here, which the inline count does not
            touch, and every card takes the line. #}
         @media (max-width: 720px) {
-            .widget-grid { --widget-columns: 1; --widget-col-width: 100%; }
+            .widget-grid { --widget-columns: 1; --widget-col-width: 100%; gap: 1.25rem .75rem; }
             .widget-grid > .widget-block, .widget-grid > .widget-group { flex-basis: 100%; }
         }
-        .widget-group { padding: 1.25rem 1.5rem; }
+        {# A section's card (its links): the title above the card, in bold navy with
+           its icon small beside it, the links in the white card below as tinted
+           rows that alternate, each with its icon and a chevron. #}
+        .widget-group { padding: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: .55rem; align-items: center; align-content: start; }
+        .widget-group.card { background: transparent; border: 0; box-shadow: none; border-radius: 0; }
+        .widget-group > .widget-icon { font-size: .95rem; color: var(--admin-accent); width: 1.2rem; text-align: center; margin: 0 0 .55rem; }
+        .widget-group > .widget-group-title { margin: 0 0 .55rem; font-size: 1.02rem; font-weight: 700; color: var(--admin-text); }
+        .widget-group > ul { grid-column: 1 / -1; align-self: stretch; background: var(--admin-surface); border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); padding: .6rem; }
+        .widget-group > ul > li { margin: 0; }
+        .widget-group > ul > li:nth-child(odd) > a { background: var(--admin-tint); }
+        .widget-group > ul > li > a { display: flex; width: 100%; padding: .55rem .7rem; border-radius: 10px; font-weight: 600; font-size: .88rem; }
+        .widget-group > ul > li > a::after { content: "\f054"; font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 5 Free"; font-weight: 900; font-size: .65rem; margin-left: auto; color: var(--admin-muted); }
+        .widget-group > ul > li > a[data-leaves-admin]::after { content: none; }
+        .widget-group > ul > li > a > i:first-child { color: var(--admin-accent); }
+        .widget-group > ul > li > a:hover { background: var(--admin-tint-strong); color: var(--admin-text); }
+        .widget-group.no-card-bg > ul { background: transparent; box-shadow: none; }
         .widget-group h2, .composite-pane h2 { margin: .6rem 0 .7rem; font-size: 1.25rem; }
         .widget-icon { font-size: 2rem; }
+        {# The dashboard card every bundle's widget can take (omnibase/ledger's and
+           omnibase/estate's do): .dash-card, its .dash-card-head above the card -
+           the title in bold navy, what it covers, its actions and the ⋮ settings -
+           and .dash-card-panel, the white card. .dash-rows are tinted rows that
+           alternate, the label bold on the left, the value on the right;
+           .dash-empty a quiet centred empty state. A .dash-card--compact sits
+           two to a row on a phone. #}
+        .dash-card { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: var(--widget-height, 0); }
+        .dash-card-head { display: flex; align-items: center; gap: .45rem; min-height: 1.9rem; margin: 0 0 .55rem; padding: 0 .1rem; }
+        .dash-card-titles { display: grid; gap: .05rem; min-width: 0; }
+        .dash-card-title { margin: 0; font-size: 1.02rem; font-weight: 700; color: var(--admin-text); line-height: 1.25; min-width: 0; }
+        .dash-card-sub { font-size: .8rem; color: var(--admin-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .dash-card-actions { margin-left: auto; display: inline-flex; align-items: center; gap: .15rem; flex: none; }
+        .dash-card-action { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 8px; color: var(--admin-muted); text-decoration: none; font-size: .82rem; }
+        .dash-card-action:hover, .dash-card-action:focus-visible { background: var(--admin-tint-strong); color: var(--admin-accent); }
+        .dash-card-action.item-settings { display: none; }
+        body.is-customizing .dash-card-action.item-settings { display: inline-flex; }
+        .dash-card--compact .dash-card-sub { white-space: normal; }
+        .dash-card-panel { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; background: var(--admin-surface); border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); padding: 1.15rem 1.3rem; color: var(--admin-text); }
+        .widget-block.no-card-bg .dash-card-panel { background: transparent; box-shadow: none; padding: 0; }
+        body.is-customizing .dash-card-head { padding-right: 7rem; }
+        .dash-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: .2rem; }
+        .dash-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .3rem .7rem; padding: .6rem .75rem; border-radius: 10px; font-size: .88rem; color: var(--admin-text); text-decoration: none; }
+        .dash-rows > :nth-child(odd) > .dash-row, .dash-rows > .dash-row:nth-child(odd) { background: var(--admin-tint); }
+        .dash-row-icon { color: var(--admin-accent); width: 1.1rem; text-align: center; font-size: .85rem; }
+        .dash-row-label { font-weight: 600; min-width: 0; }
+        .dash-row-label small { display: block; font-weight: 400; color: var(--admin-muted); font-size: .78rem; margin-top: .05rem; }
+        .dash-row-value { font-weight: 700; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        a.dash-row:hover { background: var(--admin-tint-strong); }
+        .dash-row-action { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .65rem; border-radius: 999px; background: var(--admin-accent); color: #fff; font-size: .78rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+        .dash-row-action:hover { filter: brightness(1.08); color: #fff; }
+        .dash-empty { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 6rem; color: var(--admin-muted); font-size: .95rem; }
+        @media (max-width: 720px) {
+            .widget-grid > .widget-block:has(> .dash-card--compact) { flex-basis: calc(50% - .375rem); min-width: 0; }
+            .dash-card-panel { padding: 1rem 1.05rem; }
+        }
         {# .composite-pane shares this same <ul><li><a> markup (see
            composite.html.twig's link-list pane branch) but deliberately
            has no .widget-group wrapper of its own - merging two link-list
@@ -2521,7 +2584,7 @@
         .analytics-stat-row { display: flex; gap: 1.75rem; flex-wrap: wrap; }
         .analytics-stat { min-width: 6rem; }
         .analytics-stat-value { display: block; font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
-        .analytics-stat-label { display: block; font-size: .78rem; color: var(--admin-muted); text-transform: uppercase; letter-spacing: .03em; }
+        .analytics-stat-label { display: block; font-size: .82rem; color: var(--admin-muted); }
         .analytics-stat-change { font-size: .8rem; font-weight: 600; margin-left: .4rem; }
         .analytics-stat-change.is-up { color: var(--admin-success); }
         .analytics-stat-change.is-down { color: var(--admin-danger); }
@@ -2610,7 +2673,7 @@
            The dropdown POPUP is drawn by the browser outside this box, so long
            titles stay fully readable when opened - only the closed control is
            clamped to the card. #}
-        .widget-settings-field { display: flex; flex-direction: column; gap: .4rem; font-size: .78rem; color: var(--admin-muted); text-transform: uppercase; letter-spacing: .03em; min-width: 0; }
+        .widget-settings-field { display: flex; flex-direction: column; gap: .4rem; font-size: .85rem; font-weight: 600; color: var(--admin-text); min-width: 0; }
         .widget-settings-field input[type="text"], .widget-settings-field select { font: inherit; text-transform: none; letter-spacing: normal; color: var(--admin-text); background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 6px; padding: .4rem .6rem; width: 100%; min-width: 0; }
         {# The counter widget's source filter. A fieldset rather than a
            label so the group caption isn't tied to one checkbox; it needs
