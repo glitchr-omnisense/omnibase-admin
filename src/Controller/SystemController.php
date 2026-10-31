@@ -42,7 +42,29 @@ class SystemController extends AbstractController
         protected readonly TranslatorInterface $translator,
         protected readonly PageCustomization $pageCustomization,
         protected readonly SettingsSections $sections,
+        protected readonly ?\Base\Admin\Theme\AdminTheme $theme = null,
     ) {
+    }
+
+    /**
+     * The colour tokens a pair would give, for the settings page's live
+     * preview (its two fields, before saving): the CSS the layout would carry,
+     * and the colours moved so that text stays readable, as sentences. The
+     * settings page's own access (the back office's firewall): it reads
+     * nothing stored and writes nothing.
+     */
+    public function themePreview(Request $request): JsonResponse
+    {
+        if (null === $this->theme) {
+            return $this->json(['error' => 'no_theme'], Response::HTTP_NOT_FOUND);
+        }
+        $palette = $this->theme->preview($request->query->get('primary'), $request->query->get('secondary'));
+
+        return $this->json([
+            'css' => $palette->css(),
+            'colors' => ['primary' => $palette->primary, 'secondary' => $palette->secondary],
+            'notes' => array_map(fn (string $token): string => $this->translator->trans('page.settings.theme.adjusted.'.$token, [], 'admin'), $palette->notes()),
+        ]);
     }
 
 

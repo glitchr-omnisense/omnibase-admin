@@ -15,6 +15,15 @@ order: 40
 # Default configuration for extension with alias: "admin"
 admin:
 
+    # The back office's colours: every colour token derives from them, light and dark, kept readable. The settings page overrides them.
+    theme:
+
+        # The accent: links, buttons, focus rings, the active menu entry, the first chart series (#rrggbb).
+        primary:              '#3a47d5'
+
+        # The ink: text, muted text, borders, the second chart series (#rrggbb).
+        secondary:            '#1b2140'
+
     # Readable identifiers used in admin URLs instead of the numeric id.
     url_identifier:
 
@@ -38,6 +47,8 @@ admin:
 
 | Option | Type | Default | Effect |
 |---|---|---|---|
+| `theme.primary` | `#rrggbb` | `#3a47d5` (indigo) | The accent, when the settings page leaves `admin.theme.primary` empty ([the colours](system-pages.md#the-back-offices-colours)) |
+| `theme.secondary` | `#rrggbb` | `#1b2140` (navy) | The ink, when the settings page leaves `admin.theme.secondary` empty |
 | `url_identifier.fields` | list of property names | `[slug, uuid]` | The identifiers a record's address uses instead of its id, in priority order: the first the entity stores as a column whose value is neither blank nor all digits. `[]`: always the id |
 | `url_identifier.lowercase` | bool | `false` | Lowercase the identifiers in the addresses; safe only where the database compares strings case-insensitively (MySQL's `_ci` collations) |
 | `url_identifier.entities` | map of class => list | `{}` | Per-entity fields, by class (subclasses included) |

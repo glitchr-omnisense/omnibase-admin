@@ -146,6 +146,7 @@
                not omitted, so form_rest() below doesn't re-render it. #}
             {% if form.valid is defined %}{{ form_widget(form.valid, {attr: {style: 'display:none', tabindex: '-1'}}) }}{% endif %}
             <div class="system-form-body">
+                {% if page == 'settings' %}{{ include('@Admin/page/_theme_preview.html.twig') }}{% endif %}
                 {# Optional section headers for the form's own top-level
                    intl/unv split (see SystemController::renderSystemPage()'s
                    own doc comment for why this is only that split, not

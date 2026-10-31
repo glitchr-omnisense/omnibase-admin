@@ -377,5 +377,6 @@ class AdminRouteLoader extends Loader
         $routes->add('admin_settings', new Route($prefix.'/settings', ['_controller' => $controller.'::settings'], [], [], '', [], ['GET', 'POST']));
         $routes->add('admin_apikey', new Route($prefix.'/api-key', ['_controller' => $controller.'::apiKey'], [], [], '', [], ['GET', 'POST']));
         $routes->add('admin_settings_quick', new Route($prefix.'/settings/quick', ['_controller' => $controller.'::settingsQuick'], [], [], '', [], ['POST']));
+        $routes->add('admin_settings_theme', new Route($prefix.'/settings/theme', ['_controller' => $controller.'::themePreview'], [], [], '', [], ['GET']));
     }
 }
