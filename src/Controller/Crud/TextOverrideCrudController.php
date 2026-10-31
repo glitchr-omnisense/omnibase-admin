@@ -2,6 +2,7 @@
 
 namespace Base\Admin\Controller\Crud;
 
+use Base\Admin\Config\Crud;
 use Base\Admin\Controller\AbstractCrudController;
 use Base\Entity\Layout\TextOverride;
 use Base\Field\DateTimeField;
@@ -40,6 +41,14 @@ class TextOverrideCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return TextOverride::class;
+    }
+
+    /** Its name: the core gives TextOverride none, and the page read "Text override". */
+    public function configureCrud(Crud $crud): Crud
+    {
+        return parent::configureCrud($crud)
+            ->setEntityLabelInSingular('@admin.text_override.singular')
+            ->setEntityLabelInPlural('@admin.text_override.plural');
     }
 
     public static function getPreferredIcon(): ?string

@@ -384,6 +384,8 @@ complaint:
         open: "signalement(s) à traiter"
         none: Aucun signalement en attente.
 text_override:
+    singular: Texte du site
+    plural: Textes du site
     key: Texte
     key_placeholder: Choisir le texte à réécrire
     key_help: Chaque texte du site, avec sa formulation actuelle.

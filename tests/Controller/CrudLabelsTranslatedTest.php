@@ -4,6 +4,7 @@ namespace Tests\Base\Admin\Controller;
 
 use Base\Admin\Config\Crud;
 use Base\Admin\Controller\Crud\ComplaintCrudController;
+use Base\Admin\Controller\Crud\TextOverrideCrudController;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -41,6 +42,15 @@ class CrudLabelsTranslatedTest extends KernelTestCase
 
         $this->assertSame('Reports', $crud->getEntityLabelInPlural());
         $this->assertSame('Report', $crud->getEntityLabelInSingular());
+    }
+
+    public function testTheSiteTextsAreNamed(): void
+    {
+        // The core gives TextOverride no name: its screen read "Text override".
+        $crud = $this->config(static::getContainer()->get(TextOverrideCrudController::class));
+
+        $this->assertSame('Site texts', $crud->getEntityLabelInPlural());
+        $this->assertSame('Site text', $crud->getEntityLabelInSingular());
     }
 
     public function testTheLocaleIsFollowed(): void
