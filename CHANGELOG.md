@@ -3,6 +3,18 @@
 ## [Unreleased]
 
 ### Added
+- The dashboard card (`.dash-card`, `.dash-card-head` with its title above the card, its actions and
+  the ⋮ settings, `.dash-card-panel`, `.dash-rows` of tinted rows with an icon, a value or an action
+  button, `.dash-empty`, `.dash-card--compact` two to a row on a phone), which a bundle's widget
+  takes without CSS of its own for the chrome (docs/dashboard.md).
+
+### Changed
+- The admin's look: a light, faintly blue page, white cards without a border, a 16px radius and a
+  soft shadow; one dark navy for text (navy greys, no grey on grey) and an indigo accent; light and
+  dark (`--admin-tint`, `--admin-tint-strong`, `--admin-card-radius`, `--admin-card-shadow`). A
+  section's card puts its title above the card and its links as tinted rows with their icon and a
+  chevron. The analytics card's figures and the settings panels' field labels are in the text face,
+  not small capitals. On a phone the dashboard's gap is tighter.
 - A widget type's settings panel from markup alone: `[data-widget-settings-toggle]`,
   `[data-widget-settings-panel]` with fields `[data-widget-param="name"]`,
   `[data-widget-settings-apply]` and `[data-widget-settings-cancel]`, handled once in
