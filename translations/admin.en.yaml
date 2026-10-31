@@ -384,6 +384,8 @@ complaint:
         open: "report(s) to handle"
         none: No report waiting.
 text_override:
+    singular: Site text
+    plural: Site texts
     key: Text
     key_placeholder: Choose the text to rewrite
     key_help: Every text of the site, with its current wording.
