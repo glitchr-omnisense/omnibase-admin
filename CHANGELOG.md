@@ -37,6 +37,13 @@
   its own script in the layout for its settings (docs/dashboard.md).
 
 ### Fixed
+- A `DateField` reads as a day (`crud/field/date`, 05/12/2026), no longer `2026-12-05 00:00`.
+- A text cell shows the field's own `formatValue()` over the enum's generic label (a rent call's
+  state read "Called" where the screen labels it « Appelé »).
+- Dashboard lines fill their width: `flex-grow` follows the widget's span, where the 240px column
+  floor left 84px empty at the right of every line.
+- A datagrid wider than its card keeps its horizontal scrollbar drawn (macOS hides overlay
+  scrollbars), so the columns under the pinned actions read as more to scroll to, not as cut off.
 - `crud/field/money`: an amount stored in cents shows in euros again - 1 480 € showed 14,80 €.
   omnibase's `format_currency` takes minor units (its `scale`, 100 by default) and the template
   divided by 100 first; cents now go in as they are, an amount in units with `{scale: 1}`.
