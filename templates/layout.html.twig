@@ -1193,6 +1193,15 @@
            container that either overflows the whole page (fighting the
            sticky sidebar/header) or squeezes columns unreadably thin. #}
         .table-responsive { overflow-x: auto; }
+        {# A scrollbar that stays drawn: macOS overlay scrollbars hide until
+           a scroll starts, so the columns under the pinned actions cell read
+           as cut off rather than as more to scroll to (reported: the rent
+           calls' « Reçu » column, clipped). Styling the WebKit scrollbar is
+           what makes Chrome and Safari keep it. #}
+        .table-responsive::-webkit-scrollbar { height: 10px; }
+        .table-responsive::-webkit-scrollbar-track { background: var(--admin-bg); }
+        .table-responsive::-webkit-scrollbar-thumb { background: var(--admin-border); border-radius: 5px; border: 2px solid var(--admin-bg); }
+        .table-responsive::-webkit-scrollbar-thumb:hover { background: var(--admin-muted); }
         table.datagrid { width: 100%; min-width: max-content; border-collapse: collapse; }
         .datagrid th, .datagrid td { text-align: left; padding: .8rem 1rem; border-bottom: 1px solid var(--admin-border); white-space: nowrap; }
         .datagrid th { font-size: var(--admin-fs-sm); font-weight: 600; color: var(--admin-muted); }
@@ -2364,8 +2373,13 @@
            minimum and overflow anyway - capping the FLOOR itself at 100%
            means it can never demand more than the container actually has,
            full width becoming its own single column of one on that line. #}
+        {# flex-grow follows the span: a line of widgets fills the container
+           whatever is left over once --widget-col-width's 240px floor has
+           cut the column count (5 asked, 4 fitting a 1116px card left 84px
+           empty on every line's right), and a span-2 widget keeps twice a
+           span-1's width while growing. #}
         .widget-block, .widget-group {
-            flex-grow: 0; flex-shrink: 1;
+            flex-grow: var(--widget-span, 1); flex-shrink: 1;
             flex-basis: calc(var(--widget-col-width) * var(--widget-span, 1) + (var(--widget-span, 1) - 1) * 1.5rem);
             min-width: min(var(--widget-col-width), 100%);
         }
