@@ -277,7 +277,10 @@
                                     {%- if action.icon -%}<i class="{{ action.icon }}"></i>{%- else -%}{{ action.label|trans }}{%- endif -%}
                                 </button>
                             {% else %}
-                                {% set isIconOnly = action.name in ['edit', 'detail', 'goto'] %}
+                                {#- In a row, an action with an icon shows only its icon, its label as the title -
+                                    as edit, detail and delete do: « Réviser le loyer » in words widened the actions
+                                    column past the 240px cells and set the grid scrolling sideways. -#}
+                                {% set isIconOnly = action.name in ['edit', 'detail', 'goto'] or action.icon is not empty %}
                                 <a class="btn {{ isIconOnly ? 'btn-icon' }} {{ action.cssClass }}"
                                    href="{{ admin_action_url(action, row.entity, controller_fqcn) }}"
                                    title="{{ action.label|trans }}"
@@ -288,6 +291,8 @@
                                         <i class="fa-solid fa-eye"></i>
                                     {%- elseif action.name == 'goto' -%}
                                         <i class="fa-solid fa-plug"></i>
+                                    {%- elseif action.icon is not empty -%}
+                                        <i class="{{ action.icon }}"></i>
                                     {%- else -%}
                                         {{ action.label|trans }}
                                     {%- endif -%}
