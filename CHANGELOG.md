@@ -37,6 +37,14 @@
   its own script in the layout for its settings (docs/dashboard.md).
 
 ### Fixed
+- The sidebar's brand row: the logo is a link to the dashboard (« Tableau de bord »), the title and caret
+  the account dropdown's button, two controls side by side (the caret stays in the collapsed rail);
+  the logo and the account's avatar are served at 2x and 4x their box (`srcset`), sharp on a 2x
+  screen. The dropdown's account row lines up with its items (same inset and gap, a 2.25rem
+  avatar, the label and name beside it), and in the collapsed rail the dropdown is no longer
+  clipped by the aside nor its items centred.
+- A dashboard card shrinks with its block (`min-width: 0`): the analytics card stayed at the width
+  it was drawn at (1188px in a window narrowed to 500px), Chart.js having written its canvas's width.
 - A `DateField` reads as a day (`crud/field/date`, 05/12/2026), no longer `2026-12-05 00:00`.
 - A text cell shows the field's own `formatValue()` over the enum's generic label (a rent call's
   state read "Called" where the screen labels it « Appelé »).

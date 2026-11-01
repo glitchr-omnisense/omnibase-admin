@@ -281,7 +281,11 @@
         .admin-aside .brand { display: flex; align-items: center; gap: .6rem; height: 3.3rem; padding: 0 1.25rem; border-bottom: 1px solid var(--admin-border); }
         .admin-aside .brand-logo { width: 2.25rem; height: 2.25rem; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
         .admin-aside .brand-logo-initial { display: inline-flex; align-items: center; justify-content: center; background: var(--admin-accent); color: #fff; font-weight: 700; font-size: 1.05rem; }
-        .admin-aside .brand-text { display: flex; flex-direction: column; min-width: 0; }
+        .admin-aside .brand-home { display: inline-flex; flex-shrink: 0; border-radius: 6px; }
+        .admin-aside .brand-home:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; }
+        {# The dropdown's button fills the rest of the row, so the title, the account name and the space around them open it, as the whole row did. #}
+        .admin-aside .brand-toggle { flex: 1 1 auto; min-width: 0; align-self: stretch; display: flex; align-items: center; margin-right: -1.25rem; padding-right: 1.25rem; }
+        .admin-aside .brand-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
         {# The caret sits next to the TITLE specifically, in its own row -
            it used to be a direct sibling of .brand-text out in .brand's
            own flex row, so .brand's align-items:center centered it
@@ -481,8 +485,10 @@
            native title="" tooltip instead - a single link never needed a
            whole flyout for one label. #}
         html.is-sidebar-collapsed { --admin-aside-w: 4.5rem; }
-        html.is-sidebar-collapsed .admin-aside .brand { justify-content: center; padding-left: 0; padding-right: 0; }
-        html.is-sidebar-collapsed .admin-aside .brand-text, html.is-sidebar-collapsed .admin-aside .account-caret { display: none; }
+        html.is-sidebar-collapsed .admin-aside .brand { justify-content: center; gap: .2rem; padding-left: 0; padding-right: 0; }
+        {# The logo goes home; the caret beside it is what is left of the dropdown's button, so the account menu stays reachable from the rail. #}
+        html.is-sidebar-collapsed .admin-aside .brand-title, html.is-sidebar-collapsed .admin-aside .brand-user { display: none; }
+        html.is-sidebar-collapsed .admin-aside .brand-toggle { flex: 0 0 auto; margin-right: 0; padding: 0 .2rem; }
         {# .admin-menu a is display:block normally (no flex, so nothing to
            center) - only the collapsed rail needs it centered on its icon. #}
         html.is-sidebar-collapsed .admin-menu a { display: flex; align-items: center; justify-content: center; padding-left: 0; padding-right: 0; }
@@ -693,8 +699,9 @@
         .admin-sidebar-stats .analytics-window:first-child { margin-top: 0; }
         .admin-sidebar-stats .row { margin: .1rem 0; }
         .admin-account { position: relative; }
-        .admin-aside .brand[role=button] { cursor: pointer; }
-        .admin-aside .brand[role=button]:hover { background: var(--admin-bg); }
+        .admin-aside .brand-toggle[role=button] { cursor: pointer; }
+        .admin-aside .brand:has(> .brand-toggle[role=button]:hover) { background: var(--admin-bg); }
+        .admin-aside .brand-toggle[role=button]:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: -2px; }
         .admin-aside .brand .account-caret { flex-shrink: 0; font-size: .75rem; color: var(--admin-muted); transition: transform .15s; }
         .admin-account.is-open .brand .account-caret { transform: rotate(180deg); }
         .admin-account .admin-dropdown-menu { left: 1.25rem; right: 1.25rem; top: calc(100% - .3rem); }
@@ -708,22 +715,28 @@
         html.is-sidebar-collapsed .admin-account .admin-dropdown-menu {
             left: 100%; right: auto; top: 0; margin-left: .5rem; min-width: 13rem;
         }
+        {# The aside's overflow-y:auto clipped that pop-out to the rail's 4.5rem: suspended while it is open, as for the section flyouts. #}
+        html.is-sidebar-collapsed .admin-aside:has(.admin-account.is-open) { overflow: visible; }
+        {# Its items keep the expanded menu's layout, not the rail's centred icons (.admin-menu a in the collapsed rail), so they line up with the account row. #}
+        html.is-sidebar-collapsed .admin-usermenu a { justify-content: flex-start; padding-left: 1.25rem; padding-right: 1.25rem; }
         .admin-usermenu a i { width: 1.1rem; text-align: center; }
         {# Account header leading the dropdown. Non-interactive: it identifies
            the session, the items below act on it. #}
-        {# Metrics lifted from the admin being replaced, measured live rather than
-           eyeballed: 48px avatar at 14px radius, 13px muted label over a 14px
-           regular-weight name. Beta had a 38px/8px avatar and a 600-weight name,
-           which made the block read tighter and heavier than production's. #}
-        .admin-usermenu-account {
-            display: flex; align-items: center; gap: .65rem; padding: .45rem .5rem; cursor: default; }
+        {# Lined up with the items below it: the same left inset (their 3px
+           border and 1.25rem padding) and gap, a 2.25rem avatar, the label
+           and name left-aligned beside it, centred on it. Qualified with
+           .admin-menu li, whose row rule (stretch, space-between) otherwise
+           won and pushed the name away from a 48px avatar. #}
+        .admin-menu li.admin-usermenu-account {
+            display: flex; align-items: center; justify-content: flex-start; gap: .5rem;
+            padding: .55rem .75rem .55rem 1.25rem; border-left: 3px solid transparent; cursor: default; }
         .admin-usermenu-avatar {
-            width: 48px; height: 48px; border-radius: 14px; object-fit: cover; flex-shrink: 0;
+            width: 2.25rem; height: 2.25rem; border-radius: 8px; object-fit: cover; flex-shrink: 0;
             border: 1px solid var(--admin-border); background: var(--admin-surface); }
         .admin-usermenu-avatar-empty {
             display: inline-flex; align-items: center; justify-content: center; color: var(--admin-muted); }
         .admin-usermenu-identity { display: flex; flex-direction: column; min-width: 0; gap: .1rem; }
-        .admin-usermenu-label { font-size: var(--admin-fs-xs); color: var(--admin-muted); line-height: 1.25; }
+        .admin-usermenu-label { font-size: var(--admin-fs-xs); color: var(--admin-muted); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .admin-usermenu-name {
             font-size: var(--admin-fs-md); font-weight: 400; line-height: 1.25;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2472,8 +2485,14 @@
            case for a lone/tallest card being resized taller. Mirroring
            the same height onto the actual visible child is what makes a
            custom height show up at all, both right after a drag AND on
-           a fresh page load of a previously-saved custom height. #}
-        .widget-block > .analytics-card, .widget-block > .card { flex: 1 1 auto; min-height: var(--widget-height, 0); }
+           a fresh page load of a previously-saved custom height.
+           min-width: 0 lets the card shrink with its block: a flex item
+           otherwise never gets narrower than its content, and Chart.js
+           writes the canvas's width inline - a window narrowed after the
+           page was drawn left the analytics card at its old width (1188px
+           at 500px) and the page scrolling sideways, the chart's resize
+           observer never seeing its wrap shrink. #}
+        .widget-block > .analytics-card, .widget-block > .card { flex: 1 1 auto; min-width: 0; min-height: var(--widget-height, 0); }
         {# --widget-height is only ever a FLOOR (min-height above) - the row's
            own align-items:stretch default can still pull a widget TALLER
            than that floor to match a taller sibling on the same line,
@@ -3535,7 +3554,7 @@
                 // toggle the account dropdown open underneath it.
                 if (e.target.closest('[data-brand-title][contenteditable="true"]')) return;
 
-                const toggle = e.target.closest('[data-dropdown] > .admin-icon-btn, [data-dropdown] > [aria-haspopup]');
+                const toggle = e.target.closest('[data-dropdown] > .admin-icon-btn, [data-dropdown] > [aria-haspopup], [data-dropdown] > .brand > [aria-haspopup]');
                 if (toggle) {
                     const dropdown = toggle.closest('[data-dropdown]');
                     const willOpen = !dropdown.classList.contains('is-open');
@@ -3568,7 +3587,7 @@
                 // commit it, must not also fire the dropdown's own
                 // Enter/Space-to-toggle handling.
                 if (e.target.closest('[data-brand-title][contenteditable="true"]')) return;
-                const toggle = e.target.closest('[data-dropdown] > [role=button][aria-haspopup]');
+                const toggle = e.target.closest('[data-dropdown] > [role=button][aria-haspopup], [data-dropdown] > .brand > [role=button][aria-haspopup]');
                 if (!toggle) return;
                 e.preventDefault();
                 toggle.click();
@@ -3747,20 +3766,28 @@
         {% set hasUserMenu = admin_context is defined and admin_context.userMenu is not empty %}
         {% set canEditBrand = is_granted('ROLE_SUPERADMIN') %}
         <div class="admin-account"{% if hasUserMenu %} data-dropdown{% endif %}{% if canEditBrand %} data-csrf-token="{{ csrf_token('admin-settings-quick') }}"{% endif %}>
-            <div class="brand"{% if hasUserMenu %} role="button" tabindex="0" aria-haspopup="true" aria-expanded="false"{% endif %}>
+            {# Two controls side by side, never one inside the other: the logo is a
+               link home (the dashboard), the title and caret the account
+               dropdown's button. The logo is served at twice and four times its
+               2.25rem box (srcset), sharp on a 2x screen. #}
+            <div class="brand">
                 {% block brand %}
+                    <a class="brand-home" href="{{ path('admin') }}" title="{{ 'menu.dashboard'|trans({}, 'admin') }}" aria-label="{{ 'menu.dashboard'|trans({}, 'admin') }}">
                     {% if app.site.logo is not empty %}
-                        <img class="brand-logo" src="{{ app.site.logo|thumbnail(64, 64) }}" alt="">
+                        <img class="brand-logo" src="{{ app.site.logo|thumbnail(72, 72) }}" srcset="{{ app.site.logo|thumbnail(72, 72) }} 1x, {{ app.site.logo|thumbnail(144, 144) }} 2x" alt="">
                     {% else %}
                         {# No logo set: the title's initial on the accent, so the brand row never reads as a bare line of text. #}
                         <span class="brand-logo brand-logo-initial" aria-hidden="true">{{ (app.site.title ?? 'Administration')|trim|first|upper }}</span>
                     {% endif %}
-                    <div class="brand-text">
-                        <div class="brand-title-row">
-                            <span class="brand-title" data-brand-title>{% block brand_title %}{{ app.site.title ?? 'Administration' }}{% endblock %}</span>
-                            {% if hasUserMenu %}<i class="fa-solid fa-chevron-down account-caret"></i>{% endif %}
+                    </a>
+                    <div class="brand-toggle"{% if hasUserMenu %} role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="{{ app.site.title ?? 'Administration' }}{{ app.user ? ' · ' ~ app.user }}"{% endif %}>
+                        <div class="brand-text">
+                            <div class="brand-title-row">
+                                <span class="brand-title" data-brand-title>{% block brand_title %}{{ app.site.title ?? 'Administration' }}{% endblock %}</span>
+                                {% if hasUserMenu %}<i class="fa-solid fa-chevron-down account-caret"></i>{% endif %}
+                            </div>
+                            {% if app.user %}<span class="brand-user">{{ app.user }}</span>{% endif %}
                         </div>
-                        {% if app.user %}<span class="brand-user">{{ app.user }}</span>{% endif %}
                     </div>
                 {% endblock %}
             </div>
@@ -3776,7 +3803,7 @@
                         {% set accountAvatar = app.user.avatar is defined ? app.user.avatar : null %}
                         <li class="admin-usermenu-account">
                             {% if accountAvatar is not empty %}
-                                <img class="admin-usermenu-avatar" src="{{ accountAvatar|thumbnail(64, 64) }}" alt="">
+                                <img class="admin-usermenu-avatar" src="{{ accountAvatar|thumbnail(72, 72) }}" srcset="{{ accountAvatar|thumbnail(72, 72) }} 1x, {{ accountAvatar|thumbnail(144, 144) }} 2x" alt="">
                             {% else %}
                                 <span class="admin-usermenu-avatar admin-usermenu-avatar-empty"><i class="fa-solid fa-user"></i></span>
                             {% endif %}
