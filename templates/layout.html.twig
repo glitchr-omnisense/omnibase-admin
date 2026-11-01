@@ -280,6 +280,7 @@
            vertical centering that the removed padding used to. #}
         .admin-aside .brand { display: flex; align-items: center; gap: .6rem; height: 3.3rem; padding: 0 1.25rem; border-bottom: 1px solid var(--admin-border); }
         .admin-aside .brand-logo { width: 2.25rem; height: 2.25rem; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+        .admin-aside .brand-logo-initial { display: inline-flex; align-items: center; justify-content: center; background: var(--admin-accent); color: #fff; font-weight: 700; font-size: 1.05rem; }
         .admin-aside .brand-text { display: flex; flex-direction: column; min-width: 0; }
         {# The caret sits next to the TITLE specifically, in its own row -
            it used to be a direct sibling of .brand-text out in .brand's
@@ -387,6 +388,16 @@
         .admin-menu .section-label { display: flex; align-items: center; flex: 1; min-width: 0; gap: .3rem; }
         .admin-menu .section-label i { width: 1.1rem; text-align: center; }
         .admin-menu .section-group > ul { list-style: none; margin: 0; padding: 0; }
+        {# A section folds to its heading (click it, or Enter/Space on it): the menu stays short, the section of the
+           page open, the others as left (localStorage). Not in the collapsed rail, whose sections are flyouts,
+           nor while customizing, where every member must be reachable. #}
+        .admin-menu .section[data-section-toggle] { cursor: pointer; }
+        .admin-menu .section[data-section-toggle]:hover { color: var(--admin-text); }
+        .admin-menu .section[data-section-toggle]:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: -2px; }
+        .admin-menu .section-caret { margin-left: auto; margin-right: 1rem; font-size: .7rem; transition: transform .15s; }
+        .section-group.is-folded .section-caret { transform: rotate(-90deg); }
+        html:not(.is-sidebar-collapsed) body:not(.is-customizing) .admin-menu .section-group.is-folded > ul { display: none; }
+        html.is-sidebar-collapsed .admin-menu .section-caret, body.is-customizing .admin-menu .section-caret { display: none; }
         .admin-menu a { display: flex; align-items: center; padding: .5rem 1.25rem; color: inherit; text-decoration: none; border-left: 3px solid transparent; min-width: 0; }
         .admin-menu li:hover > a { background: var(--admin-bg); }
         .admin-menu .selected > a { border-left-color: var(--admin-accent); color: var(--admin-accent); font-weight: 600; }
@@ -660,7 +671,9 @@
         .widget-group, .widget-block { position: relative; }
         #admin-customize-done { display: none; }
         body.is-customizing #admin-customize-done { display: inline-flex; }
-        .admin-sidebar-footer { display: flex; align-items: center; justify-content: center; gap: .5rem; padding: .9rem 1.25rem; border-top: 1px solid var(--admin-border); flex-shrink: 0; }
+        .admin-sidebar-footer { display: flex; align-items: center; justify-content: center; gap: .5rem; padding: .9rem 1.25rem; border-top: 1px solid var(--admin-border); flex-shrink: 0;
+            {# Always in view: the aside is the scroller, so a long menu pushed the four icons below the fold. #}
+            position: sticky; bottom: -1rem; margin-bottom: -1rem; padding-bottom: 1.9rem; background: var(--admin-surface); z-index: 2; }
         {# Collapsed rail is ~4.5rem wide - a horizontal row of up to 4
            icon buttons (home/stats/exit/collapse-toggle) doesn't fit that
            width and either overflows or crowds together. Stacked as a
@@ -2996,8 +3009,9 @@
         {# A value written straight into its cell (a text field: no span around it) was held to the
            ceiling but drawn past it, over the next column (the leases' Locataires over État). The
            cell itself elides; its full text is the title the text field sets. Not the actions or
-           the checkbox: their menus must not be clipped. #}
-        .datagrid td:not(.actions):not(.batch) { overflow: hidden; text-overflow: ellipsis; }
+           the checkbox, whose menus must not be clipped, nor an amount, a number or a date: short,
+           and cut to « 1 320,00 · » when the grid ran out of room. #}
+        .datagrid td:not(.actions):not(.batch):not(.field-money):not(.field-number):not(.field-date):not(.field-datetime) { overflow: hidden; text-overflow: ellipsis; }
         {# :not(.badge) matters - a badge is inline-FLEX and uses `gap` to space
            its icon from its label. Forcing inline-block here killed the gap and
            the state pill rendered its icon jammed against the text. Badges do
@@ -3734,6 +3748,9 @@
                 {% block brand %}
                     {% if app.site.logo is not empty %}
                         <img class="brand-logo" src="{{ app.site.logo|thumbnail(64, 64) }}" alt="">
+                    {% else %}
+                        {# No logo set: the title's initial on the accent, so the brand row never reads as a bare line of text. #}
+                        <span class="brand-logo brand-logo-initial" aria-hidden="true">{{ (app.site.title ?? 'Administration')|trim|first|upper }}</span>
                     {% endif %}
                     <div class="brand-text">
                         <div class="brand-title-row">
@@ -3815,11 +3832,12 @@
                                shows this label - a plain link's title (below,
                                in the expanded per-item .section-label) is the
                                only other place a bare label ever needs one. #}
-                            <div class="section">
+                            <div class="section"{% if item.subItems is not empty %} data-section-toggle role="button" tabindex="0" aria-expanded="true"{% endif %}>
                                 <span class="section-label">
                                     {% if item.icon %}<i class="{{ item.icon }}"></i>{% endif %}
                                     <span class="label-text">{{ item.label|trans({}, 'admin') }}</span>
                                 </span>
+                                {% if item.subItems is not empty %}<i class="fa-solid fa-chevron-down section-caret" aria-hidden="true"></i>{% endif %}
                                 {% if customize_enabled is defined and customize_enabled %}
                                     <span class="item-controls">
                                         <button type="button" class="item-handle" data-sortable-handle title="{{ 'customize.reorder'|trans({}, 'admin') }}"><i class="fa-solid fa-grip-vertical"></i></button>
@@ -3863,6 +3881,36 @@
                     {% endif %}
                 {% endfor %}
             </ul>
+            <script>
+                (function () {
+                    var key = 'admin.sidebar.folded', menu = document.currentScript.previousElementSibling, state = {};
+                    try { state = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (e) {}
+                    var groups = menu.querySelectorAll('li.section-group');
+                    // Folded unless left open, the page's own section always open.
+                    groups.forEach(function (group) {
+                        var name = group.getAttribute('data-sortable-key'), toggle = group.querySelector(':scope > [data-section-toggle]');
+                        if (!toggle) return;
+                        var open = group.querySelector('li.selected') !== null || state[name] === false;
+                        group.classList.toggle('is-folded', !open);
+                        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    });
+                    function flip(toggle) {
+                        if (document.documentElement.classList.contains('is-sidebar-collapsed') || document.body.classList.contains('is-customizing')) return;
+                        var group = toggle.closest('li.section-group'), folded = group.classList.toggle('is-folded');
+                        toggle.setAttribute('aria-expanded', folded ? 'false' : 'true');
+                        state[group.getAttribute('data-sortable-key')] = folded;
+                        try { localStorage.setItem(key, JSON.stringify(state)); } catch (e) {}
+                    }
+                    menu.addEventListener('click', function (e) {
+                        var toggle = e.target.closest('[data-section-toggle]');
+                        if (toggle && !e.target.closest('.item-controls')) flip(toggle);
+                    });
+                    menu.addEventListener('keydown', function (e) {
+                        var toggle = e.target.closest('[data-section-toggle]');
+                        if (toggle && e.target === toggle && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); flip(toggle); }
+                    });
+                })();
+            </script>
             {% endif %}
         {% endblock %}
         {% block sidebar_footer %}
