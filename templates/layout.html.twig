@@ -2993,6 +2993,11 @@
            from doing that; the full value stays in the title attribute where
            the templates set one. #}
         .datagrid td { max-width: 15rem; }   /* 240px, matching production's widest column */
+        {# A value written straight into its cell (a text field: no span around it) was held to the
+           ceiling but drawn past it, over the next column (the leases' Locataires over État). The
+           cell itself elides; its full text is the title the text field sets. Not the actions or
+           the checkbox: their menus must not be clipped. #}
+        .datagrid td:not(.actions):not(.batch) { overflow: hidden; text-overflow: ellipsis; }
         {# :not(.badge) matters - a badge is inline-FLEX and uses `gap` to space
            its icon from its label. Forcing inline-block here killed the gap and
            the state pill rendered its icon jammed against the text. Badges do

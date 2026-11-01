@@ -222,7 +222,12 @@
                 {#- cell-id pins the identifier column while the grid scrolls
                     sideways (see .datagrid td.cell-id). Keyed off the field's
                     own property so it follows the ID wherever it is ordered. -#}
-                <th class="{{ field.property == 'id' ? 'cell-id' }}" style="{{ field.textAlign ? 'text-align:' ~ field.textAlign }}">
+                {#- An amount reads aligned to the right, a linked record to the left
+                    like the text beside it: the core's fields centre both (their
+                    textAlign), which set a list's « Bien » column apart from its
+                    neighbours. The other fields keep their own. -#}
+                {%- set align = 'field-money' in (field.cssClass ?? '') ? 'right' : ('field-entity' in (field.cssClass ?? '') ? null : field.textAlign) -%}
+                <th class="{{ field.property == 'id' ? 'cell-id' }}" style="{{ align ? 'text-align:' ~ align }}">
                     {% if field.isSortable is not defined or field.isSortable != false %}
                         <a href="{{ admin_url(controller_fqcn, 'index', null, {'sort': {(field.property): direction == 'ASC' ? 'DESC' : 'ASC'}}) }}">
                             {{ (field.label ?? field.property|humanize)|trans({}, 'forms') }}
@@ -247,9 +252,10 @@
                         phone, where there is no room for a header row and the
                         value alone says nothing (see the max-width:720px block
                         in @Admin/layout.html.twig). -#}
+                    {%- set align = 'field-money' in (field.cssClass ?? '') ? 'right' : ('field-entity' in (field.cssClass ?? '') ? null : field.textAlign) -%}
                     <td class="{{ field.cssClass }} {{ field.property == 'id' ? 'cell-id' }}"
                         data-label="{{ (field.label ?? field.property|humanize)|trans({}, 'forms') }}"
-                        style="{{ field.textAlign ? 'text-align:' ~ field.textAlign }}">
+                        style="{{ align ? 'text-align:' ~ align }}">
                         {{ include(['@Admin/' ~ field.templateName ~ '.html.twig', '@Admin/crud/field/text.html.twig'], {field: field, entity: row.entity}) }}
                     </td>
                 {% endfor %}

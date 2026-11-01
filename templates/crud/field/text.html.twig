@@ -15,5 +15,5 @@
 {%- else -%}
     {%- set value = '' ~ value -%}
     {%- set max = field.customOption('maxLength') ?? 64 -%}
-    {{ value|length > max ? value|slice(0, max) ~ '…' : value }}
+    <span title="{{ value }}">{{ value|length > max ? value|slice(0, max) ~ '…' : value }}</span>
 {%- endif -%}
