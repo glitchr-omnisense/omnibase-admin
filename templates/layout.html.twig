@@ -369,7 +369,10 @@
            BOTTOM instead, empty space above. flex-direction:column makes
            this flex container's own main axis vertical, so flex-end here
            means "bottom", not "right". #}
-        aside.admin-aside > ul.admin-menu:first-of-type { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+        {# Since the sections fold (ef7693d) the menu is short, and pinned to the bottom it left a tall empty band
+           under the brand row (« why menus are pulled down »): it starts at the top again, the footer kept at
+           the bottom by its own stickiness. #}
+        aside.admin-aside > ul.admin-menu:first-of-type { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
         {# .section-group (the <li>) holds the label row and its nested
            member <ul> stacked vertically - overrides the generic
            ".admin-menu li { display:flex }" row layout below, which is
