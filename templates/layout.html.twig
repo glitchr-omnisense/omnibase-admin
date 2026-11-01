@@ -6020,24 +6020,39 @@
             if (window.__adminActionsHoisted) return;
             window.__adminActionsHoisted = true;
 
+            // Narrow viewports keep the bar in the header, where it may
+            // wrap onto its own full-width line (see the max-width:1024px
+            // rules) - the topbar cannot fit search + actions + icons on
+            // a phone, and unlike the header it is not allowed to wrap.
+            var wide = window.matchMedia('(min-width: 900px)');
+
             function hoist() {
-                var bar = document.querySelector('.admin-header .global-actions');
                 var topbar = document.querySelector('.admin-topbar');
-                if (!bar || !topbar) return;
-
-                // Narrow viewports keep the bar in the header, where it may
-                // wrap onto its own full-width line (see the max-width:720px
-                // rules) - the topbar cannot fit search + actions + icons on
-                // a phone, and unlike the header it is not allowed to wrap.
-                if (window.innerWidth < 900) return;
-
-                var icons = topbar.querySelector('.admin-topbar-icons');
-                if (icons) topbar.insertBefore(bar, icons);
-                else topbar.appendChild(bar);
+                if (!topbar) return;
+                var bar = document.querySelector('.admin-header .global-actions');
+                if (bar && wide.matches) {
+                    // Where it came from, to put it back if the window narrows.
+                    bar.__adminHome = { parent: bar.parentNode, next: bar.nextSibling };
+                    var icons = topbar.querySelector('.admin-topbar-icons');
+                    if (icons) topbar.insertBefore(bar, icons);
+                    else topbar.appendChild(bar);
+                    return;
+                }
+                // A window narrowed after the page was drawn: the hoisted bar
+                // (257px of buttons that never shrink) set the topbar 596px
+                // wide in a 500px window, the page scrolling sideways. Back
+                // into the header, where it wraps.
+                var hoisted = topbar.querySelector('.global-actions');
+                var home = hoisted && hoisted.__adminHome;
+                if (hoisted && !wide.matches && home && home.parent.isConnected) {
+                    home.parent.insertBefore(hoisted, home.next && home.next.parentNode === home.parent ? home.next : null);
+                }
             }
 
             function boot() {
                 hoist();
+                if (wide.addEventListener) wide.addEventListener('change', hoist);
+                else if (wide.addListener) wide.addListener(hoist);
                 // transparentJS swaps the main region wholesale, which brings a
                 // fresh .admin-header (and a fresh action bar) with it.
                 new MutationObserver(function () { hoist(); })
