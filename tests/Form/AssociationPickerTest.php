@@ -87,18 +87,18 @@ class AssociationPickerTest extends KernelTestCase
 
     public function testWhatTheRecordOwnsKeepsTheEmbeddedForm(): void
     {
-        $this->assertSame(AssociationType::class, $this->typeOf(AssociationField::new('replies')));
+        $this->assertSame(self::declared(AssociationType::class), $this->typeOf(AssociationField::new('replies')));
     }
 
     public function testTheEmbeddedFormOnRequest(): void
     {
-        $this->assertSame(AssociationType::class, $this->typeOf(AssociationField::new('parent')->embed()));
-        $this->assertSame(AssociationType::class, $this->typeOf(AssociationField::new('parent')->setFields(['content' => []])));
+        $this->assertSame(self::declared(AssociationType::class), $this->typeOf(AssociationField::new('parent')->embed()));
+        $this->assertSame(self::declared(AssociationType::class), $this->typeOf(AssociationField::new('parent')->setFields(['content' => []])));
     }
 
     public function testThePickerOnRequest(): void
     {
-        $this->assertSame(SelectType::class, $this->typeOf(AssociationField::new('replies')->embed(false)));
+        $this->assertSame(self::declared(SelectType::class), $this->typeOf(AssociationField::new('replies')->embed(false)));
     }
 
     public function testTheEmbeddedFormOfARecordThatHoldsAnEnumRenders(): void
@@ -109,5 +109,11 @@ class AssociationPickerTest extends KernelTestCase
 
         $html = static::getContainer()->get('twig')->createTemplate('{{ form_row(field) }}')->render(['field' => $form->createView()['parent']]);
         $this->assertStringContainsString('crud_form[parent][state][choice]', $html);
+    }
+
+    /** The type's declared name: a type omnibridge/symfony holds keeps a former name, which is an alias. */
+    private static function declared(string $type): string
+    {
+        return (new \ReflectionClass($type))->getName();
     }
 }
