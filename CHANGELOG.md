@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+- Accepts omnisense/omnibase 5.0 (`3.0.*-dev || 4.0.*-dev || 5.0.*-dev`; plan "omnibase agnostic", step F6): the
+  bundle runs unchanged on it, `Base\Bundle\AbstractBaseBundle` and `Base\BaseBundle` being aliases of
+  omnibridge/symfony's classes there.
+
 ### Added
 - The back office's colours, tunable per site: a primary (the accent) and a secondary (the ink),
   set on the settings page (`admin.theme.primary` / `.secondary`, `ThemeSettingsSection`, a colour
