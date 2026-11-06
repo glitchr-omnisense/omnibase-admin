@@ -4,9 +4,9 @@ namespace Base\Admin\Controller;
 
 use Base\Entity\Hours\SpecialDay;
 use Base\Enum\UserRole;
-use Base\Repository\Hours\ScopedWeekRepository;
-use Base\Repository\Hours\SpecialDayRepository;
-use Base\Repository\Hours\WeekDayHoursRepository;
+use Base\Repository\Hours\ScopedWeeks;
+use Base\Repository\Hours\SpecialDays;
+use Base\Repository\Hours\WeekDays;
 use Base\Service\OpeningHours;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -35,9 +35,9 @@ class HoursController extends AbstractController
 
     public function __construct(
         private readonly OpeningHours $hours,
-        private readonly WeekDayHoursRepository $weekDays,
-        private readonly ScopedWeekRepository $scopedWeeks,
-        private readonly SpecialDayRepository $specialDays,
+        private readonly WeekDays $weekDays,
+        private readonly ScopedWeeks $scopedWeeks,
+        private readonly SpecialDays $specialDays,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }

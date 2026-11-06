@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Changed
+- The system pages type on the core's repository interfaces, not on the repositories' classes (omnibase's plan "omnibase
+  agnostic", step E2'): SystemController on `Base\Repository\Layout\Settings`, HoursController on `Hours\WeekDays`,
+  `Hours\ScopedWeeks` and `Hours\SpecialDays`, which omnibase 4.x and 5.0 both declare, with the methods they call. The
+  complaints' dashboard tile keeps `ComplaintRepository`: `Base\Repository\User\Complaints` is 5.0's only, and the bundle
+  serves the 4.x sites as well.
 - Accepts omnisense/omnibase 5.0 (`3.0.*-dev || 4.0.*-dev || 5.0.*-dev`; plan "omnibase agnostic", step F6): the
   bundle runs unchanged on it, `Base\Bundle\AbstractBaseBundle` and `Base\BaseBundle` being aliases of
   omnibridge/symfony's classes there.
