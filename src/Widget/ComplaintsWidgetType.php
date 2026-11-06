@@ -17,6 +17,8 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 final class ComplaintsWidgetType implements DashboardWidgetTypeInterface
 {
     public function __construct(
+        // The class, not Base\Repository\User\Complaints: omnibase 5.x alone has that interface, and this
+        // bundle serves the 4.x sites as well (plan "omnibase agnostic", step E2'; typed on it at step S).
         private readonly ComplaintRepository $complaints,
         private readonly AuthorizationCheckerInterface $authorization,
     ) {

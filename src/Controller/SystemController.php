@@ -12,7 +12,7 @@ use Base\Admin\Settings\SettingsSections;
 use Base\Database\Attribute\Vault;
 use Base\Field\Type\PasswordType;
 use Base\Form\Type\LayoutSettingListType;
-use Base\Repository\Layout\SettingRepository;
+use Base\Repository\Layout\Settings;
 use Base\Service\SettingBagInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -36,7 +36,7 @@ class SystemController extends AbstractController
 {
     public function __construct(
         protected readonly SettingBagInterface $settingBag,
-        protected readonly SettingRepository $settingRepository,
+        protected readonly Settings $settingRepository,
         protected readonly AdminContext $adminContext,
         protected readonly MenuBuilder $menuBuilder,
         protected readonly TranslatorInterface $translator,
