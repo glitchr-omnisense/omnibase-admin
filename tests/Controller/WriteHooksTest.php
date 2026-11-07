@@ -91,7 +91,22 @@ class WriteHooksTest extends TestCase
         return $unitOfWork;
     }
 
-    private function wire(AbstractCrudController $controller, EntityManagerInterface $entityManager, UnitOfWork $unitOfWork): void
+    public function testWithoutDoctrineTheNewHooksWriteAndAFormerOneIsRefusedAloud(): void
+    {
+        // Step B1d: no entity manager where omnibridge/doctrine is not installed.
+        $plain = new WriteHooksPlainController();
+        $this->wire($plain, null, $this->unitOfWork());
+        $this->write($plain, 'update', new \stdClass());
+        self::assertSame(['flush'], self::$calls);
+
+        $former = new WriteHooksFormerController();
+        $this->wire($former, null, $this->unitOfWork());
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('omnibridge/doctrine is not installed');
+        $this->write($former, 'update', new \stdClass());
+    }
+
+    private function wire(AbstractCrudController $controller, ?EntityManagerInterface $entityManager, UnitOfWork $unitOfWork): void
     {
         (new \ReflectionProperty(AbstractCrudController::class, 'entityManager'))->setValue($controller, $entityManager);
         $controller->setPersistence($unitOfWork, $this->createMock(Repositories::class));

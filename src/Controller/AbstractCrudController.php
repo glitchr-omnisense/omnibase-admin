@@ -48,7 +48,11 @@ use Base\Admin\Router\AdminRouteRegistry;
  */
 abstract class AbstractCrudController extends AbstractController implements CrudControllerInterface
 {
-    protected EntityManagerInterface $entityManager;
+    /**
+     * Doctrine's entity manager where omnibridge/doctrine is installed, null otherwise (step B1d): the list built on
+     * Doctrine's QueryBuilder and the former write hooks need it, and the bundles' controllers that still read it.
+     */
+    protected ?EntityManagerInterface $entityManager = null;
     /** The persistence chosen (base.persistence): the records' writes and lookups (omnibase's plan "omnibase agnostic", step B1a). */
     protected UnitOfWork $unitOfWork;
     protected Repositories $repositories;
@@ -63,7 +67,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
 
     #[Required]
     public function setAdminServices(
-        EntityManagerInterface $entityManager,
+        ?EntityManagerInterface $entityManager,
         FieldFormBuilder $fieldFormBuilder,
         FieldValueResolver $fieldValueResolver,
         AdminUrlGenerator $adminUrlGenerator,
@@ -287,7 +291,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
             );
             $neighbourId = null !== $neighbour && method_exists($neighbour, 'getId') ? $neighbour->getId() : null;
         } else {
-            $queryBuilder = $this->entityManager->createQueryBuilder()
+            $queryBuilder = $this->doctrine('the neighbouring record of a list on Doctrine\'s QueryBuilder')->createQueryBuilder()
                 ->select('e.id')
                 ->from(static::getEntityFqcn(), 'e')
                 ->setMaxResults(1)
@@ -935,7 +939,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     public function removeRecord(UnitOfWork $unitOfWork, object $entity): void
     {
         if ($this->overridesFormerHook('remove')) {
-            $this->removeEntity($this->entityManager, $entity);
+            $this->removeEntity($this->doctrine('the former hook removeEntity()'), $entity);
 
             return;
         }
@@ -972,11 +976,17 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     private function write(string $hook, object $entity): void
     {
         if ($this->overridesFormerHook($hook)) {
-            $this->{$hook.'Entity'}($this->entityManager, $entity);
+            $this->{$hook.'Entity'}($this->doctrine('the former hook '.$hook.'Entity()'), $entity);
 
             return;
         }
         $this->{$hook.'Record'}($this->unitOfWork, $entity);
+    }
+
+    /** Doctrine's entity manager, for what is still written on it; refused aloud where Doctrine is not installed. */
+    private function doctrine(string $what): EntityManagerInterface
+    {
+        return $this->entityManager ?? throw new \LogicException(sprintf('%s (%s) is written on Doctrine\'s entity manager, and omnibridge/doctrine is not installed: move it to the persistence chosen (indexCriteria(), Filter::matchWith(), the *Record() hooks).', $what, static::class));
     }
 
     /** Whether a class below this one overrides the former hook (persistEntity()...) and not the new one beside it. */
@@ -1115,7 +1125,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
      */
     public function createIndexQueryBuilder(Crud $crud, array $sort): QueryBuilder
     {
-        $queryBuilder = $this->entityManager
+        $queryBuilder = $this->doctrine('createIndexQueryBuilder()')
             ->getRepository(static::getEntityFqcn())
             ->createQueryBuilder('entity');
 

@@ -358,7 +358,8 @@ abstract class CrudFieldsTestCase extends TestCase
         $services = $this->services();
         for ($class = new \ReflectionClass($crud); $class; $class = $class->getParentClass()) {
             foreach ($class->getProperties() as $property) {
-                if ($property->isStatic() || $property->getDeclaringClass()->getName() !== $class->getName() || $property->isInitialized($crud)) {
+                // A service property null by default (the entity manager, null without Doctrine since step B1d) is given too.
+                if ($property->isStatic() || $property->getDeclaringClass()->getName() !== $class->getName() || $property->isInitialized($crud) && null !== $property->getValue($crud)) {
                     continue;
                 }
                 if (\array_key_exists($property->getName(), $services)) {

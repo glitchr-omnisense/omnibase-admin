@@ -40,6 +40,10 @@
         "omnibridge/symfony": "1.x-dev",
         "omnisense/omnibase": "3.0.*-dev || 4.0.*-dev || 5.0.*-dev"
     },
+    "suggest": {
+        "omnibridge/doctrine": "The persistence on Doctrine's ORM; also what a list still built on Doctrine's QueryBuilder (createIndexQueryBuilder(), Filter::applyWith()) and the former write hooks (persistEntity()...) need, both deprecated",
+        "omnibridge/eloquent": "The persistence on Illuminate's database (base.persistence: eloquent): the back office reads and writes through it"
+    },
     "require-dev": {
         "phpunit/phpunit": "^9.6",
         "symfony/framework-bundle": "^6.0|^7.0|^8.0",
