@@ -35,7 +35,7 @@ class FormGridTest extends KernelTestCase
 
     private function grid(bool $csrf = false): \DOMXPath
     {
-        $builder = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get('doctrine')))
+        $builder = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Omnibridge\Persistence\UnitOfWork::class)))
             ->createFormBuilder(new Comment(), [
                 TextField::new('name', 'Name')->setColumns(6),
                 EditorField::new('content', 'Text'),

@@ -17,7 +17,9 @@ use Base\Field\IdField;
 use Base\Admin\Form\FieldFormBuilder;
 use Base\Admin\Orm\Paginator;
 use Base\Admin\Router\AdminUrlGenerator;
+use Base\Database\Mapping\EntityShape;
 use Base\Database\Repository\Repositories;
+use Base\Database\UnitOfWorks;
 use Base\Service\Model\LinkableInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
@@ -87,6 +89,15 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     {
         $this->unitOfWork = $unitOfWork;
         $this->repositories = $repositories;
+    }
+
+    /**
+     * What the persistence chosen maps of a class (the core's EntityShape, omnisense/omnibridge's Schema description of
+     * it: fields and their types, associations, inheritance), in place of Doctrine's ClassMetadata (step B1c).
+     */
+    protected function shape(string $class): EntityShape
+    {
+        return UnitOfWorks::shapes($this->unitOfWork)->shape($class);
     }
 
     protected ?TranslatorInterface $labelTranslator = null;
@@ -385,10 +396,8 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     protected function getNewVariants(): array
     {
         $entityFqcn = static::getEntityFqcn();
-        $metadata = $this->entityManager->getClassMetadata($entityFqcn);
-
         $variants = [];
-        foreach ($metadata->discriminatorMap ?: [$entityFqcn] as $class) {
+        foreach ($this->shape($entityFqcn)->discriminatorMap() ?: [$entityFqcn] as $class) {
             if ($class !== $entityFqcn && !is_subclass_of($class, $entityFqcn)) {
                 continue;
             }
@@ -1013,13 +1022,13 @@ abstract class AbstractCrudController extends AbstractController implements Crud
             ]));
         }
 
-        // guess widget types from Doctrine metadata for plain add('property')
-        $metadata = $this->entityManager->getClassMetadata(static::getEntityFqcn());
+        // guess widget types from the entity's shape (its fields' column types) for plain add('property')
+        $shape = $this->shape(static::getEntityFqcn());
         foreach ($filters->getAll() as $property => $filter) {
-            if (\Base\Admin\Filter\Filter::TYPE_TEXT !== $filter->getType() || !$metadata->hasField($property)) {
+            if (\Base\Admin\Filter\Filter::TYPE_TEXT !== $filter->getType() || !$shape->hasField($property)) {
                 continue;
             }
-            static::guessFilterType($filter, (string) $metadata->getTypeOfField($property));
+            static::guessFilterType($filter, (string) $shape->fieldType($property));
         }
 
         return $filters;
@@ -1058,10 +1067,10 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     {
         $searchFields = $crud->getSearchFields();
         if ([] === $searchFields) {
-            $metadata = $this->entityManager->getClassMetadata(static::getEntityFqcn());
+            $shape = $this->shape(static::getEntityFqcn());
             foreach ($this->getFields(Crud::PAGE_INDEX) as $field) {
                 $property = $field->getAsDto()->getProperty();
-                if ($metadata->hasField($property) && \in_array($metadata->getTypeOfField($property), ['string', 'text'], true)) {
+                if ($shape->hasField($property) && \in_array($shape->fieldType($property), ['string', 'text'], true)) {
                     $searchFields[] = $property;
                 }
             }
@@ -1306,9 +1315,9 @@ abstract class AbstractCrudController extends AbstractController implements Crud
             // on Base\Entity\User\Group) may add the slug the parent lacks,
             // and entityIdentifier() builds the URL from the loaded object -
             // the subclass - so the lookup must reach the subclass's fields.
-            $classes = [$fqcn, ...$this->entityManager->getClassMetadata($fqcn)->subClasses];
+            $classes = [$fqcn, ...$this->shape($fqcn)->entity->subclasses];
             foreach ($classes as $class) {
-                $metadata = $this->entityManager->getClassMetadata($class);
+                $shape = $this->shape($class);
                 $repository = $this->repositories->of($class);
 
                 // Asks the resolver rather than holding its own list, so what we
@@ -1317,7 +1326,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
                 // list is deliberately the WIDER one, so narrowing the config
                 // shortens new URLs without 404ing links already in the wild.
                 foreach ($this->fieldValueResolver->resolvableIdentifierFieldsFor($class) as $field) {
-                    if (!$metadata->hasField($field)) {
+                    if (!$shape->hasField($field)) {
                         continue;
                     }
 

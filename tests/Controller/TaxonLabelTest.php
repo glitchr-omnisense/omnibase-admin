@@ -106,7 +106,7 @@ class TaxonLabelTest extends KernelTestCase
         // configureFields() needs none of the controller's services.
         $crud = (new \ReflectionClass($controller))->newInstanceWithoutConstructor();
 
-        return (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get('doctrine')))
+        return (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Omnibridge\Persistence\UnitOfWork::class)))
             ->createForm($entity, $crud->configureFields(FieldDescriptor::PAGE_NEW), FieldDescriptor::PAGE_NEW, ['csrf_protection' => false]);
     }
 

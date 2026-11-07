@@ -45,7 +45,7 @@ class PageTranslationLabelsTest extends KernelTestCase
 
         // configureFields() needs none of the controller's services.
         $crud = (new \ReflectionClass(PageCrudController::class))->newInstanceWithoutConstructor();
-        $form = (new FieldFormBuilder($container->get('form.factory'), $container->get('doctrine')))
+        $form = (new FieldFormBuilder($container->get('form.factory'), $container->get(\Omnibridge\Persistence\UnitOfWork::class)))
             ->createForm(new Page(), $crud->configureFields(FieldDescriptor::PAGE_NEW), formOptions: ['csrf_protection' => false]);
 
         $html = $container->get('twig')->createTemplate(

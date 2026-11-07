@@ -52,7 +52,7 @@ class RedirectionCrudControllerTest extends KernelTestCase
         $controller = static::getContainer()->get(RedirectionCrudController::class);
         $redirection = new Redirection();
 
-        $form = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get('doctrine')))
+        $form = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Omnibridge\Persistence\UnitOfWork::class)))
             ->createForm($redirection, $controller->configureFields('new'), FieldDescriptor::PAGE_NEW, ['csrf_protection' => false]);
 
         $this->assertTrue($form->has('source'));

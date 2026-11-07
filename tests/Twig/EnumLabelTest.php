@@ -59,7 +59,7 @@ class EnumLabelTest extends KernelTestCase
     /** What the form's select says for the case. */
     private function formLabel(object $entity, string $property, \UnitEnum $case): ?string
     {
-        $form = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get('doctrine')))
+        $form = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Omnibridge\Persistence\UnitOfWork::class)))
             ->createForm($entity, [SelectField::new($property)], FieldDescriptor::PAGE_EDIT, ['csrf_protection' => false]);
 
         // omnibase's select hands its choices to select2: {id: what is stored, text: the label}.

@@ -4,6 +4,7 @@ namespace Base\Admin\Widget;
 
 use Base\Enum\ThreadState;
 use Base\Service\Model\LinkableInterface;
+use Base\Database\Repository\Repositories;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -26,8 +27,14 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 final class LinkableEntityRegistry
 {
+    /**
+     * @param Repositories $repositories the persistence chosen, which reads the instances (omnibase's plan "omnibase
+     *                                   agnostic", step B1c)
+     * @param EntityManagerInterface $em lists the mapped classes: the core's EntityShapes has no listing (yet)
+     */
     public function __construct(
         private readonly EntityManagerInterface $em,
+        private readonly Repositories $repositories,
     ) {
     }
 
@@ -69,7 +76,7 @@ final class LinkableEntityRegistry
             return [];
         }
 
-        return $this->em->getRepository($class)->findBy([], ['id' => 'DESC'], $limit);
+        return $this->repositories->of($class)->findBy([], ['id' => 'DESC'], $limit);
     }
 
     /**
@@ -92,7 +99,7 @@ final class LinkableEntityRegistry
             ? ['state' => ThreadState::PUBLISH]
             : [];
 
-        $entities = $this->em->getRepository($class)->findBy($criteria);
+        $entities = $this->repositories->of($class)->findBy($criteria);
 
         return \array_values(\array_filter(\array_map(
             fn (LinkableInterface $entity) => $entity->__toLink(),
@@ -106,7 +113,7 @@ final class LinkableEntityRegistry
             return null;
         }
 
-        $entity = $this->em->getRepository($class)->find($id);
+        $entity = $this->repositories->of($class)->find($id);
 
         return $entity instanceof LinkableInterface ? $entity : null;
     }

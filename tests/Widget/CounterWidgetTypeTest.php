@@ -148,6 +148,18 @@ class CounterWidgetTypeTest extends KernelTestCase
         $this->assertLessThanOrEqual($all, $published);
     }
 
+    /** Several states are counted together (an IN through the repository's count(), omnibase's plan "omnibase agnostic", step B1c). */
+    public function testSeveralStatesCountTheSumOfEach(): void
+    {
+        $params = ['mode' => CounterWidgetType::MODE_RECORDS, 'countClass' => $this->contentType()];
+        $count = fn (array $states): int => $this->type->getTemplateVars(MenuItem::block('counter', null, null, null, $params + ['states' => $states]))['total'];
+
+        $this->assertSame(
+            $count([\Base\Enum\ThreadState::PUBLISH]) + $count([\Base\Enum\ThreadState::DRAFT]),
+            $count([\Base\Enum\ThreadState::PUBLISH, \Base\Enum\ThreadState::DRAFT]),
+        );
+    }
+
     public function testTheCountedListIsReachableAndCarriesTheSameNarrowing(): void
     {
         $vars = $this->type->getTemplateVars(MenuItem::block('counter', null, null, null, [

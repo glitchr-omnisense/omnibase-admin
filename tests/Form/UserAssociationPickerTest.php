@@ -37,7 +37,7 @@ class UserAssociationPickerTest extends KernelTestCase
 
     private function builder(): FieldFormBuilder
     {
-        return new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get('doctrine'));
+        return new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Omnibridge\Persistence\UnitOfWork::class));
     }
 
     public function testAUserAssociationIsAPicker(): void
