@@ -108,7 +108,7 @@ class ComplaintCrudController extends AbstractCrudController
         $this->denyAccessUnlessGranted(ComplaintVoter::HANDLE, $complaint);
         $user = $this->getUser();
         $complaint->settle($status, $user instanceof \Base\Entity\User ? $user : null, $request->request->get('answer') ?? $complaint->getAnswer());
-        $this->entityManager->flush();
+        $this->unitOfWork->flush();
         $this->addFlash('success', $flash);
 
         return $this->redirectToIndex();

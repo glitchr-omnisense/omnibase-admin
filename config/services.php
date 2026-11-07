@@ -64,7 +64,7 @@ return function (ContainerConfigurator $configurator) {
     // Notifications opened from the back-office land on the record's edit
     // page: replaces base-bundle's null linker (same alias id, this one wins).
     $services->set(\Base\Admin\Notifier\AdminNotificationLinker::class)
-        ->args([service(AdminRouteRegistry::class), service(AdminUrlGenerator::class), service('doctrine.orm.entity_manager'), service(\Base\Admin\Security\CrudAccessChecker::class)]);
+        ->args([service(AdminRouteRegistry::class), service(AdminUrlGenerator::class), service(\Base\Database\Repository\Repositories::class)->nullOnInvalid(), service(\Base\Admin\Security\CrudAccessChecker::class)]);
     $services->alias(\Base\Notifier\NotificationLinkerInterface::class, \Base\Admin\Notifier\AdminNotificationLinker::class);
 
 
@@ -180,13 +180,13 @@ return function (ContainerConfigurator $configurator) {
         ->tag('controller.service_arguments');
 
     $services->set(\Base\Admin\Controller\TrashController::class)
-        ->args([service(\Base\Service\TrashManager::class), service('doctrine.orm.entity_manager'), service('translator'), service(\Base\Admin\Context\AdminContext::class), service(\Base\Admin\Menu\MenuBuilder::class)])
+        ->args([service(\Base\Service\TrashManager::class), service(\Base\Database\Repository\Repositories::class), service('translator'), service(\Base\Admin\Context\AdminContext::class), service(\Base\Admin\Menu\MenuBuilder::class)])
         ->call('setContainer', [$controllerServiceLocator])
         ->public(true)
         ->tag('controller.service_arguments');
 
     $services->set(\Base\Admin\Controller\RevisionController::class)
-        ->args([service('doctrine.orm.entity_manager')])
+        ->args([service(\Base\Database\Repository\Repositories::class)])
         ->call('setContainer', [$controllerServiceLocator])
         ->public(true)
         ->tag('controller.service_arguments');

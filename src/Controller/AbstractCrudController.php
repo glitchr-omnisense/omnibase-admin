@@ -17,10 +17,12 @@ use Base\Field\IdField;
 use Base\Admin\Form\FieldFormBuilder;
 use Base\Admin\Orm\Paginator;
 use Base\Admin\Router\AdminUrlGenerator;
+use Base\Database\Repository\Repositories;
 use Base\Service\Model\LinkableInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use LogicException;
+use Omnibridge\Persistence\UnitOfWork;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,6 +42,9 @@ use Base\Admin\Router\AdminRouteRegistry;
 abstract class AbstractCrudController extends AbstractController implements CrudControllerInterface
 {
     protected EntityManagerInterface $entityManager;
+    /** The persistence chosen (base.persistence): the records' writes and lookups (omnibase's plan "omnibase agnostic", step B1a). */
+    protected UnitOfWork $unitOfWork;
+    protected Repositories $repositories;
     protected FieldFormBuilder $fieldFormBuilder;
     protected FieldValueResolver $fieldValueResolver;
     protected AdminUrlGenerator $adminUrlGenerator;
@@ -70,6 +75,18 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         $this->layoutStore = $layoutStore;
         $this->routeRegistry = $routeRegistry;
         $this->pageCustomization = $pageCustomization;
+    }
+
+    /**
+     * The persistence the site chose (omnisense/omnibridge's UnitOfWork, the core's Repositories): Doctrine's entity
+     * manager behind them on Doctrine, omnibridge/eloquent's on Eloquent. The records are found, written and removed
+     * through it; the entity manager stays for what still reads Doctrine's metadata and builds the list's query.
+     */
+    #[Required]
+    public function setPersistence(UnitOfWork $unitOfWork, Repositories $repositories): void
+    {
+        $this->unitOfWork = $unitOfWork;
+        $this->repositories = $repositories;
     }
 
     protected ?TranslatorInterface $labelTranslator = null;
@@ -451,7 +468,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->persistEntity($this->entityManager, $entity);
+            $this->write('persist', $entity);
             $this->addFlash('success', new \Symfony\Component\Translation\TranslatableMessage('flash.created', [], 'admin'));
 
             return $this->redirectAfterSubmit($request, $entity);
@@ -482,7 +499,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->updateEntity($this->entityManager, $entity);
+            $this->write('update', $entity);
             $this->addFlash('success', new \Symfony\Component\Translation\TranslatableMessage('flash.updated', [], 'admin'));
 
             return $this->redirectAfterSubmit($request, $entity);
@@ -579,7 +596,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
 
             return $this->redirect($this->adminUrlGenerator->setController(static::class)->setAction(Action::INDEX)->generateUrl());
         }
-        $this->deleteEntity($this->entityManager, $entity);
+        $this->write('delete', $entity);
         $this->addFlash('success', new \Symfony\Component\Translation\TranslatableMessage('flash.deleted', [], 'admin'));
 
         return $this->redirect($this->adminUrlGenerator->setController(static::class)->setAction(Action::INDEX)->generateUrl());
@@ -601,7 +618,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         $kept = 0;
         $removed = 0;
         foreach ($request->request->all('batchIds') as $entityId) {
-            $entity = $this->entityManager->find(static::getEntityFqcn(), $entityId);
+            $entity = $this->repositories->of(static::getEntityFqcn())->find($entityId);
             if (null === $entity) {
                 continue;
             }
@@ -609,11 +626,11 @@ abstract class AbstractCrudController extends AbstractController implements Crud
                 ++$kept;
                 continue;
             }
-            $this->removeEntity($this->entityManager, $entity);
+            $this->removeRecord($this->unitOfWork, $entity);
             ++$removed;
         }
         if ($removed > 0) {
-            $this->entityManager->flush();
+            $this->unitOfWork->flush();
         }
         if ($kept > 0) {
             $this->addFlash('warning', new \Symfony\Component\Translation\TranslatableMessage('flash.not_deletable', [], 'admin'));
@@ -667,7 +684,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         $accessor = \Symfony\Component\PropertyAccess\PropertyAccess::createPropertyAccessor();
         $newValue = !$accessor->getValue($entity, $property);
         $accessor->setValue($entity, $property, $newValue);
-        $this->updateEntity($this->entityManager, $entity);
+        $this->write('update', $entity);
 
         return $this->json(['property' => $property, 'value' => $newValue]);
     }
@@ -867,31 +884,98 @@ abstract class AbstractCrudController extends AbstractController implements Crud
             && $this->getUser() instanceof ($type->getName());
     }
 
+    /*
+     * The write hooks. persistRecord(), updateRecord(), deleteRecord() and removeRecord() write through the
+     * persistence the site chose (omnisense/omnibridge's UnitOfWork: Doctrine's entity manager behind it on Doctrine,
+     * omnibridge/eloquent's on Eloquent); new, edit, the inline switch, delete and the batch delete call them.
+     *
+     * persistEntity(), updateEntity(), deleteEntity() and removeEntity() are the former hooks, typed on Doctrine's
+     * entity manager. A controller that still overrides one of them keeps it called, with the entity manager, in
+     * place of its new hook (a class defining both is given the new one): unchanged on Doctrine, but a write that
+     * Doctrine makes on Eloquent's entities - move the override to the new hook to run on Eloquent. Their parameter
+     * stays EntityManagerInterface: widening it would refuse every override written against it.
+     */
+
+    public function persistRecord(UnitOfWork $unitOfWork, object $entity): void
+    {
+        $unitOfWork->persist($entity);
+        $unitOfWork->flush();
+    }
+
+    public function updateRecord(UnitOfWork $unitOfWork, object $entity): void
+    {
+        $unitOfWork->flush();
+    }
+
+    public function deleteRecord(UnitOfWork $unitOfWork, object $entity): void
+    {
+        $this->removeRecord($unitOfWork, $entity);
+        $unitOfWork->flush();
+    }
+
+    /**
+     * deleteRecord() without its flush - batchDelete() removes each record
+     * through here and flushes the lot once. Override this one, not
+     * deleteRecord(), to change how a record goes: both paths run it.
+     */
+    public function removeRecord(UnitOfWork $unitOfWork, object $entity): void
+    {
+        if ($this->overridesFormerHook('remove')) {
+            $this->removeEntity($this->entityManager, $entity);
+
+            return;
+        }
+        $unitOfWork->remove($entity);
+    }
+
+    /** @deprecated since the plan "omnibase agnostic"'s step B1a, override persistRecord() */
     public function persistEntity(EntityManagerInterface $entityManager, object $entity): void
     {
         $entityManager->persist($entity);
         $entityManager->flush();
     }
 
+    /** @deprecated since the plan "omnibase agnostic"'s step B1a, override updateRecord() */
     public function updateEntity(EntityManagerInterface $entityManager, object $entity): void
     {
         $entityManager->flush();
     }
 
+    /** @deprecated since the plan "omnibase agnostic"'s step B1a, override deleteRecord() */
     public function deleteEntity(EntityManagerInterface $entityManager, object $entity): void
     {
         $this->removeEntity($entityManager, $entity);
         $entityManager->flush();
     }
 
-    /**
-     * deleteEntity() without its flush - batchDelete() removes each record
-     * through here and flushes the lot once. Override this one, not
-     * deleteEntity(), to change how a record goes: both paths run it.
-     */
+    /** @deprecated since the plan "omnibase agnostic"'s step B1a, override removeRecord() */
     public function removeEntity(EntityManagerInterface $entityManager, object $entity): void
     {
         $entityManager->remove($entity);
+    }
+
+    /** A write of the actions: the controller's former hook when it overrides one, else the new one. */
+    private function write(string $hook, object $entity): void
+    {
+        if ($this->overridesFormerHook($hook)) {
+            $this->{$hook.'Entity'}($this->entityManager, $entity);
+
+            return;
+        }
+        $this->{$hook.'Record'}($this->unitOfWork, $entity);
+    }
+
+    /** Whether a class below this one overrides the former hook (persistEntity()...) and not the new one beside it. */
+    private function overridesFormerHook(string $hook): bool
+    {
+        $former = (new \ReflectionMethod($this, $hook.'Entity'))->getDeclaringClass()->getName();
+        if (self::class === $former) {
+            return false;
+        }
+        $new = (new \ReflectionMethod($this, $hook.'Record'))->getDeclaringClass()->getName();
+
+        // The new hook declared by the class of the former one, or below it, wins; declared above it (or only here), not.
+        return !is_a($new, $former, true);
     }
 
     public function createIndexQueryBuilder(Crud $crud, array $sort): QueryBuilder
@@ -1213,7 +1297,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         $entity = null;
 
         if (ctype_digit($entityId)) {
-            $entity = $this->entityManager->find($fqcn, $entityId);
+            $entity = $this->repositories->of($fqcn)->find($entityId);
         }
 
         if (null === $entity) {
@@ -1225,7 +1309,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
             $classes = [$fqcn, ...$this->entityManager->getClassMetadata($fqcn)->subClasses];
             foreach ($classes as $class) {
                 $metadata = $this->entityManager->getClassMetadata($class);
-                $repository = $this->entityManager->getRepository($class);
+                $repository = $this->repositories->of($class);
 
                 // Asks the resolver rather than holding its own list, so what we
                 // RESOLVE always covers what entityIdentifier() GENERATES under
@@ -1247,7 +1331,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
 
         // Last resort: a non-numeric primary key (a string id) still
         // resolves, and so does a numeric one whose row was missed above.
-        $entity ??= $this->entityManager->find($fqcn, $entityId);
+        $entity ??= $this->repositories->of($fqcn)->find($entityId);
 
         if (null === $entity) {
             throw $this->createNotFoundException(sprintf('No "%s" found for identifier "%s".', $fqcn, $entityId));

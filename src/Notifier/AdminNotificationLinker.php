@@ -17,7 +17,7 @@ final class AdminNotificationLinker implements NotificationLinkerInterface
     public function __construct(
         private readonly AdminRouteRegistry $registry,
         private readonly AdminUrlGenerator $urlGenerator,
-        private readonly ?\Doctrine\ORM\EntityManagerInterface $entityManager = null,
+        private readonly ?\Base\Database\Repository\Repositories $repositories = null,
         private readonly ?\Base\Admin\Security\CrudAccessChecker $crudAccessChecker = null,
     ) {
     }
@@ -43,9 +43,9 @@ final class AdminNotificationLinker implements NotificationLinkerInterface
 
         // A non-numeric target id is a uuid (the entity had no id yet when
         // the notification was built): resolve it to the record's own id.
-        if (!ctype_digit($id) && $this->entityManager) {
+        if (!ctype_digit($id) && $this->repositories) {
             try {
-                $entity = $this->entityManager->getRepository($class)->findOneBy(['uuid' => $id]);
+                $entity = $this->repositories->of($class)->findOneBy(['uuid' => $id]);
                 $id = $entity && method_exists($entity, 'getId') && $entity->getId() !== null ? (string) $entity->getId() : null;
             } catch (\Throwable) {
                 $id = null;

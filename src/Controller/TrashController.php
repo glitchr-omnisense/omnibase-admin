@@ -7,7 +7,7 @@ use Base\Admin\Menu\MenuBuilder;
 use Base\Entity\Extension\TrashBall;
 use Base\Enum\UserRole;
 use Base\Service\TrashManager;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Database\Repository\Repositories;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,7 +28,7 @@ class TrashController extends AbstractController
 
     public function __construct(
         private readonly TrashManager $trashManager,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly Repositories $repositories,
         private readonly TranslatorInterface $translator,
         private readonly AdminContext $adminContext,
         private readonly MenuBuilder $menuBuilder,
@@ -142,7 +142,7 @@ class TrashController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
-        $trashBall = $this->entityManager->getRepository(TrashBall::class)->find($id);
+        $trashBall = $this->repositories->of(TrashBall::class)->find($id);
         if (!$trashBall) {
             throw $this->createNotFoundException(\sprintf('No trash entry #%d.', $id));
         }
