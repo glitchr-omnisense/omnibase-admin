@@ -214,7 +214,7 @@ return function (ContainerConfigurator $configurator) {
         ->tag('base.admin.dashboard_widget_type.palette');
 
     $services->set(\Base\Admin\Widget\LinkableEntityRegistry::class)
-        ->args([service('doctrine.orm.entity_manager'), service(\Base\Database\Repository\Repositories::class)]);
+        ->args([service(\Omnibridge\Persistence\UnitOfWork::class), service(\Base\Database\Repository\Repositories::class)]);
 
     $services->set(\Base\Admin\Widget\EntityViewsWidgetType::class)
         ->args([

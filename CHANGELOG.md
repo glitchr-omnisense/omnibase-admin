@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Changed
+- Doctrine only where omnibridge/doctrine is installed (omnibase's plan "omnibase agnostic", step B1d):
+  `AbstractCrudController`'s entity manager is optional (null without Doctrine; what is still written on it - a list on
+  Doctrine's QueryBuilder, a former write hook - is refused aloud there, the rest runs on the persistence chosen);
+  `LinkableEntityRegistry` takes the `UnitOfWork` and lists the mapped classes from its entities' shapes (`classes()`,
+  omnisense/omnibase 5.x and omnibridge/doctrine), Doctrine's metadata only under an older Doctrine bridge; no service of
+  the bundle names a Doctrine service any more but the resolver's optional `doctrine`. composer.json suggests
+  omnibridge/doctrine and omnibridge/eloquent. `WriteHooksTest::testWithoutDoctrineTheNewHooksWriteAndAFormerOneIsRefusedAloud`.
 - The lists are read on the persistence the site chose (omnibase's plan "omnibase agnostic", step B1b): the search, an
   OR of the text fields containing the words whatever their case, and each active filter as groups of the core's finder
   language (`AbstractCrudController::indexCriteria()`, `searchCriterion()`, `Filter::match()`; `Group::of()`,

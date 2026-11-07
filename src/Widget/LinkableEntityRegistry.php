@@ -5,15 +5,17 @@ namespace Base\Admin\Widget;
 use Base\Enum\ThreadState;
 use Base\Service\Model\LinkableInterface;
 use Base\Database\Repository\Repositories;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Database\UnitOfWorks;
+use Omnibridge\Persistence\UnitOfWork;
 
 /**
  * What EntityViewsWidgetType's own settings picker (and any future "pick a
- * trackable page" feature) chooses from: every Doctrine-mapped entity class
- * this app happens to have that implements Base\Service\Model\LinkableInterface
+ * trackable page" feature) chooses from: every mapped entity class this app
+ * happens to have that implements Base\Service\Model\LinkableInterface
  * (a __toLink() a real request path can be tracked under, plus __toString()
- * for a human-readable option label) - discovered generically off Doctrine's
- * own metadata, not a hardcoded list. In this app that resolves to every
+ * for a human-readable option label) - discovered generically off the
+ * persistence's own mapping (the entities' shapes it lists: omnibase's plan
+ * "omnibase agnostic", step B1d), not a hardcoded list. In this app that resolves to every
  * Base\Entity\Thread subtype (Article, Destination, Gallery, Comment, ...)
  * PLUS User side by side - the two class FAMILIES this was generalized to
  * comply with (was Article-only) - but nothing here actually references
@@ -28,12 +30,11 @@ use Doctrine\ORM\EntityManagerInterface;
 final class LinkableEntityRegistry
 {
     /**
-     * @param Repositories $repositories the persistence chosen, which reads the instances (omnibase's plan "omnibase
-     *                                   agnostic", step B1c)
-     * @param EntityManagerInterface $em lists the mapped classes: the core's EntityShapes has no listing (yet)
+     * @param UnitOfWork   $unitOfWork   the persistence chosen, whose entities' shapes list the mapped classes (step B1d)
+     * @param Repositories $repositories the persistence chosen, which reads the instances (step B1c)
      */
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly UnitOfWork $unitOfWork,
         private readonly Repositories $repositories,
     ) {
     }
@@ -49,8 +50,7 @@ final class LinkableEntityRegistry
     public function getPickableClasses(): array
     {
         $classes = [];
-        foreach ($this->em->getMetadataFactory()->getAllMetadata() as $metadata) {
-            $class = $metadata->getName();
+        foreach ($this->mappedClasses() as $class) {
             if (!\is_a($class, LinkableInterface::class, true)) {
                 continue;
             }
@@ -116,6 +116,25 @@ final class LinkableEntityRegistry
         $entity = $this->repositories->of($class)->find($id);
 
         return $entity instanceof LinkableInterface ? $entity : null;
+    }
+
+    /**
+     * The mapped entities' classes: the entities' shapes of the persistence chosen list them (classes(), omnisense/omnibase
+     * 5.x and omnibridge/doctrine since step B1d); a Doctrine bridge older than that, its entity manager's metadata.
+     *
+     * @return list<string>
+     */
+    private function mappedClasses(): array
+    {
+        $shapes = UnitOfWorks::shapes($this->unitOfWork);
+        if (method_exists($shapes, 'classes')) {
+            return $shapes->classes();
+        }
+        if (method_exists($this->unitOfWork, 'entityManager')) {
+            return array_map(static fn (object $metadata): string => $metadata->getName(), $this->unitOfWork->entityManager()->getMetadataFactory()->getAllMetadata());
+        }
+
+        return [];
     }
 
     private function humanize(string $class): string
