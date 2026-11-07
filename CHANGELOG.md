@@ -3,6 +3,18 @@
 ## [Unreleased]
 
 ### Changed
+- The records are found, written and removed through the persistence the site chose (omnibase's plan "omnibase
+  agnostic", step B1a): `AbstractCrudController` holds omnisense/omnibridge's `UnitOfWork` and the core's
+  `Repositories` (`setPersistence()`, beside the entity manager it keeps for the list's query and the metadata), finds a
+  record by its id or its slug through `Repositories::of()`, and new, edit, the inline switch, delete and the batch
+  delete write through the new hooks `persistRecord()`, `updateRecord()`, `deleteRecord()` and `removeRecord()`, typed
+  on the `UnitOfWork`. The former hooks (`persistEntity()`...) stay, typed on Doctrine's entity manager and deprecated:
+  a controller that overrides one is still given it, with the entity manager (a class defining both is given the new
+  one) - unchanged on Doctrine; move the override to the new hook to run on Eloquent. Their parameter is not widened:
+  PHP would refuse every override written against it (seven bundles have some). The trash, the revisions, the opening
+  hours and the notifications' links on the `UnitOfWork` and the repositories too; ComplaintCrudController flushes
+  the unit of work. On omnibridge/eloquent, the back office no longer writes Eloquent's entities through Doctrine's
+  flush, nor reads a record through Doctrine's second-level cache that Eloquent's writes do not evict.
 - The system pages type on the core's repository interfaces, not on the repositories' classes (omnibase's plan "omnibase
   agnostic", step E2'): SystemController on `Base\Repository\Layout\Settings`, HoursController on `Hours\WeekDays`,
   `Hours\ScopedWeeks` and `Hours\SpecialDays`, which omnibase 4.x and 5.0 both declare, with the methods they call. The

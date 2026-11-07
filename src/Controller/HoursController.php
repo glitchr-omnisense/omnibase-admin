@@ -8,7 +8,7 @@ use Base\Repository\Hours\ScopedWeeks;
 use Base\Repository\Hours\SpecialDays;
 use Base\Repository\Hours\WeekDays;
 use Base\Service\OpeningHours;
-use Doctrine\ORM\EntityManagerInterface;
+use Omnibridge\Persistence\UnitOfWork;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +38,7 @@ class HoursController extends AbstractController
         private readonly WeekDays $weekDays,
         private readonly ScopedWeeks $scopedWeeks,
         private readonly SpecialDays $specialDays,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UnitOfWork $unitOfWork,
     ) {
     }
 
@@ -151,8 +151,8 @@ class HoursController extends AbstractController
             }
         }
 
-        $this->entityManager->persist($day);
-        $this->entityManager->flush();
+        $this->unitOfWork->persist($day);
+        $this->unitOfWork->flush();
         $this->hours->reset();
         $this->addFlash('success', new TranslatableMessage('page.hours.flash.special_saved', [], 'admin'));
 
@@ -164,14 +164,14 @@ class HoursController extends AbstractController
         $this->denyAccessUnlessGranted(UserRole::ADMIN);
         $this->guard($request, 'admin-hours-special-delete-'.$id);
 
-        $day = $this->entityManager->find(SpecialDay::class, $id);
+        $day = $this->specialDays->find($id);
         if (!$day) {
             throw $this->createNotFoundException();
         }
         $scope = $day->getScope();
 
-        $this->entityManager->remove($day);
-        $this->entityManager->flush();
+        $this->unitOfWork->remove($day);
+        $this->unitOfWork->flush();
         $this->hours->reset();
         $this->addFlash('success', new TranslatableMessage('page.hours.flash.special_deleted', [], 'admin'));
 
