@@ -2,13 +2,24 @@
 
 namespace Base\Admin\Filter;
 
+use Base\Database\Repository\Finder\Criterion;
+use Base\Database\Repository\Finder\Group;
+use Base\Database\Repository\Finder\Key;
+use Base\Database\Repository\Finder\Parser;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Translation\TranslatableInterface;
 
 /**
  * One filter definition: which property, which comparison widget, and how
- * it constrains the index QueryBuilder. Single class - the type string
- * drives both the rendering (inline bar) and the WHERE clause.
+ * it constrains the list. Single class - the type string drives both the
+ * rendering (inline bar) and the condition.
+ *
+ * The condition is a group of the core's finder language (match(), omnibase's
+ * plan "omnibase agnostic", step B1b), which the persistence the site chose
+ * compiles: omnibridge/doctrine and omnibridge/eloquent alike. A filter of its
+ * own says its condition with matchWith(). apply() and applyWith() are the
+ * former way, on Doctrine's QueryBuilder: a list whose active filter has only
+ * applyWith() is still built on Doctrine (deprecated).
  */
 class Filter
 {
@@ -26,6 +37,8 @@ class Filter
     protected array $choices = [];
     /** @var callable|null custom applier: fn(QueryBuilder $qb, string $alias, mixed $value) */
     protected mixed $applyCallable = null;
+    /** @var callable|null custom condition: fn(mixed $value): Criterion|Group|null */
+    protected mixed $matchCallable = null;
 
     public static function new(string $property, TranslatableInterface|string|null $label = null): static
     {
@@ -120,10 +133,36 @@ class Filter
         return $this->choices;
     }
 
+    /**
+     * The filter's condition on Doctrine's QueryBuilder (fn(QueryBuilder $qb, string $alias, mixed $value)).
+     *
+     * @deprecated since omnibase's plan "omnibase agnostic", step B1b: say the condition with matchWith(), which every
+     *             persistence compiles; a list whose active filter has only this one is built on Doctrine
+     */
     public function applyWith(callable $applyCallable): static
     {
         $this->applyCallable = $applyCallable;
         return $this;
+    }
+
+    /**
+     * The filter's condition in the core's finder language (step B1b): fn(mixed $value): Criterion|Group|null - the
+     * value as the URL gives it (a {comparison, value} pair read as its value), a criterion (Criterion::of('roles',
+     * '%'.$value.'%', Parser::OPTION_PARTIAL)) or a group (Group::of()), null for no condition. It wins over
+     * applyWith() wherever the list is not built on a QueryBuilder.
+     */
+    public function matchWith(callable $matchCallable): static
+    {
+        $this->matchCallable = $matchCallable;
+        return $this;
+    }
+
+    /**
+     * Whether the persistence chosen can say the filter's condition: every filter but one given only applyWith().
+     */
+    public function isNeutral(): bool
+    {
+        return null === $this->applyCallable || null !== $this->matchCallable;
     }
 
     // comparison operators, historical URL shape:
@@ -153,6 +192,57 @@ class Filter
     }
 
     /**
+     * The filter's condition as a group of the core's finder language (step B1b), what apply() writes on a
+     * QueryBuilder: a boolean equal, a date between the first second of its "from" day and the last of its "to" day,
+     * a number compared (=, >, <, !=), a choice equal, an association by its key (its own column, no join), a text
+     * equal or not, else contained, whatever its case (LOWER(...) LIKE '%value%'). Null for no condition.
+     *
+     * @param mixed $value the raw request value (already checked non-empty)
+     */
+    public function match(mixed $value): ?Group
+    {
+        $comparison = null;
+        if (\is_array($value) && \array_key_exists('value', $value)) {
+            $comparison = $value['comparison'] ?? null;
+            $value = $value['value'];
+        }
+
+        if (null !== $this->matchCallable) {
+            $match = ($this->matchCallable)($value);
+
+            return $match instanceof Criterion ? Group::of(Parser::SEPARATOR_AND, $match) : $match;
+        }
+
+        $property = $this->property;
+        $members = match ($this->type) {
+            self::TYPE_BOOLEAN => [Criterion::of($property, '1' === $value || 'true' === $value || true === $value)],
+            self::TYPE_DATE => array_values(array_filter([
+                \is_array($value) && ($value['from'] ?? null) ? Criterion::of($property, new \DateTimeImmutable($value['from'].' 00:00:00'), Parser::OPTION_GREATER_EQUAL) : null,
+                \is_array($value) && ($value['to'] ?? null) ? Criterion::of($property, new \DateTimeImmutable($value['to'].' 23:59:59'), Parser::OPTION_LOWER_EQUAL) : null,
+            ])),
+            self::TYPE_NUMERIC => [Criterion::of($property, $value, match ($comparison) {
+                self::COMPARISON_GT => Parser::OPTION_GREATER,
+                self::COMPARISON_LT => Parser::OPTION_LOWER,
+                self::COMPARISON_NEQ => Parser::OPTION_NOT_EQUAL,
+                default => Parser::OPTION_EQUAL,
+            })],
+            self::TYPE_CHOICE => [Criterion::of($property, $value)],
+            self::TYPE_ASSOCIATION => [Criterion::of($property, Key::of(\is_scalar($value) ? (string) $value : $value))],
+            default => match ($comparison) {
+                self::COMPARISON_EQ => [Criterion::of($property, $value)],
+                self::COMPARISON_NEQ => [Criterion::of($property, $value, Parser::OPTION_NOT_EQUAL)],
+                default => [Criterion::of($property, '%'.mb_strtolower((string) $value).'%', Parser::OPTION_INSENSITIVE, Parser::OPTION_PARTIAL)],
+            },
+        };
+
+        return [] === $members ? null : Group::of(Parser::SEPARATOR_AND, ...$members);
+    }
+
+    /**
+     * The filter's condition on Doctrine's QueryBuilder: the list built on it (the core without the finder's groups,
+     * a controller overriding createIndexQueryBuilder(), applySearch() or applyFilters(), an active filter given only
+     * applyWith()).
+     *
      * @param mixed $value the raw request value (already checked non-empty)
      */
     public function apply(QueryBuilder $queryBuilder, string $alias, mixed $value): void

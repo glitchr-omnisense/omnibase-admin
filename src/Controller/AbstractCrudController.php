@@ -15,12 +15,17 @@ use Base\Field\FieldInterface;
 use Base\Field\FieldValueResolver;
 use Base\Field\IdField;
 use Base\Admin\Form\FieldFormBuilder;
+use Base\Admin\Index\RecordPage;
 use Base\Admin\Orm\Paginator;
 use Base\Admin\Router\AdminUrlGenerator;
 use Base\Database\Mapping\EntityShape;
 use Base\Database\Repository\Repositories;
 use Base\Database\UnitOfWorks;
 use Base\Service\Model\LinkableInterface;
+use Base\Database\Repository\Entities;
+use Base\Database\Repository\Finder\Criterion;
+use Base\Database\Repository\Finder\Group;
+use Base\Database\Repository\Finder\Parser;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use LogicException;
@@ -82,7 +87,8 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     /**
      * The persistence the site chose (omnisense/omnibridge's UnitOfWork, the core's Repositories): Doctrine's entity
      * manager behind them on Doctrine, omnibridge/eloquent's on Eloquent. The records are found, written and removed
-     * through it; the entity manager stays for what still reads Doctrine's metadata and builds the list's query.
+     * through it, and the list is read through its repositories (step B1b); the entity manager stays for the list built
+     * on Doctrine's QueryBuilder (indexPage()) and the former write hooks.
      */
     #[Required]
     public function setPersistence(UnitOfWork $unitOfWork, Repositories $repositories): void
@@ -272,27 +278,38 @@ abstract class AbstractCrudController extends AbstractController implements Crud
      */
     protected function adjacentEntityUrl(object $entity, string $direction, string $page): string
     {
-        $queryBuilder = $this->entityManager->createQueryBuilder()
-            ->select('e.id')
-            ->from(static::getEntityFqcn(), 'e')
-            ->setMaxResults(1)
-            ->setParameter('id', $entity->getId());
-
-        if ('prev' === $direction) {
-            $queryBuilder->where('e.id > :id')->orderBy('e.id', 'ASC');
+        $entities = $this->repositories->of(static::getEntityFqcn());
+        if ($this->readsFinderGroups($entities)) {
+            // The next id up (prev) or down (next), through the finder (step B1b): on the persistence chosen.
+            $neighbour = $entities->findOneBy(
+                [Group::of(Parser::SEPARATOR_AND, Criterion::of('id', $entity->getId(), 'prev' === $direction ? Parser::OPTION_GREATER : Parser::OPTION_LOWER))],
+                ['id' => 'prev' === $direction ? 'ASC' : 'DESC'],
+            );
+            $neighbourId = null !== $neighbour && method_exists($neighbour, 'getId') ? $neighbour->getId() : null;
         } else {
-            $queryBuilder->where('e.id < :id')->orderBy('e.id', 'DESC');
+            $queryBuilder = $this->entityManager->createQueryBuilder()
+                ->select('e.id')
+                ->from(static::getEntityFqcn(), 'e')
+                ->setMaxResults(1)
+                ->setParameter('id', $entity->getId());
+
+            if ('prev' === $direction) {
+                $queryBuilder->where('e.id > :id')->orderBy('e.id', 'ASC');
+            } else {
+                $queryBuilder->where('e.id < :id')->orderBy('e.id', 'DESC');
+            }
+
+            $neighbourId = $queryBuilder->getQuery()->getOneOrNullResult()['id'] ?? null;
         }
 
-        $neighbour = $queryBuilder->getQuery()->getOneOrNullResult();
-        if (null === $neighbour) {
+        if (null === $neighbourId) {
             return '';
         }
 
         return $this->adminUrlGenerator
             ->setController(static::class)
             ->setAction(Actions::PAGE_DETAIL === $page ? Action::DETAIL : Action::EDIT)
-            ->setEntityId($neighbour['id'])
+            ->setEntityId($neighbourId)
             ->generateUrl();
     }
 
@@ -342,22 +359,10 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         $fields = $this->getFields(Crud::PAGE_INDEX);
 
         $sort = $this->getSort($request, $crud);
-        $queryBuilder = $this->createIndexQueryBuilder($crud, $sort);
-
         $query = trim($request->query->getString('query'));
-        if ('' !== $query) {
-            $this->applySearch($queryBuilder, $crud, $query);
-        }
-
         $filters = $this->getFiltersConfig();
         $filterValues = $request->query->all('filters');
-        $this->applyFilters($queryBuilder, $filters, $filterValues);
-
-        $paginator = new Paginator(
-            $queryBuilder,
-            max(1, $request->query->getInt('page', 1)),
-            $crud->getPaginatorPageSize()
-        );
+        $paginator = $this->indexPage($crud, $sort, $query, $filters, $filterValues, max(1, $request->query->getInt('page', 1)));
 
         $rows = [];
         foreach ($paginator as $entity) {
@@ -987,6 +992,127 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         return !is_a($new, $former, true);
     }
 
+    /**
+     * The list's page (omnibase's plan "omnibase agnostic", step B1b): its search and its filters as criteria of the
+     * core's finder language (indexCriteria()), its order, its page, read through the repository of the persistence
+     * the site chose (RecordPage: findBy() and count(), which omnibridge/doctrine and omnibridge/eloquent compile).
+     *
+     * It is built on Doctrine's QueryBuilder, as before, when the finder cannot say it: under omnisense/omnibase 4.x
+     * (no Finder\Group), on a repository that reads no finder (a plain Doctrine EntityRepository), and - deprecated -
+     * for a controller that overrides createIndexQueryBuilder(), applySearch() or applyFilters(), or whose active
+     * filter has only applyWith().
+     *
+     * @param array<string, string> $sort
+     */
+    protected function indexPage(Crud $crud, array $sort, string $query, \Base\Admin\Filter\Filters $filters, array $filterValues, int $page): RecordPage|Paginator
+    {
+        $entities = $this->repositories->of(static::getEntityFqcn());
+        if ($this->indexOnFinder($entities, $filters, $filterValues)) {
+            return new RecordPage($entities, $this->indexCriteria($crud, $query, $filters, $filterValues), $sort, $page, $crud->getPaginatorPageSize());
+        }
+
+        $queryBuilder = $this->createIndexQueryBuilder($crud, $sort);
+        if ('' !== $query) {
+            $this->applySearch($queryBuilder, $crud, $query);
+        }
+        $this->applyFilters($queryBuilder, $filters, $filterValues);
+
+        return new Paginator($queryBuilder, $page, $crud->getPaginatorPageSize());
+    }
+
+    /**
+     * The list's conditions in the core's finder language (step B1b): the search, an OR group of the text fields
+     * containing the words whatever their case, and each active filter's group (Filter::match()), all ANDed.
+     * Override it to narrow a list on every persistence (add a criterion, a Group::of()...).
+     *
+     * @return list<Group>
+     */
+    protected function indexCriteria(Crud $crud, string $query, \Base\Admin\Filter\Filters $filters, array $filterValues): array
+    {
+        $criteria = [];
+        if ('' !== $query && null !== $search = $this->searchCriterion($crud, $query)) {
+            $criteria[] = $search;
+        }
+        foreach ($filters->getAll() as $property => $filter) {
+            $value = $filterValues[$property] ?? null;
+            if (\Base\Admin\Filter\Filter::isActive($value) && null !== $match = $filter->match($value)) {
+                $criteria[] = $match;
+            }
+        }
+
+        return $criteria;
+    }
+
+    /** The search (step B1b): LOWER(field) LIKE '%words%' over the search fields, ORed; null when there is none. */
+    protected function searchCriterion(Crud $crud, string $query): ?Group
+    {
+        $pattern = '%'.mb_strtolower($query).'%';
+        $members = array_map(static fn (string $property) => Criterion::of($property, $pattern, Parser::OPTION_INSENSITIVE, Parser::OPTION_PARTIAL), $this->searchFields($crud));
+
+        return [] === $members ? null : Group::of(Parser::SEPARATOR_OR, ...$members);
+    }
+
+    /**
+     * The crud's searchFields; every string-ish field shown on the index when none are declared.
+     *
+     * @return list<string>
+     */
+    protected function searchFields(Crud $crud): array
+    {
+        $searchFields = $crud->getSearchFields();
+        if ([] === $searchFields) {
+            $shape = $this->shape(static::getEntityFqcn());
+            foreach ($this->getFields(Crud::PAGE_INDEX) as $field) {
+                $property = $field->getAsDto()->getProperty();
+                if ($shape->hasField($property) && \in_array($shape->fieldType($property), ['string', 'text'], true)) {
+                    $searchFields[] = $property;
+                }
+            }
+        }
+
+        return array_values($searchFields);
+    }
+
+    /** Whether the list is read through the finder (indexPage()): else on Doctrine's QueryBuilder. */
+    private function indexOnFinder(Entities $entities, \Base\Admin\Filter\Filters $filters, array $filterValues): bool
+    {
+        if (!$this->readsFinderGroups($entities)) {
+            return false;
+        }
+        foreach (['createIndexQueryBuilder', 'applySearch', 'applyFilters'] as $hook) {
+            if (self::class !== (new \ReflectionMethod($this, $hook))->getDeclaringClass()->getName()) {
+                trigger_deprecation('omnibase/admin', 'dev-main', '%s overrides %s(), which builds its list on Doctrine\'s QueryBuilder: override indexCriteria() instead, which every persistence reads.', static::class, $hook);
+
+                return false;
+            }
+        }
+        foreach ($filters->getAll() as $property => $filter) {
+            if (!$filter->isNeutral() && \Base\Admin\Filter\Filter::isActive($filterValues[$property] ?? null)) {
+                trigger_deprecation('omnibase/admin', 'dev-main', 'The filter "%s" of %s has only applyWith(), which builds its list on Doctrine\'s QueryBuilder: give it matchWith(), which every persistence reads.', $property, static::class);
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Whether the core's finder reads groups built from their members (Group::of(): omnisense/omnibase 5.x, step B1b)
+     * and the repository reads the finder (omnibridge/doctrine's ServiceEntityRepository and omnibridge/eloquent's
+     * repositories answer it through __call(); a plain Doctrine EntityRepository does not).
+     */
+    private function readsFinderGroups(Entities $entities): bool
+    {
+        return method_exists(Group::class, 'of') && method_exists($entities, '__call');
+    }
+
+    /**
+     * The list's query on Doctrine's QueryBuilder, its order.
+     *
+     * @deprecated since omnibase's plan "omnibase agnostic", step B1b: a controller overriding it has its list built on
+     *             Doctrine; override indexCriteria() instead
+     */
     public function createIndexQueryBuilder(Crud $crud, array $sort): QueryBuilder
     {
         $queryBuilder = $this->entityManager
@@ -1049,6 +1175,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         };
     }
 
+    /** @deprecated since omnibase's plan "omnibase agnostic", step B1b: the filters' conditions are Filter::match()'s (indexCriteria()) */
     protected function applyFilters(QueryBuilder $queryBuilder, \Base\Admin\Filter\Filters $filters, array $filterValues): void
     {
         foreach ($filters->getAll() as $property => $filter) {
@@ -1060,22 +1187,13 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     }
 
     /**
-     * Case-insensitive LIKE over the crud's searchFields; falls back to
-     * every string-ish field shown on the index when none are declared.
+     * Case-insensitive LIKE over the crud's searchFields (searchFields()) on Doctrine's QueryBuilder.
+     *
+     * @deprecated since omnibase's plan "omnibase agnostic", step B1b: the search is searchCriterion()'s
      */
     protected function applySearch(QueryBuilder $queryBuilder, Crud $crud, string $query): void
     {
-        $searchFields = $crud->getSearchFields();
-        if ([] === $searchFields) {
-            $shape = $this->shape(static::getEntityFqcn());
-            foreach ($this->getFields(Crud::PAGE_INDEX) as $field) {
-                $property = $field->getAsDto()->getProperty();
-                if ($shape->hasField($property) && \in_array($shape->fieldType($property), ['string', 'text'], true)) {
-                    $searchFields[] = $property;
-                }
-            }
-        }
-
+        $searchFields = $this->searchFields($crud);
         if ([] === $searchFields) {
             return;
         }

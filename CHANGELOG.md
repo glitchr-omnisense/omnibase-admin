@@ -3,6 +3,19 @@
 ## [Unreleased]
 
 ### Changed
+- The lists are read on the persistence the site chose (omnibase's plan "omnibase agnostic", step B1b): the search, an
+  OR of the text fields containing the words whatever their case, and each active filter as groups of the core's finder
+  language (`AbstractCrudController::indexCriteria()`, `searchCriterion()`, `Filter::match()`; `Group::of()`,
+  omnisense/omnibase 5.x), their order and their page read through the repository's `findBy()` and `count()`
+  (`Base\Admin\Index\RecordPage`, in place of Doctrine's Paginator), which omnibridge/doctrine and omnibridge/eloquent
+  compile; the neighbouring record (previous/next) through `findOneBy()` on the id. A filter of its own says its condition
+  with `Filter::matchWith()` (a criterion or a group of the finder). The former way stays, deprecated: a list is still built
+  on Doctrine's QueryBuilder (`createIndexQueryBuilder()`, `applySearch()`, `applyFilters()`, `Filter::apply()`,
+  `Base\Admin\Orm\Paginator`) under omnisense/omnibase 4.x or a core without `Group::of()`, on a repository that reads
+  no finder (a plain Doctrine EntityRepository), and - with a deprecation - for a controller overriding one of those
+  three or whose active filter has only `applyWith()` (omnibase/marketplace's and omnibase/newsletter's, until they move
+  to `matchWith()`). On lesringostars the 386 lists of its 27 CRUDs read the same rows and totals both ways and on
+  Eloquent (omnibridge/eloquent's AdminIndexParityTest). `IndexQueryTest`.
 - The entities' mapping is read from the persistence chosen (omnibase's plan "omnibase agnostic", step B1c): the core's
   `EntityShape` (`UnitOfWorks::shapes()`, omnisense/omnibridge's Schema description) in place of Doctrine's
   ClassMetadata - the filters' guessed types, the search's text fields, the record lookup's subclasses and fields, the

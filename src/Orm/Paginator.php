@@ -7,7 +7,10 @@ use Doctrine\ORM\Tools\Pagination\Paginator as DoctrinePaginator;
 
 /**
  * Thin pagination wrapper around Doctrine's Paginator with the counters
- * the index template needs.
+ * the index template needs: the page of a list built on Doctrine's
+ * QueryBuilder (AbstractCrudController::indexPage(), which reads every
+ * other list through Base\Admin\Index\RecordPage, on the persistence the
+ * site chose: omnibase's plan "omnibase agnostic", step B1b).
  */
 class Paginator implements \IteratorAggregate, \Countable
 {
