@@ -44,10 +44,10 @@ return function (ContainerConfigurator $configurator) {
         ->arg('$identifierFieldsByEntity', [])
         ->arg('$lowercaseIdentifiers', false);
 
-    // doctrine: an AssociationField on a user account is found by the
-    // association's target class and built as a picker (FieldFormBuilder::addField()).
+    // the unit of work: an AssociationField is found by the association's target class (the entity's shape on the
+    // persistence chosen) and built as a picker (FieldFormBuilder::addField()).
     $services->set(FieldFormBuilder::class)
-        ->args([service('form.factory'), service('doctrine')->nullOnInvalid()]);
+        ->args([service('form.factory'), service(\Omnibridge\Persistence\UnitOfWork::class)->nullOnInvalid()]);
 
     $services->set(AdminRouteRegistry::class)
         ->arg('$controllerFqcns', [])
@@ -214,7 +214,7 @@ return function (ContainerConfigurator $configurator) {
         ->tag('base.admin.dashboard_widget_type.palette');
 
     $services->set(\Base\Admin\Widget\LinkableEntityRegistry::class)
-        ->args([service('doctrine.orm.entity_manager')]);
+        ->args([service('doctrine.orm.entity_manager'), service(\Base\Database\Repository\Repositories::class)]);
 
     $services->set(\Base\Admin\Widget\EntityViewsWidgetType::class)
         ->args([
@@ -231,7 +231,7 @@ return function (ContainerConfigurator $configurator) {
             service(\Base\Service\Analytics::class),
             service(\Base\Admin\Widget\LinkableEntityRegistry::class),
             service('translator'),
-            service('doctrine.orm.entity_manager'),
+            service(\Omnibridge\Persistence\UnitOfWork::class),
             service(\Base\Admin\Router\AdminRouteRegistry::class),
             service('router'),
             service(\Base\Admin\Security\CrudAccessChecker::class),

@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 ### Changed
+- The entities' mapping is read from the persistence chosen (omnibase's plan "omnibase agnostic", step B1c): the core's
+  `EntityShape` (`UnitOfWorks::shapes()`, omnisense/omnibridge's Schema description) in place of Doctrine's
+  ClassMetadata - the filters' guessed types, the search's text fields, the record lookup's subclasses and fields, the
+  "new" menu's kinds (`AbstractCrudController::shape()`). `FieldFormBuilder` takes the `UnitOfWork` (an association's
+  target and kind from its shape); Doctrine's ManagerRegistry is still accepted, deprecated. `CounterWidgetType` counts
+  through the repository's `count()` (several states an IN) on the unit of work; `LinkableEntityRegistry` reads the
+  instances through the `Repositories` and still lists the mapped classes from Doctrine's metadata (the core's
+  EntityShapes has no listing yet).
 - The records are found, written and removed through the persistence the site chose (omnibase's plan "omnibase
   agnostic", step B1a): `AbstractCrudController` holds omnisense/omnibridge's `UnitOfWork` and the core's
   `Repositories` (`setPersistence()`, beside the entity manager it keeps for the list's query and the metadata), finds a

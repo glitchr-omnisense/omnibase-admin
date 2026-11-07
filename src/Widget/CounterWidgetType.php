@@ -6,7 +6,8 @@ use Base\Admin\Config\Menu\MenuItem;
 use Base\Admin\Router\AdminRouteRegistry;
 use Base\Enum\ThreadState;
 use Base\Service\Analytics;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Database\UnitOfWorks;
+use Omnibridge\Persistence\UnitOfWork;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -64,7 +65,7 @@ final class CounterWidgetType implements PaletteDashboardWidgetTypeInterface
         private readonly Analytics $analytics,
         private readonly LinkableEntityRegistry $entities,
         private readonly TranslatorInterface $translator,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UnitOfWork $unitOfWork,
         private readonly AdminRouteRegistry $routes,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly ?\Base\Admin\Security\CrudAccessChecker $crudAccessChecker = null,
@@ -155,24 +156,22 @@ final class CounterWidgetType implements PaletteDashboardWidgetTypeInterface
      */
     private function countRecords(string $class, ?object $scope, array $states): int
     {
-        $metadata = $this->entityManager->getClassMetadata($class);
-
-        $qb = $this->entityManager->createQueryBuilder()
-            ->select('COUNT(e.id)')
-            ->from($class, 'e');
+        $shape = UnitOfWorks::shapes($this->unitOfWork)->shape($class);
+        $criteria = [];
 
         // COUNT in the database, never count(findBy(...)) - hydrating every
         // article to learn how many there are is the exact trap this project
-        // has already been bitten by elsewhere.
-        if (null !== $scope && $metadata->hasAssociation('parent')) {
-            $qb->andWhere('e.parent = :scope')->setParameter('scope', $scope);
+        // has already been bitten by elsewhere. The repository's count() of
+        // the persistence chosen (a list is an IN).
+        if (null !== $scope && $shape->hasAssociation('parent')) {
+            $criteria['parent'] = $scope;
         }
 
-        if ([] !== $states && $metadata->hasField('state')) {
-            $qb->andWhere('e.state IN (:states)')->setParameter('states', $states);
+        if ([] !== $states && $shape->hasField('state')) {
+            $criteria['state'] = array_values($states);
         }
 
-        return (int) $qb->getQuery()->getSingleScalarResult();
+        return UnitOfWorks::repositories($this->unitOfWork)->of($class)->count($criteria);
     }
 
     /**
@@ -198,16 +197,16 @@ final class CounterWidgetType implements PaletteDashboardWidgetTypeInterface
         }
 
         $filters = [];
-        $metadata = $this->entityManager->getClassMetadata($class);
+        $shape = UnitOfWorks::shapes($this->unitOfWork)->shape($class);
 
-        if (null !== $scope && $metadata->hasAssociation('parent') && \method_exists($scope, 'getId')) {
+        if (null !== $scope && $shape->hasAssociation('parent') && \method_exists($scope, 'getId')) {
             $filters['parent'] = $scope->getId();
         }
 
         // One state filters exactly; several would need an OR the list's own
         // single-choice filter cannot express, so the link stays unfiltered
         // on state and the tile does not pretend otherwise.
-        if (1 === \count($states) && $metadata->hasField('state')) {
+        if (1 === \count($states) && $shape->hasField('state')) {
             $filters['state'] = $states[0];
         }
 

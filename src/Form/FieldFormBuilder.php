@@ -6,7 +6,11 @@ use Base\Field\FieldDescriptor;
 use Base\Field\FieldInterface;
 use Base\Field\Type\AssociationType;
 use Base\Field\Type\SelectType;
+use Base\Database\Mapping\EntityShapes;
+use Base\Database\UnitOfWorks;
 use Doctrine\Persistence\ManagerRegistry;
+use Omnibridge\Schema\Relation;
+use Omnibridge\Persistence\UnitOfWork;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -38,8 +42,25 @@ class FieldFormBuilder
         'translation_domain', 'label_translation_parameters', 'help_translation_parameters',
     ];
 
-    public function __construct(protected FormFactoryInterface $formFactory, protected ?ManagerRegistry $doctrine = null)
+    protected ?UnitOfWork $unitOfWork;
+
+    /**
+     * @param UnitOfWork|ManagerRegistry|null $unitOfWork the persistence chosen, whose entities' shapes say what an
+     *                                                    association points to (omnibase's plan "omnibase agnostic", step
+     *                                                    B1c); Doctrine's ManagerRegistry, as before, is deprecated
+     */
+    public function __construct(protected FormFactoryInterface $formFactory, UnitOfWork|ManagerRegistry|null $unitOfWork = null)
     {
+        if ($unitOfWork instanceof ManagerRegistry) {
+            trigger_deprecation('omnibase/admin', 'dev-main', 'Passing Doctrine\'s ManagerRegistry to %s is deprecated, pass the %s.', self::class, UnitOfWork::class);
+            $unitOfWork = UnitOfWorks::of($unitOfWork->getManager());
+        }
+        $this->unitOfWork = $unitOfWork;
+    }
+
+    private function shapes(): ?EntityShapes
+    {
+        return null === $this->unitOfWork ? null : UnitOfWorks::shapes($this->unitOfWork);
     }
 
     /**
@@ -115,8 +136,8 @@ class FieldFormBuilder
      *   when the record owns what it points to (one-to-many, one-to-one: the
      *   lines of an entry, the address of a place).
      *
-     * The related class is the field's `class` option, else the Doctrine
-     * association of the form's data class.
+     * The related class is the field's `class` option, else the target of
+     * the form's data class's association (its shape, whatever persistence).
      */
     protected function getPickedClass(FormBuilderInterface $builder, FieldDescriptor $descriptor): ?string
     {
@@ -126,7 +147,8 @@ class FieldFormBuilder
 
         $options = $descriptor->getFormTypeOptions();
         $embed = $options['embed'] ?? null;
-        if (true === $embed || !empty($options['fields']) || !$this->doctrine) {
+        $shapes = $this->shapes();
+        if (true === $embed || !empty($options['fields']) || null === $shapes) {
             return null;
         }
 
@@ -134,12 +156,11 @@ class FieldFormBuilder
         $chosen = false;    // a many-to-one or a many-to-many
         $dataClass = $builder->getOption('data_class');
         if (\is_string($dataClass)) {
-            $metadata = $this->doctrine->getManagerForClass($dataClass)?->getClassMetadata($dataClass);
+            $shape = $shapes->has($dataClass) ? $shapes->shape($dataClass) : null;
             $property = $descriptor->getProperty();
-            if ($metadata && $metadata->hasAssociation($property)) {
-                $class ??= $metadata->getAssociationTargetClass($property);
-                $mapping = $metadata->getAssociationMapping($property);
-                $chosen = $mapping->isManyToOne() || $mapping->isManyToMany();
+            if ($shape && $shape->hasAssociation($property)) {
+                $class ??= $shape->targetClass($property);
+                $chosen = \in_array($shape->associationKind($property), [Relation::MANY_TO_ONE, Relation::MANY_TO_MANY], true);
             }
         }
 
@@ -154,9 +175,7 @@ class FieldFormBuilder
         }
 
         // A picker needs an entity to look into.
-        $manager = $this->doctrine->getManagerForClass($class);
-
-        return $manager && !$manager->getMetadataFactory()->isTransient($class) ? $class : null;
+        return $shapes->has($class) ? $class : null;
     }
 
     /**
