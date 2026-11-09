@@ -67,6 +67,12 @@ topbar:
     active_admins: "%count% admin(s) active"
     online: Online now
     recently_active: Recently active
+    search:
+        label: Search
+        placeholder: Search or jump to…
+        in: "Search “%term%” in %scope%"
+        no_match: No section matches.
+        shortcut: "Press / to search"
 
 sidebar:
     home: Dashboard
@@ -143,6 +149,15 @@ datagrid:
     empty: Nothing here yet.
     results: result(s)
     search_placeholder: Search…
+    empty_filtered_title: No results
+    empty_filtered: Nothing matches this search or these filters.
+    clear: Clear the search and filters
+
+breadcrumb:
+    label: Breadcrumb
+
+detail:
+    heading: Details
 
 page:
     trash:
@@ -198,6 +213,10 @@ filters:
     reset: Clear
     title: Filters
     open: Filters
+    clear: Clear all
+    remove: Remove this filter
+    "yes": "Yes"
+    "no": "No"
 
 page.settings:
     title: Site settings

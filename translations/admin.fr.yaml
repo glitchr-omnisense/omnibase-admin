@@ -67,6 +67,12 @@ topbar:
     active_admins: "%count% admin(s) actif(s)"
     online: En ligne
     recently_active: Actif récemment
+    search:
+        label: Rechercher
+        placeholder: Rechercher ou aller à…
+        in: "Rechercher « %term% » dans %scope%"
+        no_match: Aucune rubrique ne correspond.
+        shortcut: "Appuyez sur / pour rechercher"
 
 sidebar:
     home: Tableau de bord
@@ -143,6 +149,15 @@ datagrid:
     empty: Rien ici pour le moment.
     results: résultat(s)
     search_placeholder: Rechercher…
+    empty_filtered_title: Aucun résultat
+    empty_filtered: Rien ne correspond à cette recherche ou à ces filtres.
+    clear: Effacer la recherche et les filtres
+
+breadcrumb:
+    label: Fil d'Ariane
+
+detail:
+    heading: Détails
 
 page:
     trash:
@@ -198,6 +213,10 @@ filters:
     reset: Effacer
     title: Filtres
     open: Filtres
+    clear: Tout effacer
+    remove: Retirer ce filtre
+    "yes": Oui
+    "no": Non
 
 page.settings:
     title: Paramètres du site

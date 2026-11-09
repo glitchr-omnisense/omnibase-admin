@@ -9,10 +9,10 @@
         <h1>{{ 'page.trash.title'|trans({}, 'admin') }}</h1>
         <div class="admin-header-subtitle">{{ 'page.trash.description'|trans({}, 'admin') }}</div>
     </div>
-    {# .global-actions is the row the layout hoists into the topbar, same
-       contract as the CRUD pages and @Admin/page/_actions.html.twig - which is
-       also why the button is associated back to its form by id rather than
-       nested in it: a header row cannot be a descendant of the card's form.
+    {# .global-actions is the page's action row, same contract as the CRUD
+       pages and @Admin/page/_actions.html.twig - which is also why the button
+       is associated back to its form by id rather than nested in it: a header
+       row cannot be a descendant of the card's form.
 
        Emptying destroys only what is ALREADY past its grace period - the same
        set the cron would take. Not "destroy everything in the trash": the

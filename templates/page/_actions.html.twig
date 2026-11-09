@@ -1,8 +1,9 @@
 {# The top-right action row of a NON-CRUD admin page (settings, API keys).
 
    Same contract as the CRUD templates' own rows - same .global-actions
-   wrapper (so the layout hoists it into the topbar and the key-cap CSS
-   applies), same data-action-row/data-action-key hooks (so customize mode
+   wrapper (styled as the page's action row; with a form to submit it is the
+   form's save bar at the bottom of the window, is-form-actions, as on a
+   CRUD form), same data-action-row/data-action-key hooks (so customize mode
    can drag-reorder the buttons and re-icon them, persisted in the CRUD
    layout scope under this page's key), same one-primary-cap rule.
 
@@ -23,7 +24,7 @@
     shows it only while customizing, as a faded ghost - the toggle that
     brings one back lives on the button itself. -#}
 {% set _hidden = action_hidden|default({}) %}
-<div class="global-actions"{% if _editable %} data-action-row data-page-key="{{ page_key }}"{% endif %}>
+<div class="global-actions{{ form_id|default(null) ? ' is-form-actions' }}"{% if _editable %} data-action-row data-page-key="{{ page_key }}"{% endif %}>
     {% for action in actions|sort((a, b) => _order[a.name] <=> _order[b.name]) %}
         {% set _isHidden = _hidden[action.name]|default(false) %}
         {% set _icon = _icons[action.name] ?? action.icon %}
@@ -32,8 +33,8 @@
             `continue`, hence the wrapping condition rather than a skip). -#}
         {% if not _isHidden or _editable %}
         {% if action.htmlElement == 'button' %}
-            {#- The committing save is the row's single key cap, green, exactly
-                as on an entity form - every other submit stays flat. -#}
+            {#- The committing save is the row's single filled button, exactly
+                as on an entity form - every other submit stays a white key. -#}
             {% set isMainSave = 'action-saveAndReturn' in action.cssClass %}
             <button class="btn {{ isMainSave ? 'btn-success' : 'btn-primary' }} {{ _isHidden ? 'is-hidden' }}"{% if isMainSave %} data-primary-action{% endif %} type="submit"
                     {%- if form_id|default(null) %} form="{{ form_id }}"{% endif %}

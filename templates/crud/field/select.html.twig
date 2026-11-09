@@ -66,7 +66,9 @@
     {%- set enumType = enumClass ? enum(enumClass) : null -%}
     {%- set icon = enumType ? enumType.getIcon(raw) : null -%}
     {%- set color = enumType ? enumType.getColor(raw) : null -%}
-    <span class="badge badge-accent"{% if color %} style="background:{{ color }}22; color:{{ color }}; border-color:{{ color }}55;"{% endif %}>
+    {#- The state's colour as a tone (--badge-tone): the layout tints the
+        fill with it and mixes it into the text, readable in both themes. -#}
+    <span class="badge badge-accent{{ color ? ' badge-tone' }}"{% if color %} style="--badge-tone: {{ color }};"{% endif %}>
         {%- if icon -%}<i class="{{ icon }}"></i> {%- endif -%}
         <span class="badge-label">
         {%- if label is not null -%}

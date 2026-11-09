@@ -62,7 +62,30 @@
    badges all became columns of one row - the CRUD pages were the only ones
    missing it (page/system.html.twig and crud/_form.html.twig both wrap),
    which is why their description never sat under the title. #}
+{#- The trail: the menu section the page sits in, then - on a record's
+    page or a form - the list it belongs to, as a link back. The current
+    page is the heading below it. Read from the menu (admin_context()), so a
+    page outside the menu simply has no trail. -#}
+{%- set _crumbSection = null -%}
+{%- set _crumbList = null -%}
+{%- set _adminCtx = admin_context() -%}
+{%- for _item in (_adminCtx ? _adminCtx.mainMenu : []) -%}
+    {%- if _item.selected -%}{%- set _crumbList = _item -%}{%- endif -%}
+    {%- for _member in _item.subItems -%}
+        {%- if _member.selected -%}{%- set _crumbSection = _item -%}{%- set _crumbList = _member -%}{%- endif -%}
+    {%- endfor -%}
+{%- endfor -%}
+{%- set _listUrl = _crumbList and _crumbList.linkUrl ? _crumbList.linkUrl : null -%}
+{%- set _onList = _listUrl and (_listUrl|split('?')|first) == app.request.pathInfo -%}
 <div class="admin-header-titles">
+{% if _crumbSection or (_listUrl and not _onList) %}
+    <nav class="admin-breadcrumbs" aria-label="{{ 'breadcrumb.label'|trans({}, 'admin') }}">
+        <ol>
+            {% if _crumbSection %}<li><span>{{ _crumbSection.label|trans({}, 'admin') }}</span></li>{% endif %}
+            {% if _listUrl and not _onList %}<li><a href="{{ _listUrl }}">{{ _crumbList.label|trans({}, 'admin') }}</a></li>{% endif %}
+        </ol>
+    </nav>
+{% endif %}
 {% if _record %}
     {# Deliberately the same shape crud/_form.html.twig already uses on the
        edit screen - record name as the heading, "Article ID #1147" beneath

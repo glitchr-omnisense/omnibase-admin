@@ -117,11 +117,12 @@ Implementing `PaletteDashboardWidgetTypeInterface` instead (`getDefaultLabel()`,
 
 ### The dashboard card
 
-The admin's look is a light page (`--admin-bg`), white cards without a border, a large radius
-(`--admin-card-radius`, 16px) and a soft shadow (`--admin-card-shadow`), one dark navy for text
-(`--admin-text`, its greys navy greys: `--admin-muted`) and an indigo accent (`--admin-accent`),
-light and dark. A section's card (its links) puts its title above the white card, its links as
-tinted rows that alternate, each with its icon and a chevron.
+The admin's look is a soft grey page (`--admin-bg`), white cards with a hairline border
+(`--admin-border`), a 10px radius (`--admin-card-radius`) and a shadow that only separates
+(`--admin-card-shadow`), one ink for text (`--admin-text`, `--admin-muted`) and one accent
+(`--admin-accent`), light and dark ([the design tokens](system-pages.md#the-design-tokens)). A
+section's card (its links) puts its title above the white card, its links as rows parted by
+hairlines, each with its icon and a chevron.
 
 A widget type's template takes the same card from these classes, without CSS of its own for
 the chrome:

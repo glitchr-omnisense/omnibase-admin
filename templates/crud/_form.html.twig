@@ -39,7 +39,9 @@
 {#- Per-page hidden buttons (customize mode's eye toggle) - see
     crud/detail.html.twig's twin for the render contract. -#}
 {% set _hiddenActions = crud_action_hidden|default({}) %}
-    <div class="global-actions"{% if _editable %} data-action-row data-page-key="{{ crud_page_key }}"{% endif %}>
+    {# is-form-actions: the row is the form's save bar, fixed at the bottom
+       of the window (layout.html.twig), the committing action at its end. #}
+    <div class="global-actions is-form-actions"{% if _editable %} data-action-row data-page-key="{{ crud_page_key }}"{% endif %}>
         {#- Code order with the superadmin's stored order applied on top -
             see AdminTwigExtension::adminActionOrder(). -#}
         {% for action in actions.getAll(crud.currentPage)|sort((a, b) => _order[a.name] <=> _order[b.name]) %}
@@ -59,7 +61,7 @@
                     {% if _icon %}<i class="{{ _icon }}"></i> {% endif %}{{ action.label|trans }}
                 </button>
             {% elseif action.crudActionName == 'index' %}
-                <a class="btn {{ _isHidden ? 'is-hidden' }}" href="{{ admin_url(controller_fqcn, 'index') }}"{{ _edit|raw }}>
+                <a class="btn {{ _isHidden ? 'is-hidden' }}" href="{{ admin_url(controller_fqcn, 'index') }}" data-back-action{{ _edit|raw }}>
                     {% if _icon %}<i class="{{ _icon }}"></i> {% endif %}{{ action.label|trans }}
                 </a>
             {% elseif action.name == 'delete' and entity is defined and entity.id %}

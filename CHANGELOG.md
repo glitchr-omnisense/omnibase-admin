@@ -3,6 +3,32 @@
 ## [Unreleased]
 
 ### Changed
+- A new look for the back office: calm, organised, one accent. A soft grey page with white cards (hairline border,
+  10px radius, a shadow that only separates), a fixed sidebar of sections (quiet section labels, 34px rows, the current
+  page on the accent's soft fill), a slim white top bar with the search; the page's trail (section, then the list a
+  record belongs to), title and actions; tables with hairline rows, a grey head, tabular figures and soft status
+  badges (an enum's colour as `--badge-tone`, mixed so the text stays readable in both themes); the active filters as
+  chips above the list, each dropping itself; empty lists that say why and offer to create or to clear; a record's
+  fields as label/value rows under a "Details" head; a form's actions as a save bar at the foot of the window
+  (`.global-actions.is-form-actions`, the committing action at its end, "Back to list" at its start); one primary
+  button per row, filled with the accent, the others white keys; toasts, dialogs and menus on one radius and shadow
+  scale; the sign-in page on the same tokens. Design tokens on `:root`, all overridable: a neutral scale mixed from the
+  ink (`--admin-gray-50`...`-700`, `--admin-border-strong`, `--admin-hover`), the states' fills (`--admin-*-soft`),
+  `--admin-space-1`...`-16` (a 4px grid), `--admin-radius-sm/-lg/-pill`, `--admin-shadow-md/-lg`, `--admin-topbar-h`,
+  `--admin-font-mono`, `--admin-duration`/`--admin-ease`; every former token keeps its name and meaning
+  (`--admin-radius` 6px, `--admin-card-radius` 10px, `--admin-aside-w` 256px now). The face is Source Sans 3 (Adobe,
+  SIL Open Font License 1.1, the unmodified variable fonts in `public/fonts/` with their licence), the system stack until
+  the file is published. Keyboard: `/` or Ctrl/Cmd+K reaches the search from anywhere, Up/Down/Enter pick a section,
+  Escape leaves (and keeps a nest overlay open); a 2px focus ring everywhere, a halo on the fields; nothing moves under
+  `prefers-reduced-motion`; real edges under forced colours. `Palette` derives a neutral grey page from the secondary's
+  hue (no longer tinted by the primary) and measures contrast on the written `#rrggbb`.
+- The search is on every page: on a CRUD's pages it still searches its list (`?query=`), and everywhere it lists the
+  back office's sections matching the words, built from the sidebar (a site's or a bundle's menu items included, the
+  hidden ones left out). New catalogue keys `topbar.search.*`, `datagrid.empty_filtered*`, `datagrid.clear`,
+  `filters.clear`, `filters.remove`, `filters.yes/no`, `breadcrumb.label`, `detail.heading` (en, fr).
+- The page's action row stays in the page's head: it is no longer hoisted into the top bar (it was, for superadmins,
+  on a wide screen).
+- A record's detail translates its labels as the list's column heads do (a bundle's `@domain.key` label showed raw).
 - Doctrine only where omnibridge/doctrine is installed (omnibase's plan "omnibase agnostic", step B1d):
   `AbstractCrudController`'s entity manager is optional (null without Doctrine; what is still written on it - a list on
   Doctrine's QueryBuilder, a former write hook - is refused aloud there, the rest runs on the persistence chosen);

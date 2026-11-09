@@ -19,14 +19,14 @@
 </section>
 <style>
     .theme-preview { margin: 0 0 1.5rem; padding: 1.25rem 1.5rem; border: 1px solid var(--admin-border); border-radius: var(--admin-card-radius); background: var(--admin-surface); }
-    .theme-preview-title { margin: 0 0 .9rem; font-size: var(--admin-fs-lg); font-weight: 700; }
+    .theme-preview-title { margin: 0 0 var(--admin-space-4, .9rem); font-size: var(--admin-fs-md); font-weight: 600; }
     .theme-preview-sample { display: grid; gap: .8rem; }
     .theme-preview-text { margin: 0; }
     .theme-preview-text a { color: var(--admin-accent); font-weight: 600; }
     .theme-preview-muted { color: var(--admin-muted); }
-    .theme-preview-row { display: flex; align-items: center; gap: .6rem; padding: .65rem .8rem; border-radius: 10px; background: var(--admin-tint); font-weight: 600; }
+    .theme-preview-row { display: flex; align-items: center; gap: .6rem; padding: .65rem .8rem; border-radius: var(--admin-radius); background: var(--admin-tint); font-weight: 600; }
     .theme-preview-dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--admin-accent); }
-    .theme-preview-pill { margin-left: auto; padding: .3rem .8rem; border-radius: 999px; background: var(--admin-accent); color: var(--admin-on-accent); font-size: var(--admin-fs-sm); }
+    .theme-preview-pill { margin-left: auto; padding: .3rem .8rem; border-radius: var(--admin-radius); background: var(--admin-accent); color: var(--admin-on-accent); font-size: var(--admin-fs-sm); }
     .theme-preview-bars { display: flex; align-items: flex-end; gap: .6rem; height: 4.5rem; padding-top: .3rem; border-bottom: 1px solid var(--admin-border); }
     .theme-preview-bars span { position: relative; flex: 1; max-width: 2.4rem; height: var(--h); display: flex; align-items: flex-end; gap: 3px; }
     .theme-preview-bars i { flex: 1; border-radius: 4px 4px 0 0; }
@@ -37,7 +37,7 @@
     .theme-preview-notes li::before { content: "\f05a"; font-family: "Font Awesome 6 Free"; font-weight: 900; margin-right: .4rem; color: var(--admin-accent); }
     .theme-preview > [data-theme-reset] { margin-top: .9rem; }
     .theme-color { display: flex; align-items: center; gap: .6rem; }
-    .theme-color input[type=color] { flex: 0 0 auto; width: 2.6rem; height: 2.4rem; padding: 2px; border: 1px solid var(--admin-border); border-radius: 8px; background: var(--admin-surface); cursor: pointer; }
+    .theme-color input[type=color] { flex: 0 0 auto; width: 2.6rem; height: 2.4rem; padding: 2px; border: 1px solid var(--admin-border-strong, var(--admin-border)); border-radius: var(--admin-radius); background: var(--admin-surface); cursor: pointer; }
     .theme-color input[type=text] { flex: 1; }
 </style>
 <script>

@@ -117,9 +117,10 @@ loader's); deleting it hands the pages over to this one.
 
 Two colours per site, and every colour of the back office derives from them, in the
 light and the dark theme: the **primary** (`admin.theme.primary`) is the accent - links,
-buttons, focus rings, the active menu entry, the first chart series, the faint tint of
-the page and of a hovered row; the **secondary** (`admin.theme.secondary`) is the ink -
-text, muted text, borders, the second chart series, the hue of the dark theme's page.
+the primary button, focus rings, the active menu entry, the first chart series - and
+the only colour on the page besides the states; the **secondary** (`admin.theme.secondary`)
+is the ink - text, muted text, borders, the hover and stripe tints, the second chart
+series, the faint hue of the grey page and of the dark theme's page.
 
 A site sets them, by priority:
 
@@ -149,10 +150,34 @@ theme's page is always dark, whatever the secondary. The layout prints them in
 card that draws with `--admin-accent`, `--admin-series-1/2` and `--admin-tint` follows
 the site's colours without a line of its own.
 
-The type follows one scale on a 16px root, the system font stack: body text 15px
-(`--admin-fs-md`), labels and meta 13-14px (`--admin-fs-xs`, `--admin-fs-sm`), card
-titles 17px (`--admin-fs-lg`), page titles 24px (`--admin-fs-xl`), headline figures
-28px (`--admin-fs-num`); never small capitals.
+### The design tokens
+
+Everything the layout draws reads custom properties on `:root`, which a site or a bundle
+may read and override (the names above keep their meaning):
+
+- **Colour**: the tokens above, plus the states `--admin-danger`, `--admin-success`,
+  `--admin-warning` (text-safe on a card) and their fills `--admin-*-soft`; a neutral
+  scale mixed from the ink into the card, `--admin-gray-50` (a table head, a hovered
+  row), `-100`, `-200`, `-300` (`--admin-border-strong`, a field's edge), `-400`, `-700`;
+  `--admin-hover`, `--admin-ring` (the fields' focus halo).
+- **Space**: a 4px grid, `--admin-space-1` (4px) to `--admin-space-16` (64px), named by
+  their multiple of 4.
+- **Shape**: `--admin-radius-sm` 4px, `--admin-radius` 6px (controls), `--admin-radius-lg`
+  10px (cards, menus, dialogs), `--admin-radius-pill`; `--admin-card-shadow`,
+  `--admin-shadow-md` (menus), `--admin-shadow-lg` (dialogs, toasts).
+- **Frame**: `--admin-aside-w` (the sidebar, 256px), `--admin-topbar-h` (56px).
+- **Type**: Source Sans 3 (Adobe, SIL Open Font License 1.1, `public/fonts/`, its
+  licence beside it), the system stack until the file is there; body text 15px
+  (`--admin-fs-md`), labels and meta 13-14px (`--admin-fs-xs`, `--admin-fs-sm`), card
+  titles 17px (`--admin-fs-lg`), page titles 24px (`--admin-fs-xl`), headline figures
+  28px (`--admin-fs-num`); figures in tabular digits in the tables; never small capitals.
+- **Motion**: `--admin-duration`, `--admin-ease`; nothing moves under
+  `prefers-reduced-motion`.
+
+The frame: a fixed sidebar of sections, a slim top bar with the search (on a CRUD's
+pages its list search; everywhere the sections found by name, `/` or Ctrl/Cmd+K to reach
+it), the page's trail, title and actions above white cards; a form's actions are its
+save bar at the foot of the window (`.global-actions.is-form-actions`).
 
 ## Reports (complaints)
 

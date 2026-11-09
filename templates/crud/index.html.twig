@@ -205,9 +205,73 @@
     </form>
 </div>
 {% endif %}
+{#- The active filters as chips above the list: each says what it keeps and
+    drops itself with its x (the same list without that filter, the search
+    and the order kept); "Clear all" drops them all. -#}
+{% set _activeFilters = [] %}
+{% if filters is defined and not filters.isEmpty %}
+    {% for property, filter in filters.all %}
+        {% set _v = filter_values[property]|default(null) %}
+        {% set _shown = null %}
+        {% if filter.type == 'boolean' %}
+            {% if _v is not null and _v is not iterable and _v != '' %}{% set _shown = (_v == '1' ? 'filters.yes' : 'filters.no')|trans({}, 'admin') %}{% endif %}
+        {% elseif filter.type == 'choice' or filter.type == 'association' %}
+            {% if _v is not null and _v is not iterable and _v != '' %}
+                {% set _label = filter.choices[_v] ?? _v %}
+                {% set _shown = filter.type == 'choice' ? _label|trans : _label %}
+            {% endif %}
+        {% elseif filter.type == 'date' %}
+            {% if _v is iterable and (_v.from|default('') != '' or _v.to|default('') != '') %}{% set _shown = (_v.from|default('…')) ~ ' – ' ~ (_v.to|default('…')) %}{% endif %}
+        {% elseif filter.type == 'numeric' or filter.type == 'text' %}
+            {% if _v is iterable and _v.value|default('') != '' %}{% set _shown = ((filter.comparisons[_v.comparison|default('')] ?? '') ~ ' ' ~ _v.value)|trim %}
+            {% elseif _v is not null and _v is not iterable and _v != '' %}{% set _shown = _v %}{% endif %}
+        {% elseif _v is not null and _v is not iterable and _v != '' %}
+            {% set _shown = _v %}
+        {% endif %}
+        {% if _shown is not null %}
+            {% set _activeFilters = _activeFilters|merge([{
+                label: (filter.label ?? property|humanize)|trans({}, 'forms'),
+                value: _shown,
+                url: admin_url(controller_fqcn, 'index', null, {filters: filter_values|filter((fv, fk) => fk != property), query: query ?: null, sort: sort}),
+            }]) %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+{% if _activeFilters is not empty %}
+<div class="filter-chips">
+    {% for _chip in _activeFilters %}
+        <span class="filter-chip">
+            <span class="filter-chip-label">{{ _chip.label }}</span>
+            <span class="filter-chip-value">{{ _chip.value }}</span>
+            <a class="filter-chip-remove" href="{{ _chip.url }}" title="{{ 'filters.remove'|trans({}, 'admin') }}" aria-label="{{ 'filters.remove'|trans({}, 'admin') }} : {{ _chip.label }}"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a>
+        </span>
+    {% endfor %}
+    <a class="filter-chips-clear" href="{{ admin_url(controller_fqcn, 'index', null, {query: query ?: null, sort: sort}) }}">{{ 'filters.clear'|trans({}, 'admin') }}</a>
+</div>
+{% endif %}
 <div class="card">
     {% if rows is empty %}
-        <div class="empty-state">{{ 'datagrid.empty'|trans({}, 'admin') }}</div>
+        {#- An empty list says why: nothing matches the search or the filters
+        (and offers to clear them), or there is nothing yet (and offers the
+        CRUD's own "new" action when it has one). -#}
+        {% set _narrowed = query or _activeFilters is not empty %}
+        {% set _hiddenActions = crud_action_hidden|default({}) %}
+        {% set _create = _narrowed ? null : actions.globalActions('index')|filter(a => a.crudActionName == 'new' and not (_hiddenActions[a.name] ?? false))|first %}
+        {% set _menuItem = admin_menu_current() %}
+        <div class="empty-state">
+            <span class="empty-state-icon" aria-hidden="true"><i class="{{ _narrowed ? 'fa-solid fa-magnifying-glass' : (_menuItem and _menuItem.icon ? _menuItem.icon : (admin_entity_icon(crud.entityFqcn) ?: 'fa-regular fa-folder-open')) }}"></i></span>
+            <p class="empty-state-title">{{ (_narrowed ? 'datagrid.empty_filtered_title' : 'datagrid.empty')|trans({}, 'admin') }}</p>
+            {% if _narrowed %}<p class="empty-state-text">{{ 'datagrid.empty_filtered'|trans({}, 'admin') }}</p>{% endif %}
+            {% if _narrowed or _create %}
+                <div class="empty-state-actions global-actions">
+                    {% if _narrowed %}
+                        <a class="btn" href="{{ admin_url(controller_fqcn, 'index') }}"><i class="fa-solid fa-xmark"></i> {{ 'datagrid.clear'|trans({}, 'admin') }}</a>
+                    {% elseif _create %}
+                        <a class="btn btn-primary" data-primary-action href="{{ admin_url(controller_fqcn, 'new') }}">{% set _icon = crud_action_icons[_create.name] ?? _create.icon %}{% if _icon %}<i class="{{ _icon }}"></i> {% endif %}{{ _create.label|trans }}</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
     {% else %}
     <form method="post" action="{{ admin_url(controller_fqcn, 'batchDelete') }}" class="batch-form"
           data-confirm="{{ 'action.delete_confirm'|trans({}, 'admin') }}">

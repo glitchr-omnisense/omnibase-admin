@@ -81,9 +81,12 @@
 
 {% block content %}
 <div class="card">
+    <div class="card-header"><h2>{{ 'detail.heading'|trans({}, 'admin') }}</h2></div>
     <dl class="detail">
         {% for field in fields %}
-            <dt>{{ field.label ?? field.property|humanize }}</dt>
+            {#- Translated as the list's column heads are (crud/index.html.twig):
+                a bundle's label is a key ("@agenda.admin.event.title"). -#}
+            <dt>{{ (field.label ?? field.property|humanize)|trans({}, 'forms') }}</dt>
             <dd>{{ include(['@Admin/' ~ field.templateName ~ '.html.twig', '@Admin/crud/field/text.html.twig'], {field: field, entity: entity}) }}</dd>
         {% endfor %}
     </dl>

@@ -21,10 +21,17 @@
     {{ encore_entry_link_tags('base') }}
     {{ encore_entry_link_tags('form') }}
     <style>
+        {# The back office's face and tokens (layout.html.twig), so the door
+           and the room behind it look like one place; the site's colours
+           come after, from admin_theme_css(). #}
+        @font-face {
+            font-family: "Source Sans 3"; font-style: normal; font-weight: 200 900; font-display: swap;
+            src: url("{{ asset('bundles/admin/fonts/SourceSans3VF-Upright.ttf.woff2') }}") format("woff2");
+        }
         :root {
-            --admin-bg: #f6f7f9; --admin-surface: #fff; --admin-border: #e3e6ea;
-            --admin-text: #1f2429; --admin-muted: #6b7683; --admin-accent: #2563eb;
-            --admin-danger: #dc2626; --admin-radius: 8px;
+            --admin-bg: #f4f4f7; --admin-surface: #fff; --admin-border: #e6e7ea;
+            --admin-text: #1b2140; --admin-muted: #60657b; --admin-accent: #3a47d5; --admin-on-accent: #fff;
+            --admin-danger: #c42b35; --admin-radius: 6px; --admin-focus: var(--admin-accent);
         }
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) {
@@ -39,36 +46,39 @@
             --admin-danger: #f87171;
         }
         * { box-sizing: border-box; }
-        html { font-size: 14px; }
-        body { margin: 0; font-size: 14px; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem;
-               background: var(--admin-bg); color: var(--admin-text);
-               font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+        html { font-size: 15px; }
+        body { margin: 0; font-size: 15px; line-height: 1.5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+               background: var(--admin-bg); color: var(--admin-text); -webkit-font-smoothing: antialiased;
+               font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        :focus-visible { outline: 2px solid var(--admin-focus); outline-offset: 2px; }
         .login-card { width: 100%; max-width: 360px; background: var(--admin-surface); border: 1px solid var(--admin-border);
-                      border-radius: 12px; padding: 2rem; box-shadow: 0 12px 40px rgba(0,0,0,.08); }
+                      border-radius: 10px; padding: 2rem; box-shadow: 0 1px 2px rgba(17, 20, 38, .05), 0 12px 32px rgba(17, 20, 38, .06); }
         .login-brand { display: flex; flex-direction: column; align-items: center; gap: .75rem; margin-bottom: 1.5rem; text-align: center; }
         .login-brand img { width: 112px; height: 112px; border-radius: 20px; object-fit: cover; }
         .login-brand .login-icon { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
                                    font-size: 1.5rem; border-radius: 12px; background: var(--admin-bg); color: var(--admin-accent); }
-        .login-brand h1 { margin: 0; font-size: 1.25rem; }
+        .login-brand h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
         .login-field { margin-bottom: .9rem; }
-        .login-field label { display: block; font-size: .82rem; color: var(--admin-muted); margin-bottom: .3rem; }
+        .login-field label { display: block; font-size: .875rem; font-weight: 600; color: var(--admin-text); margin-bottom: .25rem; }
         .login-field .input-group { display: flex; align-items: stretch; }
         .login-field .input-group > span { display: flex; align-items: center; padding: 0 .7rem; border: 1px solid var(--admin-border);
-                                           border-right: 0; border-radius: 8px 0 0 8px; background: var(--admin-bg); color: var(--admin-muted); }
-        .login-field input { flex: 1; min-width: 0; padding: .55rem .7rem; border: 1px solid var(--admin-border); border-radius: 0 8px 8px 0;
-                             font: inherit; background: var(--admin-bg); color: inherit; }
-        .login-field.no-icon input { border-radius: 8px; }
+                                           border-right: 0; border-radius: var(--admin-radius) 0 0 var(--admin-radius); background: var(--admin-bg); color: var(--admin-muted); }
+        .login-field input { flex: 1; min-width: 0; min-height: 2.5rem; padding: .5rem .75rem; border: 1px solid color-mix(in srgb, var(--admin-text) 20%, var(--admin-surface)); border-radius: 0 var(--admin-radius) var(--admin-radius) 0;
+                             font: inherit; background: var(--admin-surface); color: inherit; }
+        .login-field input:focus { outline: none; border-color: var(--admin-focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-focus) 28%, transparent); }
+        .login-field.no-icon input { border-radius: var(--admin-radius); }
         .login-remember { display: flex; align-items: center; gap: .5rem; margin: .5rem 0 1rem; font-size: .88rem; color: var(--admin-muted); }
         .login-error { background: color-mix(in srgb, var(--admin-danger) 12%, transparent); color: var(--admin-danger);
-                       border: 1px solid color-mix(in srgb, var(--admin-danger) 40%, transparent); border-radius: 8px;
+                       border: 1px solid color-mix(in srgb, var(--admin-danger) 40%, transparent); border-radius: var(--admin-radius);
                        padding: .6rem .75rem; margin-bottom: 1rem; font-size: .88rem; }
-        .login-submit { width: 100%; padding: .6rem; border: 0; border-radius: 8px; background: var(--admin-accent); color: #fff;
-                        font: inherit; font-weight: 600; cursor: pointer; }
-        .login-submit:hover { filter: brightness(1.05); }
+        .login-submit { width: 100%; min-height: 2.5rem; padding: .5rem; border: 1px solid var(--admin-accent); border-radius: var(--admin-radius); background: var(--admin-accent); color: var(--admin-on-accent);
+                        font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px rgba(17, 20, 38, .14); }
+        .login-submit:hover { background: color-mix(in srgb, var(--admin-accent) 86%, var(--admin-text)); }
         .login-footer { margin-top: 1.25rem; text-align: center; font-size: .85rem; }
         .login-footer a { color: var(--admin-accent); text-decoration: none; }
         .login-footer p { margin: 0 0 .6rem; }
     </style>
+    <style id="admin-theme">{{ admin_theme_css() }}</style>
 </head>
 <body>
 <div class="login-card">

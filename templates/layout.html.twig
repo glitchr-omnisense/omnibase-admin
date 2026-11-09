@@ -35,6 +35,24 @@
     </script>
     {% block head_stylesheets %}
     <style>
+        {# The back office's typeface: Source Sans 3 (Adobe, SIL Open Font
+           License 1.1, public/fonts/SourceSans3-LICENSE.md), the unmodified
+           variable fonts of Adobe's release, served from this bundle. A
+           humanist sans drawn for interfaces: open shapes that stay legible
+           at 13-15px, true tabular figures (font-variant-numeric) for the
+           columns of numbers, Latin, Greek, Cyrillic and Vietnamese in one
+           file, and every weight from 200 to 900 in it. It shares its
+           design family with Source Code Pro, the credit's face, without
+           being it. Until the file is there (a site that has not run
+           assets:install since) the system stack below takes over. #}
+        @font-face {
+            font-family: "Source Sans 3"; font-style: normal; font-weight: 200 900; font-display: swap;
+            src: url("{{ asset('bundles/admin/fonts/SourceSans3VF-Upright.ttf.woff2') }}") format("woff2");
+        }
+        @font-face {
+            font-family: "Source Sans 3"; font-style: italic; font-weight: 200 900; font-display: swap;
+            src: url("{{ asset('bundles/admin/fonts/SourceSans3VF-Italic.ttf.woff2') }}") format("woff2");
+        }
         :root {
             {# Tells the browser which system palette to render native
                chrome from. Without it the page is "light" as far as the UA
@@ -46,29 +64,81 @@
                re-declared in each dark block: it is a normal property, not
                a custom one, so it does not follow --admin-* automatically. #}
             color-scheme: light;
-            {# One dark navy for text and an indigo accent on a light, faintly blue
-               page; the cards white, without a border, lifted by a soft shadow.
-               Text greys are navy greys: no grey on grey. #}
-            --admin-bg: #f4f5fa; --admin-surface: #fff; --admin-border: #e6e8f1;
-            --admin-text: #1b2140; --admin-muted: #5d6486; --admin-accent: #3a47d5;
-            --admin-tint: #f3f4fa; --admin-tint-strong: #e9ebf6;
-            --admin-aside-w: 260px;
-            --admin-danger: #d9363e; --admin-success: #138a4c; --admin-warning: #c46a00;
-            --admin-radius: 8px;
-            --admin-card-radius: 16px;
-            --admin-card-shadow: 0 1px 2px rgba(27, 33, 64, .04), 0 6px 20px rgba(27, 33, 64, .06);
-            {# The colour tokens a button's or a badge's text takes on the
-               accent, and a focus ring: re-derived from the site's colours by
-               <style id="admin-theme"> below (Base\Admin\Theme\Palette). #}
+            {# The design tokens. Every value below is a custom property a
+               site, a bundle or a screen may read (and override); the names
+               of the first version (--admin-bg, --admin-surface,
+               --admin-border, --admin-text, --admin-muted, --admin-accent,
+               --admin-radius, --admin-card-radius, --admin-card-shadow,
+               --admin-fs-*...) keep their meaning.
+
+               Colour: white cards on a soft neutral grey page, one ink for
+               the text, one accent - the site's - for links, the current
+               place and the primary action, and nothing else coloured but
+               the states (success, warning, danger). The values here are the
+               defaults; <style id="admin-theme"> below re-derives them from
+               the site's two colours (Base\Admin\Theme\Palette), light and
+               dark, every text pair at WCAG AA or better. #}
+            --admin-bg: #f4f4f7; --admin-surface: #fff; --admin-border: #e6e7ea;
+            --admin-text: #1b2140; --admin-muted: #60657b; --admin-accent: #3a47d5;
+            --admin-tint: #f7f7f8; --admin-tint-strong: #efeff2;
             --admin-on-accent: #fff; --admin-focus: var(--admin-accent);
-            --admin-accent-soft: #e7e9fa; --admin-series-1: var(--admin-accent); --admin-series-2: var(--admin-text);
-            {# The type scale, on a 16px root: body text at 15px, labels and
-               meta at 13-14px, card titles at 17px, page titles at 24px,
-               headline figures at 28px. The system font stack, no web font.
-               Labels are never set in small capitals. #}
-            --admin-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            --admin-accent-soft: #ebedfb; --admin-series-1: var(--admin-accent); --admin-series-2: var(--admin-text);
+            {# States: text-safe on white (4.5:1 and more), their soft fills
+               (badges, flashes) mixed from them. #}
+            --admin-danger: #c42b35; --admin-success: #0f7a43; --admin-warning: #9a5300; --admin-info: var(--admin-accent);
+            --admin-on-danger: #fff;
+            --admin-danger-soft: color-mix(in srgb, var(--admin-danger) 10%, var(--admin-surface));
+            --admin-success-soft: color-mix(in srgb, var(--admin-success) 10%, var(--admin-surface));
+            --admin-warning-soft: color-mix(in srgb, var(--admin-warning) 11%, var(--admin-surface));
+            {# The neutral scale: steps from the card towards the ink, so it
+               follows the site's colours and the theme by itself. 50-100
+               fill (a table head, a hovered row), 200-300 draw (borders,
+               an input's edge), 500 is the muted text's weight, 700 strong. #}
+            --admin-gray-50: color-mix(in srgb, var(--admin-text) 3%, var(--admin-surface));
+            --admin-gray-100: color-mix(in srgb, var(--admin-text) 6%, var(--admin-surface));
+            --admin-gray-200: color-mix(in srgb, var(--admin-text) 11%, var(--admin-surface));
+            --admin-gray-300: color-mix(in srgb, var(--admin-text) 20%, var(--admin-surface));
+            --admin-gray-400: color-mix(in srgb, var(--admin-text) 42%, var(--admin-surface));
+            --admin-gray-500: var(--admin-muted);
+            --admin-gray-700: color-mix(in srgb, var(--admin-text) 80%, var(--admin-surface));
+            --admin-border-strong: var(--admin-gray-300);
+            {# A switch's off track: 3:1 against the card (WCAG 1.4.11). #}
+            --admin-switch-off: color-mix(in srgb, var(--admin-text) 52%, var(--admin-surface));
+            {# How much of a state's own colour a badge's text keeps: less on a
+               light card, where a yellow or an orange would not read. #}
+            --admin-badge-ink: 40%;
+            --admin-hover: var(--admin-gray-50);
+            --admin-ring: color-mix(in srgb, var(--admin-focus) 28%, transparent);
+            {# Space: a 4px grid, named by its multiple of 4 (--admin-space-4
+               is 16px). Paddings, gaps and margins take these. #}
+            --admin-space-1: .25rem; --admin-space-2: .5rem; --admin-space-3: .75rem; --admin-space-4: 1rem;
+            --admin-space-5: 1.25rem; --admin-space-6: 1.5rem; --admin-space-8: 2rem; --admin-space-10: 2.5rem;
+            --admin-space-12: 3rem; --admin-space-16: 4rem;
+            {# Shape: small radii, a hairline border and a shadow that only
+               separates (cards), lifts (menus, popovers) or detaches
+               (dialogs). #}
+            --admin-radius-sm: 4px; --admin-radius: 6px; --admin-radius-lg: 10px; --admin-radius-pill: 999px;
+            --admin-card-radius: var(--admin-radius-lg);
+            --admin-card-shadow: 0 1px 2px rgba(17, 20, 38, .05);
+            --admin-shadow-md: 0 1px 2px rgba(17, 20, 38, .06), 0 6px 16px rgba(17, 20, 38, .08);
+            --admin-shadow-lg: 0 2px 6px rgba(17, 20, 38, .06), 0 20px 48px rgba(17, 20, 38, .18);
+            {# The frame: the sidebar's width (what the fixed overlays centre
+               against) and the top bar's height (what sticky things sit
+               under). #}
+            --admin-aside-w: 256px;
+            --admin-topbar-h: 3.5rem;
+            {# Type, on a 16px root: body text at 15px, labels and meta at
+               13-14px, card titles at 17px, page titles at 24px, headline
+               figures at 28px; weights 400, 500 for controls, 600 for titles
+               and labels. Labels are never set in small capitals. #}
+            --admin-font: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            --admin-font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
             --admin-fs-xs: .8125rem; --admin-fs-sm: .875rem; --admin-fs-md: .9375rem;
             --admin-fs-lg: 1.0625rem; --admin-fs-xl: 1.5rem; --admin-fs-num: 1.75rem;
+            --admin-lh: 1.5; --admin-lh-tight: 1.25;
+            {# Motion: short and quiet; none at all under reduced motion (the
+               @media block at the end of this sheet). #}
+            --admin-ease: cubic-bezier(.2, 0, 0, 1); --admin-duration: .14s;
             {# Not an admin token - base-async's own. It ships
                `.text-muted{color:var(--text-muted)!important}` but only
                DEFINES --text-muted inside a scope this admin never gets
@@ -106,15 +176,29 @@
         }
         {# "auto" (no data-theme attribute at all) follows the OS - explicit
            data-theme="dark"/"light" (set above from a saved preference)
-           always wins regardless of OS setting. #}
+           always wins regardless of OS setting. The dark theme: a page of
+           the ink's hue, the cards one step lighter, hairlines a faint
+           white; shadows only darken, the borders do the separating. #}
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) {
                 color-scheme: dark;
-                --admin-bg: #11131b; --admin-surface: #1a1d29; --admin-border: #2a2e3f;
-                --admin-text: #e8eaf4; --admin-muted: #9ca2c0; --admin-accent: #8d9bff;
-                --admin-tint: #212536; --admin-tint-strong: #2a2f44;
-                --admin-danger: #f47b80; --admin-success: #4cc98a; --admin-warning: #f0b14a;
-                --admin-card-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+                --admin-bg: #0f1017; --admin-surface: #171923; --admin-border: #2f3039;
+                --admin-text: #ecedf4; --admin-muted: #93949c; --admin-accent: #8991e6;
+                --admin-tint: #20212b; --admin-tint-strong: #282933;
+                --admin-on-accent: #0f1017; --admin-accent-soft: #2a2c42;
+                --admin-danger: #f47b80; --admin-success: #4cc98a; --admin-warning: #f0b14a; --admin-on-danger: #0f1017;
+                --admin-danger-soft: color-mix(in srgb, var(--admin-danger) 14%, var(--admin-surface));
+                --admin-success-soft: color-mix(in srgb, var(--admin-success) 13%, var(--admin-surface));
+                --admin-warning-soft: color-mix(in srgb, var(--admin-warning) 13%, var(--admin-surface));
+                --admin-gray-50: color-mix(in srgb, var(--admin-text) 4%, var(--admin-surface));
+                --admin-gray-100: color-mix(in srgb, var(--admin-text) 7%, var(--admin-surface));
+                --admin-gray-200: color-mix(in srgb, var(--admin-text) 12%, var(--admin-surface));
+                --admin-gray-300: color-mix(in srgb, var(--admin-text) 20%, var(--admin-surface));
+                --admin-ring: color-mix(in srgb, var(--admin-focus) 40%, transparent);
+                --admin-badge-ink: 62%; --admin-switch-off: color-mix(in srgb, var(--admin-text) 40%, var(--admin-surface));
+                --admin-card-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+                --admin-shadow-md: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 20px rgba(0, 0, 0, .35);
+                --admin-shadow-lg: 0 2px 6px rgba(0, 0, 0, .4), 0 24px 56px rgba(0, 0, 0, .5);
                 {# base-bundle's form-type-editor.css reads this to repaint
                    EditorJS headings, hardcoded black otherwise (invisible
                    against this dark background - reported live on an
@@ -124,11 +208,23 @@
         }
         :root[data-theme="dark"] {
             color-scheme: dark;
-            --admin-bg: #11131b; --admin-surface: #1a1d29; --admin-border: #2a2e3f;
-            --admin-text: #e8eaf4; --admin-muted: #9ca2c0; --admin-accent: #8d9bff;
-            --admin-tint: #212536; --admin-tint-strong: #2a2f44;
-            --admin-danger: #f47b80; --admin-success: #4cc98a; --admin-warning: #f0b14a;
-            --admin-card-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+            --admin-bg: #0f1017; --admin-surface: #171923; --admin-border: #2f3039;
+            --admin-text: #ecedf4; --admin-muted: #93949c; --admin-accent: #8991e6;
+            --admin-tint: #20212b; --admin-tint-strong: #282933;
+            --admin-on-accent: #0f1017; --admin-accent-soft: #2a2c42;
+            --admin-danger: #f47b80; --admin-success: #4cc98a; --admin-warning: #f0b14a; --admin-on-danger: #0f1017;
+            --admin-danger-soft: color-mix(in srgb, var(--admin-danger) 14%, var(--admin-surface));
+            --admin-success-soft: color-mix(in srgb, var(--admin-success) 13%, var(--admin-surface));
+            --admin-warning-soft: color-mix(in srgb, var(--admin-warning) 13%, var(--admin-surface));
+            --admin-gray-50: color-mix(in srgb, var(--admin-text) 4%, var(--admin-surface));
+            --admin-gray-100: color-mix(in srgb, var(--admin-text) 7%, var(--admin-surface));
+            --admin-gray-200: color-mix(in srgb, var(--admin-text) 12%, var(--admin-surface));
+            --admin-gray-300: color-mix(in srgb, var(--admin-text) 20%, var(--admin-surface));
+            --admin-ring: color-mix(in srgb, var(--admin-focus) 40%, transparent);
+            --admin-badge-ink: 62%; --admin-switch-off: color-mix(in srgb, var(--admin-text) 40%, var(--admin-surface));
+            --admin-card-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+            --admin-shadow-md: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 20px rgba(0, 0, 0, .35);
+            --admin-shadow-lg: 0 2px 6px rgba(0, 0, 0, .4), 0 24px 56px rgba(0, 0, 0, .5);
             --editor-heading-color: var(--admin-text);
         }
         {# Sticky at top:0 with no shadow, only a 1px border, gave the bar no
@@ -140,8 +236,14 @@
         {# height, not padding - see the matching comment on .admin-aside
            .brand, which this is deliberately kept in sync with (same
            3.3rem) so both bars' bottom borders land on the same line. #}
-        .admin-topbar { display: flex; align-items: center; gap: 1rem; height: 3.3rem; padding: 0 .9rem; margin: -1.5rem -2rem 1.25rem; border-bottom: 1px solid var(--admin-border);
-                       position: sticky; top: 0; z-index: 15; background: var(--admin-bg); box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+        {# The slim bar: the search on the left, the icons on the right,
+           white like the sidebar so the two frame the grey content area. A
+           hairline separates it; a shadow appears only once the page has
+           scrolled under it (html.is-scrolled, set by the layout's script). #}
+        .admin-topbar { display: flex; align-items: center; gap: var(--admin-space-3); height: var(--admin-topbar-h); padding: 0 var(--admin-main-px);
+                       margin: calc(-1 * var(--admin-main-pt)) calc(-1 * var(--admin-main-px)) var(--admin-space-6); border-bottom: 1px solid var(--admin-border);
+                       position: sticky; top: 0; z-index: 15; background: var(--admin-surface); transition: box-shadow var(--admin-duration) var(--admin-ease); }
+        html.is-scrolled .admin-topbar { box-shadow: 0 1px 3px rgba(17, 20, 38, .06); }
         {# During an in-page navigation (html.loading, plus the progress
            bar's own minimum-duration window) the swapped-out topbar sits
            momentarily EMPTY over the incoming page - with its resting
@@ -149,12 +251,37 @@
            the top (reported live). The border-bottom alone carries the
            separation for that brief window. #}
         html.loading .admin-topbar { box-shadow: none; }
-        .topbar-search { flex: 1; max-width: 420px; display: flex; align-items: center; gap: .5rem; padding: .4rem .8rem; border: 1px solid var(--admin-border);
-                         border-radius: 999px; background: var(--admin-surface); color: var(--admin-muted); }
-        .topbar-search i { flex: 0 0 auto; }
-        .topbar-search input { flex: 1; border: 0; background: none; font: inherit; color: inherit; min-width: 0; }
-        .topbar-search input:focus { outline: none; }
-        .admin-topbar-icons { margin-left: auto; display: flex; align-items: center; gap: .4rem; }
+        {# The search: every page has it. On a CRUD's pages it searches that
+           CRUD's list (the form submits ?query= to its index); everywhere it
+           also finds the back office's sections by name (the results under
+           it, built from the sidebar). "/" or Ctrl/Cmd+K focuses it. #}
+        .topbar-search { position: relative; flex: 0 1 28rem; min-width: 8rem; display: flex; align-items: center; gap: var(--admin-space-2);
+                         height: 2.25rem; padding: 0 var(--admin-space-2) 0 var(--admin-space-3); border: 1px solid var(--admin-border);
+                         border-radius: var(--admin-radius); background: var(--admin-gray-50); color: var(--admin-muted);
+                         transition: border-color var(--admin-duration) var(--admin-ease), box-shadow var(--admin-duration) var(--admin-ease), background var(--admin-duration) var(--admin-ease); }
+        .topbar-search:hover { border-color: var(--admin-border-strong); }
+        .topbar-search:focus-within { background: var(--admin-surface); border-color: var(--admin-focus); box-shadow: 0 0 0 3px var(--admin-ring); }
+        .topbar-search > i { flex: 0 0 auto; font-size: .8125rem; }
+        .topbar-search input { flex: 1; height: 100%; border: 0; background: none; font: inherit; font-size: var(--admin-fs-sm); color: var(--admin-text); min-width: 0; padding: 0; }
+        .topbar-search input::placeholder { color: var(--admin-muted); opacity: 1; }
+        .topbar-search input:focus, .topbar-search input:focus-visible { outline: none; }
+        .topbar-search input::-webkit-search-cancel-button { cursor: pointer; }
+        .topbar-search-key { flex: 0 0 auto; min-width: 1.25rem; padding: 0 .3rem; border: 1px solid var(--admin-border); border-radius: var(--admin-radius-sm);
+                             background: var(--admin-surface); color: var(--admin-muted); font: 500 .75rem/1.125rem var(--admin-font); text-align: center; }
+        .topbar-search:focus-within .topbar-search-key { display: none; }
+        .topbar-search-results { position: absolute; top: calc(100% + var(--admin-space-1)); left: 0; right: 0; z-index: 25; min-width: 18rem;
+                                 max-height: min(24rem, 70vh); overflow-y: auto; margin: 0; padding: var(--admin-space-1); list-style: none;
+                                 background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg); box-shadow: var(--admin-shadow-md); }
+        .topbar-search-results[hidden] { display: none; }
+        .topbar-search-results [role=option] { display: flex; align-items: center; gap: var(--admin-space-2); padding: var(--admin-space-2) var(--admin-space-2);
+                                               border-radius: var(--admin-radius); color: var(--admin-text); font-size: var(--admin-fs-sm); cursor: pointer; }
+        .topbar-search-results [role=option] > i { width: 1.25rem; text-align: center; color: var(--admin-muted); flex: 0 0 auto; }
+        .topbar-search-results [role=option] .topbar-search-section { margin-left: auto; padding-left: var(--admin-space-3); color: var(--admin-muted); font-size: var(--admin-fs-xs); white-space: nowrap; }
+        .topbar-search-results [role=option] .topbar-search-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .topbar-search-results [role=option][aria-selected=true] { background: var(--admin-accent-soft); color: var(--admin-accent); }
+        .topbar-search-results [role=option][aria-selected=true] > i { color: var(--admin-accent); }
+        .topbar-search-results .topbar-search-empty { padding: var(--admin-space-3); color: var(--admin-muted); font-size: var(--admin-fs-sm); }
+        .admin-topbar-icons { margin-left: auto; display: flex; align-items: center; gap: var(--admin-space-1); }
         .admin-icon-dropdown { position: relative; }
         {# text-decoration:none because this class is used on BOTH <button>
            and <a> (the sidebar footer's home and exit-admin icons are
@@ -163,18 +290,21 @@
            on those two anchors - a bare underline sitting under the glyph
            (reported live). Every other anchor component in this file
            already resets it; this one was just missed. #}
-        .admin-icon-btn { display: flex; align-items: center; justify-content: center; width: 2.1rem; height: 2.1rem; border-radius: 999px; border: 1px solid transparent;
-            background: none; color: var(--admin-muted); cursor: pointer; font: inherit; text-decoration: none; }
-        .admin-icon-btn:hover { border-color: var(--admin-border); color: var(--admin-accent); background: var(--admin-surface); }
-        .admin-dropdown-menu { display: none; position: absolute; top: calc(100% + .3rem); right: 0; min-width: 150px; z-index: 20;
-            background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); box-shadow: 0 8px 24px rgba(0,0,0,.15); overflow: hidden; }
+        .admin-icon-btn { display: flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border-radius: var(--admin-radius); border: 1px solid transparent;
+            background: none; color: var(--admin-muted); cursor: pointer; font: inherit; text-decoration: none;
+            transition: background var(--admin-duration) var(--admin-ease), color var(--admin-duration) var(--admin-ease); }
+        .admin-icon-btn:hover { color: var(--admin-text); background: var(--admin-gray-100); }
+        .admin-icon-btn[aria-expanded=true], .admin-icon-dropdown.is-open > .admin-icon-btn { color: var(--admin-text); background: var(--admin-gray-100); }
+        .admin-dropdown-menu { display: none; position: absolute; top: calc(100% + var(--admin-space-1)); right: 0; min-width: 11rem; z-index: 20; padding: var(--admin-space-1);
+            background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg); box-shadow: var(--admin-shadow-md); overflow: hidden; }
         [data-dropdown].is-open .admin-dropdown-menu { display: block; }
-        .admin-dropdown-menu button, .admin-dropdown-menu a { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .5rem .8rem; border: 0; background: none; text-align: left;
-            color: inherit; text-decoration: none; cursor: pointer; font: inherit; font-size: .85rem; box-sizing: border-box; }
-        .admin-dropdown-menu button:hover, .admin-dropdown-menu a:hover { background: var(--admin-bg); }
+        .admin-dropdown-menu button, .admin-dropdown-menu a { display: flex; align-items: center; gap: var(--admin-space-2); width: 100%; padding: var(--admin-space-2) var(--admin-space-3); border: 0; border-radius: var(--admin-radius); background: none; text-align: left;
+            color: inherit; text-decoration: none; cursor: pointer; font: inherit; font-size: var(--admin-fs-sm); box-sizing: border-box; }
+        .admin-dropdown-menu button:hover, .admin-dropdown-menu a:hover { background: var(--admin-gray-100); }
         .admin-dropdown-menu button.is-active, .admin-dropdown-menu a.is-active { color: var(--admin-accent); font-weight: 600; }
-        .admin-dropdown-menu i { width: 1rem; text-align: center; }
-        .admin-dropdown-loading { display: block; padding: .5rem .8rem; font-size: .85rem; color: var(--admin-muted); }
+        .admin-dropdown-menu i { width: 1rem; text-align: center; color: var(--admin-muted); }
+        .admin-dropdown-menu .is-active i { color: inherit; }
+        .admin-dropdown-loading { display: block; padding: var(--admin-space-2) var(--admin-space-3); font-size: var(--admin-fs-sm); color: var(--admin-muted); }
         {# Notification bell. The panel is an .admin-dropdown-menu for the look,
            but opened by the notifications script (is-open on the panel itself,
            not on a [data-dropdown] parent), hence its own display rule. #}
@@ -189,10 +319,11 @@
         .admin-notifications-panel.is-open { display: block; }
         .admin-notifications-head { display: flex; align-items: center; justify-content: space-between; }
         .admin-notifications-head .admin-notifications-readall { width: auto; padding: 0 .3rem; }
-        .admin-notifications-list { max-height: 60vh; overflow-y: auto; border-bottom: 1px solid var(--admin-border); }
-        .admin-notification { display: block !important; padding: .5rem .8rem; border-bottom: 1px solid var(--admin-border); }
-        .admin-notification.is-unread { background: color-mix(in srgb, var(--admin-danger, #d33) 8%, transparent); }
-        .admin-notification.is-unread .admin-notification-title::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--admin-danger, #d33); margin-right: .4rem; vertical-align: middle; }
+        .admin-notifications-list { max-height: 60vh; overflow-y: auto; margin: 0 calc(-1 * var(--admin-space-1)) var(--admin-space-1); border-bottom: 1px solid var(--admin-border); }
+        .admin-notification { display: block !important; padding: var(--admin-space-2) var(--admin-space-3); border-radius: 0 !important; border-bottom: 1px solid var(--admin-border); }
+        .admin-notification:last-child { border-bottom: 0; }
+        .admin-notification.is-unread { background: var(--admin-accent-soft); }
+        .admin-notification.is-unread .admin-notification-title::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--admin-accent); margin-right: .4rem; vertical-align: middle; }
         .admin-notification-title { display: block; font-weight: 600; }
         .admin-notification-body { display: block; color: var(--admin-muted); font-size: .8rem; }
         .admin-notification-time { display: block; color: var(--admin-muted); font-size: .72rem; margin-top: .15rem; }
@@ -201,8 +332,8 @@
         {# Toasts for notifications that arrived since the last look (rendered
            by base-bundle's notifications script into #notifications-toasts). #}
         #notifications-toasts { position: fixed; right: 1rem; top: 3.5rem; bottom: auto; z-index: 2100; display: flex; flex-direction: column; gap: .5rem; width: 340px; max-width: calc(100vw - 2rem); pointer-events: none; }
-        .notification-toast { pointer-events: auto; display: flex; align-items: flex-start; gap: .6rem; background: var(--admin-surface); color: inherit; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: .7rem .9rem; box-shadow: 0 10px 30px rgba(0,0,0,.25); text-decoration: none; font-size: .9rem; line-height: 1.35; cursor: pointer; animation: notification-toast-in .35s ease; }
-        .notification-toast:hover { background: var(--admin-bg); }
+        .notification-toast { pointer-events: auto; display: flex; align-items: flex-start; gap: var(--admin-space-3); background: var(--admin-surface); color: inherit; border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg); padding: var(--admin-space-3) var(--admin-space-4); box-shadow: var(--admin-shadow-lg); text-decoration: none; font-size: .9rem; line-height: 1.35; cursor: pointer; animation: notification-toast-in .35s ease; }
+        .notification-toast:hover { background: var(--admin-gray-50); }
         .notification-toast-icon { flex: 0 0 auto; margin-top: .15rem; color: var(--admin-accent); }
         .notification-toast-text { flex: 1 1 auto; min-width: 0; }
         .notification-toast-title { display: block; font-weight: 600; }
@@ -223,7 +354,7 @@
         .admin-active-avatars .admin-avatar-initial + .admin-avatar-initial { margin-left: -.5rem; }
         .admin-active-count { font-size: .72rem; color: var(--admin-muted); font-weight: 600; }
         .admin-active-users-list { min-width: 220px; }
-        .dropdown-heading { padding: .55rem .8rem .3rem; font-size: var(--admin-fs-xs); font-weight: 600; color: var(--admin-muted); }
+        .dropdown-heading { padding: var(--admin-space-2) var(--admin-space-3) var(--admin-space-1); font-size: var(--admin-fs-xs); font-weight: 600; color: var(--admin-muted); }
         .admin-active-user-row { display: flex; align-items: center; gap: .5rem; padding: .4rem .8rem; font-size: .85rem; }
         .admin-active-user-row .admin-avatar-initial { border: 0; }
         .admin-active-user-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -236,9 +367,14 @@
            on every page). Everything sized in rem - this layout's rules and
            the bundles' cards alike - grows with it. #}
         html { font-size: 16px; }
-        body { margin: 0; font: var(--admin-fs-md)/1.6 var(--admin-font); background: var(--admin-bg); color: var(--admin-text);
-               -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-        :focus-visible { outline-color: var(--admin-focus); }
+        body { margin: 0; font: var(--admin-fs-md)/var(--admin-lh) var(--admin-font); background: var(--admin-bg); color: var(--admin-text);
+               -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-optical-sizing: auto; }
+        a { color: var(--admin-accent); }
+        {# One focus ring everywhere a keyboard lands: 2px of the focus colour
+           (3:1 on the cards at least, Palette), off the element's edge. The
+           fields draw theirs as a soft halo around their border instead. #}
+        :focus-visible { outline: 2px solid var(--admin-focus); outline-offset: 2px; }
+        ::selection { background: color-mix(in srgb, var(--admin-accent) 22%, transparent); }
         .admin-shell { display: flex; min-height: 100vh; }
         {# Without this, .admin-shell's flex layout stretches .admin-aside to
            match .admin-main's full content height, so on any page taller
@@ -270,7 +406,7 @@
            filter modal) centre themselves against. Without it they centre
            on the VIEWPORT, which is 130px off-centre from the content
            column the reader is actually looking at - reported live. #}
-        .admin-aside { width: var(--admin-aside-w); flex-shrink: 0; display: flex; flex-direction: column; background: var(--admin-surface); border-right: 1px solid var(--admin-border); padding: 0 0 1rem;
+        .admin-aside { width: var(--admin-aside-w); flex-shrink: 0; display: flex; flex-direction: column; background: var(--admin-surface); border-right: 1px solid var(--admin-border); padding: 0 0 var(--admin-space-4);
                       position: sticky; top: 0; height: 100vh; overflow-y: auto; scroll-behavior: smooth; z-index: 20; }
         {# Fixed height (matching .admin-topbar's own, below) instead of
            content-driven padding, so the brand row's bottom border and the
@@ -278,13 +414,13 @@
            either one's actual content (logo vs. icon buttons are
            different sizes) - align-items:center on both handles the
            vertical centering that the removed padding used to. #}
-        .admin-aside .brand { display: flex; align-items: center; gap: .6rem; height: 3.3rem; padding: 0 1.25rem; border-bottom: 1px solid var(--admin-border); }
-        .admin-aside .brand-logo { width: 2.25rem; height: 2.25rem; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
-        .admin-aside .brand-logo-initial { display: inline-flex; align-items: center; justify-content: center; background: var(--admin-accent); color: #fff; font-weight: 700; font-size: 1.05rem; }
+        .admin-aside .brand { display: flex; align-items: center; gap: var(--admin-space-3); height: var(--admin-topbar-h); padding: 0 var(--admin-space-4); border-bottom: 1px solid var(--admin-border); }
+        .admin-aside .brand-logo { width: 2rem; height: 2rem; border-radius: var(--admin-radius); object-fit: cover; flex-shrink: 0; }
+        .admin-aside .brand-logo-initial { display: inline-flex; align-items: center; justify-content: center; background: var(--admin-accent); color: var(--admin-on-accent); font-weight: 600; font-size: 1rem; }
         .admin-aside .brand-home { display: inline-flex; flex-shrink: 0; border-radius: 6px; }
         .admin-aside .brand-home:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; }
         {# The dropdown's button fills the rest of the row, so the title, the account name and the space around them open it, as the whole row did. #}
-        .admin-aside .brand-toggle { flex: 1 1 auto; min-width: 0; align-self: stretch; display: flex; align-items: center; margin-right: -1.25rem; padding-right: 1.25rem; }
+        .admin-aside .brand-toggle { flex: 1 1 auto; min-width: 0; align-self: stretch; display: flex; align-items: center; margin-right: calc(-1 * var(--admin-space-4)); padding-right: var(--admin-space-4); }
         .admin-aside .brand-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
         {# The caret sits next to the TITLE specifically, in its own row -
            it used to be a direct sibling of .brand-text out in .brand's
@@ -295,8 +431,8 @@
            caret's vertical center always tracks the title line only,
            regardless of whether a username line exists below it at all. #}
         .admin-aside .brand-title-row { display: flex; align-items: center; gap: .35rem; min-width: 0; }
-        .admin-aside .brand-title { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
-        .admin-aside .brand-user { font-size: .8rem; color: var(--admin-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .admin-aside .brand-title { font-weight: 600; line-height: var(--admin-lh-tight); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+        .admin-aside .brand-user { font-size: var(--admin-fs-xs); line-height: var(--admin-lh-tight); color: var(--admin-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         [data-brand-title][contenteditable="true"]:focus {
             outline: 2px solid var(--admin-accent); outline-offset: 2px; border-radius: 4px;
         }
@@ -352,7 +488,11 @@
            on each other rather than on the title's baseline, so the flag chips
            (taller than the muted text) do not float above it. #}
         .admin-header-titles > .admin-header-subtitle, .admin-header-titles > .page-locale-badges { align-self: center; }
-        .admin-menu { list-style: none; margin: .75rem 0 0; padding: 0; }
+        {# The navigation: sections as quiet labels (their own icon, the
+           text in the muted ink, sentence case), the pages under them as
+           rows of 34px on a 4px grid; the current page on the accent's soft
+           fill, the only colour in the sidebar. #}
+        .admin-menu { list-style: none; margin: var(--admin-space-3) 0 0; padding: 0 var(--admin-space-3); }
         {# Used to push a standalone "Tableau de bord" quick-link away from
            the sections below it (prod-style rhythm: quick link at the very
            top, sections pushed to the bottom, empty middle). That link was
@@ -387,28 +527,33 @@
            icon pair land at the exact same inset regardless of which
            container (a padded .section div vs an unpadded <li>) they're
            actually sitting in. #}
-        .admin-menu .section { display: flex; align-items: center; justify-content: space-between;
-            padding: 1.1rem 0 .35rem 1.25rem; font-size: var(--admin-fs-sm); font-weight: 600; color: var(--admin-muted); }
+        .admin-menu .section { display: flex; align-items: center; justify-content: space-between; min-height: 2rem;
+            margin-top: var(--admin-space-2); padding: 0 0 0 var(--admin-space-2); border-radius: var(--admin-radius);
+            font-size: var(--admin-fs-sm); font-weight: 600; color: var(--admin-muted); }
+        .admin-menu > li:first-child > .section { margin-top: 0; }
         {# flex:1 so this - not the trailing item-controls - is what
            absorbs the row's leftover space; keeps icon+label pinned left
            regardless of whether item-controls is even present. #}
-        .admin-menu .section-label { display: flex; align-items: center; flex: 1; min-width: 0; gap: .3rem; }
-        .admin-menu .section-label i { width: 1.1rem; text-align: center; }
-        .admin-menu .section-group > ul { list-style: none; margin: 0; padding: 0; }
+        .admin-menu .section-label { display: flex; align-items: center; flex: 1; min-width: 0; gap: var(--admin-space-2); }
+        .admin-menu .section-label i { width: 1.25rem; text-align: center; font-size: .8125rem; }
+        .admin-menu .section-group > ul { list-style: none; margin: 0; padding: 0 0 var(--admin-space-1); }
         {# A section folds to its heading (click it, or Enter/Space on it): the menu stays short, the section of the
            page open, the others as left (localStorage). Not in the collapsed rail, whose sections are flyouts,
            nor while customizing, where every member must be reachable. #}
         .admin-menu .section[data-section-toggle] { cursor: pointer; }
-        .admin-menu .section[data-section-toggle]:hover { color: var(--admin-text); }
-        .admin-menu .section[data-section-toggle]:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: -2px; }
-        .admin-menu .section-caret { margin-left: auto; margin-right: 1rem; font-size: .7rem; transition: transform .15s; }
+        .admin-menu .section[data-section-toggle]:hover { color: var(--admin-text); background: var(--admin-gray-50); }
+        .admin-menu .section[data-section-toggle]:focus-visible { outline: 2px solid var(--admin-focus); outline-offset: -2px; }
+        .admin-menu .section-caret { margin-left: auto; margin-right: var(--admin-space-2); font-size: .625rem; transition: transform var(--admin-duration) var(--admin-ease); }
         .section-group.is-folded .section-caret { transform: rotate(-90deg); }
         html:not(.is-sidebar-collapsed) body:not(.is-customizing) .admin-menu .section-group.is-folded > ul { display: none; }
         html.is-sidebar-collapsed .admin-menu .section-caret, body.is-customizing .admin-menu .section-caret { display: none; }
-        .admin-menu a { display: flex; align-items: center; padding: .5rem 1.25rem; color: inherit; text-decoration: none; border-left: 3px solid transparent; min-width: 0; }
-        .admin-menu li:hover > a { background: var(--admin-bg); }
-        .admin-menu .selected > a { border-left-color: var(--admin-accent); color: var(--admin-accent); font-weight: 600; }
-        .admin-menu a i { width: 1.1rem; text-align: center; margin-right: .3rem; flex-shrink: 0; }
+        .admin-menu a { display: flex; align-items: center; padding: .4375rem var(--admin-space-2); border-radius: var(--admin-radius); color: var(--admin-gray-700); text-decoration: none; min-width: 0;
+            font-weight: 500; transition: background var(--admin-duration) var(--admin-ease), color var(--admin-duration) var(--admin-ease); }
+        .admin-menu li:hover > a { background: var(--admin-gray-100); color: var(--admin-text); }
+        .admin-menu .selected > a { background: var(--admin-accent-soft); color: var(--admin-accent); font-weight: 600; }
+        .admin-menu a:focus-visible { outline-offset: -2px; }
+        .admin-menu a i { width: 1.25rem; text-align: center; margin-right: var(--admin-space-2); flex-shrink: 0; font-size: .875rem; color: var(--admin-muted); }
+        .admin-menu .selected > a i { color: inherit; }
         {# A long French label ("Super administrateurs", "Réponses aux
            commentaires") had nothing stopping it from wrapping to a second
            line - min-width:0 above is what lets this actually shrink (a
@@ -417,7 +562,7 @@
            already carries the full text (see main_menu below) so nothing
            is lost by cutting it off visually. #}
         .admin-menu .label-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .admin-menu .sub a { padding-left: 2.75rem; font-size: .92rem; }
+        .admin-menu .sub a { padding-left: 2.5rem; font-size: var(--admin-fs-sm); }
         {# Customize mode's own handle/toggle icons used to land flush
            against the label the instant it grew long enough to leave no
            space for justify-content:space-between to distribute - a fixed
@@ -449,7 +594,8 @@
            always covers the complete row, not just the link's own
            intrinsic content height), and every row has the same floor
            height regardless of how much text it holds. #}
-        .admin-menu li { display: flex; align-items: stretch; justify-content: space-between; min-height: 2.4rem; }
+        .admin-menu li { display: flex; align-items: stretch; justify-content: space-between; min-height: 2.125rem; }
+        .admin-menu li + li:not(.section-group) { margin-top: 1px; }
         .admin-menu li a { flex: 1; }
         {# The right margin promised by the "No right padding here" comment
            on .section above - never actually written until now. .aside has
@@ -461,7 +607,7 @@
            reported live. Scoped to .admin-menu specifically (not a bare
            .item-controls rule) so this doesn't also nudge the dashboard
            widget cards' own already-tuned .widget-controls positioning. #}
-        .admin-menu li .item-controls { align-self: center; margin-right: 1.25rem; }
+        .admin-menu li .item-controls { align-self: center; margin-right: var(--admin-space-2); }
         {# Icon glyph sized closer to its box (font-size raised from .78rem,
            box tightened from 1.6rem) - the FontAwesome glyph read as
            swimming in empty padding at the old ratio, found live. Still
@@ -539,8 +685,8 @@
         html.is-sidebar-collapsed .section-group > ul { display: none; }
         html.is-sidebar-collapsed .section-group:hover > ul, html.is-sidebar-collapsed .section-group:focus-within > ul {
             display: block; position: absolute; left: 100%; top: 0; min-width: 13rem; margin-left: .5rem;
-            background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius);
-            box-shadow: 0 8px 24px rgba(0,0,0,.15); padding: .4rem 0; z-index: 30;
+            background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg);
+            box-shadow: var(--admin-shadow-md); padding: var(--admin-space-1); z-index: 30;
         }
         {# .flyout-open-upward is set per-hover by JS (see the mouseover/
            focusin handlers) whenever a downward flyout from this section
@@ -680,9 +826,9 @@
         .widget-group, .widget-block { position: relative; }
         #admin-customize-done { display: none; }
         body.is-customizing #admin-customize-done { display: inline-flex; }
-        .admin-sidebar-footer { display: flex; align-items: center; justify-content: center; gap: .5rem; padding: .9rem 1.25rem; border-top: 1px solid var(--admin-border); flex-shrink: 0;
+        .admin-sidebar-footer { display: flex; align-items: center; justify-content: center; gap: var(--admin-space-2); padding: var(--admin-space-3) var(--admin-space-4); border-top: 1px solid var(--admin-border); flex-shrink: 0;
             {# Always in view: the aside is the scroller, so a long menu pushed the four icons below the fold. #}
-            position: sticky; bottom: -1rem; margin-bottom: -1rem; padding-bottom: 1.9rem; background: var(--admin-surface); z-index: 2; }
+            position: sticky; bottom: -1rem; margin-bottom: -1rem; padding-bottom: calc(var(--admin-space-3) + 1rem); background: var(--admin-surface); z-index: 2; }
         {# Collapsed rail is ~4.5rem wide - a horizontal row of up to 4
            icon buttons (home/stats/exit/collapse-toggle) doesn't fit that
            width and either overflows or crowds together. Stacked as a
@@ -700,11 +846,11 @@
         .admin-sidebar-stats .row { margin: .1rem 0; }
         .admin-account { position: relative; }
         .admin-aside .brand-toggle[role=button] { cursor: pointer; }
-        .admin-aside .brand:has(> .brand-toggle[role=button]:hover) { background: var(--admin-bg); }
+        .admin-aside .brand:has(> .brand-toggle[role=button]:hover) { background: var(--admin-gray-50); }
         .admin-aside .brand-toggle[role=button]:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: -2px; }
         .admin-aside .brand .account-caret { flex-shrink: 0; font-size: .75rem; color: var(--admin-muted); transition: transform .15s; }
         .admin-account.is-open .brand .account-caret { transform: rotate(180deg); }
-        .admin-account .admin-dropdown-menu { left: 1.25rem; right: 1.25rem; top: calc(100% - .3rem); }
+        .admin-account .admin-dropdown-menu { left: var(--admin-space-3); right: var(--admin-space-3); top: calc(100% - var(--admin-space-1)); }
         {# left/right:1.25rem resolves against .admin-account's OWN width -
            fine at 260px, but at the collapsed rail's 4.5rem it computes to
            a near-zero box with nothing to actually constrain the menu's
@@ -729,9 +875,9 @@
            won and pushed the name away from a 48px avatar. #}
         .admin-menu li.admin-usermenu-account {
             display: flex; align-items: center; justify-content: flex-start; gap: .5rem;
-            padding: .55rem .75rem .55rem 1.25rem; border-left: 3px solid transparent; cursor: default; }
+            padding: var(--admin-space-2) var(--admin-space-3); cursor: default; }
         .admin-usermenu-avatar {
-            width: 2.25rem; height: 2.25rem; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+            width: 2.25rem; height: 2.25rem; border-radius: var(--admin-radius); object-fit: cover; flex-shrink: 0;
             border: 1px solid var(--admin-border); background: var(--admin-surface); }
         .admin-usermenu-avatar-empty {
             display: inline-flex; align-items: center; justify-content: center; color: var(--admin-muted); }
@@ -776,7 +922,7 @@
            datagrid - two columns of it visible. #}
         @media (max-width: 1024px) {
             .admin-mobile-nav-toggle { display: flex; }
-            .admin-aside { position: fixed; top: 0; left: 0; transform: translateX(-100%); transition: transform .2s ease; box-shadow: 0 0 24px rgba(0,0,0,.25); }
+            .admin-aside { position: fixed; top: 0; left: 0; transform: translateX(-100%); transition: transform .2s var(--admin-ease); box-shadow: var(--admin-shadow-lg); }
             html.is-mobile-nav-open .admin-aside { transform: translateX(0); }
             {# Scroll lock while the overlay is open - otherwise the page
                underneath keeps scrolling with it (most visible on iOS
@@ -792,7 +938,7 @@
                toggle button above, which itself only exists at this same
                breakpoint, so the two never disagree in practice; kept
                explicit rather than relying on that indirectly. #}
-            .admin-mobile-nav-backdrop { display: none; position: fixed; inset: 0; z-index: 18; background: rgba(0,0,0,.4); }
+            .admin-mobile-nav-backdrop { display: none; position: fixed; inset: 0; z-index: 18; background: rgba(15, 17, 30, .4); }
             html.is-mobile-nav-open .admin-mobile-nav-backdrop { display: block; }
         }
         {# position:relative so the flash stack can overlay INSIDE this
@@ -800,7 +946,8 @@
            rather than fixed to the viewport, so a notification scrolls
            away with the content it belongs to instead of following the
            reader down the page. #}
-        .admin-main { flex: 1; padding: 1.5rem 2rem; min-width: 0; position: relative; }
+        .admin-main { --admin-main-px: var(--admin-space-8); --admin-main-pt: var(--admin-space-6);
+                      flex: 1; padding: var(--admin-main-pt) var(--admin-main-px) var(--admin-space-12); min-width: 0; position: relative; }
         {# sticks right under the topbar (itself sticky at top:0) so the
            title/entity-actions stay reachable while scrolling a long form
            or datagrid, matching production - top offset matches the
@@ -813,15 +960,18 @@
            centring the row then dragged the title down with them - the
            heading drifted lower the more it had to say. Top-aligned, the
            title stays put and everything else accumulates beneath it. #}
-        .admin-header { display: flex; align-items: center; gap: 1rem; margin: 0 -2rem 1.25rem; padding: 1rem 2rem;
-                        position: sticky; top: 3.3rem; z-index: 14; background: var(--admin-bg); }
-        .admin-header h1 { margin: 0; font-size: var(--admin-fs-xl); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
+        {# The page's head: the trail, the title and the page's actions on
+           one line, scrolling with the page (the top bar stays). A form's
+           actions leave it for the save bar at the bottom of the window
+           (.global-actions.is-form-actions). #}
+        .admin-header { display: flex; align-items: center; gap: var(--admin-space-4); margin: 0 0 var(--admin-space-6); padding: 0; }
+        .admin-header h1 { margin: 0; font-size: var(--admin-fs-xl); font-weight: 600; line-height: var(--admin-lh-tight); letter-spacing: -.005em; }
         {# Detail-page shape: the record's own name is the heading and the
            CRUD name drops to a small line beneath it. The name can be a
            full article title, so it wraps rather than stretching the
            sticky header - clamped to two lines, with the full text on the
            element's title attribute. #}
-        .admin-header-record { font-size: 1.35rem; line-height: 1.25; overflow-wrap: anywhere;
+        .admin-header-record { font-size: var(--admin-fs-xl); line-height: var(--admin-lh-tight); overflow-wrap: anywhere;
                                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         {# The record's id, picked out of the muted subtitle line the way
            production picks it out - the one part of that line worth
@@ -831,8 +981,19 @@
            production's system pages lead with this (reported live as
            missing on beta). .admin-header is already a gapped flex row,
            the box just slots in as the first item. #}
-        .admin-header-icon { display: flex; align-items: center; justify-content: center; width: 3.4rem; height: 3.4rem; flex-shrink: 0;
-                             border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface); font-size: 1.4rem; }
+        .admin-header-icon { display: flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; flex-shrink: 0;
+                             border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg); background: var(--admin-surface);
+                             box-shadow: var(--admin-card-shadow); color: var(--admin-gray-700); font-size: 1.125rem; }
+        {# The trail above the title: the section, then the list a record
+           belongs to; the current page is the title itself. #}
+        .admin-breadcrumbs { flex: 0 0 100%; min-width: 0; margin: 0 0 var(--admin-space-1); }
+        .admin-breadcrumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: var(--admin-space-1) var(--admin-space-2); margin: 0; padding: 0; list-style: none;
+                                font-size: var(--admin-fs-sm); line-height: var(--admin-lh-tight); color: var(--admin-muted); }
+        .admin-breadcrumbs li { display: inline-flex; align-items: center; gap: var(--admin-space-2); min-width: 0; }
+        .admin-breadcrumbs li + li::before { content: ""; width: .375rem; height: .375rem; border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor;
+                                             transform: rotate(45deg); opacity: .55; margin-right: var(--admin-space-1); }
+        .admin-breadcrumbs a { color: inherit; text-decoration: none; border-radius: var(--admin-radius-sm); }
+        .admin-breadcrumbs a:hover { color: var(--admin-text); text-decoration: underline; text-underline-offset: 2px; }
         {# A wrapping flex row, so the description and the flags SHARE the
            line under the heading instead of taking one each. The heading
            claims a full row of its own (flex-basis 100%), which is what
@@ -947,58 +1108,19 @@
         .page-icon-cell { display: flex; align-items: center; justify-content: center; width: 2.1rem; height: 2.1rem;
                           border: 1px solid transparent; border-radius: 6px; background: none; color: inherit; font-size: 1rem; cursor: pointer; }
         .page-icon-cell:hover { border-color: var(--admin-accent); color: var(--admin-accent); background: var(--admin-bg); }
-        .admin-header-subtitle { font-size: var(--admin-fs-sm); color: var(--admin-muted); margin-top: .25rem; }
-        .admin-header-note { font-size: .82rem; color: var(--admin-muted); margin-top: .15rem; }
+        .admin-header-subtitle { font-size: var(--admin-fs-sm); color: var(--admin-muted); margin-top: var(--admin-space-1); }
+        .admin-header-note { font-size: var(--admin-fs-xs); color: var(--admin-muted); margin-top: 2px; }
         {# The action row keeps its natural width; the TITLE gives ground. With
            both free to size themselves the heading took 551px of a 1165px
            header and squeezed the toolbar into 464px, wrapping it onto three
            lines. A long record title can ellipsize - the buttons cannot
            usefully shrink, and a toolbar that reflows every time the title gets
            longer is not a toolbar. #}
-        {# The action bar is hoisted into the TOPBAR (see the script below), so it
-           gets a full dedicated line at the very top instead of competing with
-           the record title for the header's width. The search yields the space:
-           it only needs to be large while you are typing in it. #}
-        {# The search grows by flex-basis, not by a fixed input width: a fixed
-           26rem pushed the icon cluster past the topbar's edge whenever the
-           action bar left less room than that. Flex can only distribute space
-           that exists, so the focused search now takes UP TO 26rem and stops
-           where its neighbours begin - nothing overflows to hide. #}
-        .admin-topbar .topbar-search { flex: 0 1 420px; min-width: 6rem; transition: flex-basis .18s ease; }
-        .admin-topbar:has(.global-actions) .topbar-search { flex-basis: 13rem; }
-        .admin-topbar .topbar-search:focus-within { flex-basis: 26rem; }
-        .admin-topbar .topbar-search input { width: 100%; }
-        .admin-topbar .global-actions {
-            margin-left: auto; display: flex; align-items: center; flex-wrap: nowrap;
-            {# NEVER shrinks: its buttons cannot compress, so letting the box
-               shrink below its content made the buttons spill across the
-               separator into the icon cluster. The search is the elastic
-               element - it shrinks first (min-width below). #}
-            gap: .4rem; flex: 0 0 auto;
-            {# " | " between the groups: search | crud actions | user+settings.
-               Drawn as hairlines on the bar itself rather than markup, so they
-               exist exactly when the action bar does. #}
-            padding: 0 1rem; align-self: stretch;
-            border-left: 1px solid var(--admin-border);
-            border-right: 1px solid var(--admin-border); }
-        {# Nothing in the topbar may push the icon cluster off the end. #}
-        .admin-topbar .global-actions .btn { white-space: nowrap; }
+        {# The search keeps its width and never pushes the icons off the bar:
+           it is the elastic element, the icons are not. #}
         .admin-topbar-icons { flex: 0 0 auto; }
-        {# .admin-topbar-icons's own margin-left:auto (its base rule, further
-           up) is what pushes it to the far right on pages with NO
-           .global-actions in the topbar - but here .global-actions ALREADY
-           has its own margin-left:auto to pull itself away from the search
-           field. Two flex siblings each with margin-left:auto split the
-           available space between BOTH auto-margins instead of pooling it
-           into one gap - Filtres/Créer floating in the middle with a second
-           empty gap before the icon cluster, rather than the two groups
-           sitting together flush right (reported live). Cancelling it here
-           leaves global-actions as the only element absorbing the leftover
-           space, so everything after the search rides together as one
-           right-anchored group. #}
-        .admin-topbar:has(.global-actions) .admin-topbar-icons { margin-left: 0; }
-        .admin-header .global-actions { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end;
-                                        gap: .4rem; flex: 0 0 auto; }
+        .admin-header .global-actions { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center;
+                                        gap: var(--admin-space-2); flex: 0 1 auto; }
         .admin-header-titles { flex: 1 1 auto; min-width: 0; }
         .admin-header-record, .admin-header h1 { overflow-wrap: anywhere; }
         {# Narrow viewports: the header is a nowrap flex row, so the action
@@ -1019,9 +1141,14 @@
             .admin-header .global-actions {
                 order: 3; width: 100%; margin-left: 0; justify-content: flex-start; }
         }
-        .card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); }
+        .card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); }
+        {# A card's own head: a title (and a line under it), actions on the right. #}
+        .card-header { display: flex; align-items: center; gap: var(--admin-space-3); min-height: 3.25rem; padding: var(--admin-space-3) var(--admin-space-6);
+                       border-bottom: 1px solid var(--admin-border); }
+        .card-header h2 { margin: 0; font-size: var(--admin-fs-md); font-weight: 600; line-height: var(--admin-lh-tight); }
+        .card-header .card-header-meta { margin-left: auto; color: var(--admin-muted); font-size: var(--admin-fs-sm); }
         {# A dashboard card: no border, a large radius, a soft shadow. #}
-        .widget-block > .card, .widget-block > .analytics-card.card { border: 0; border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); }
+        .widget-block > .card, .widget-block > .analytics-card.card { border: 1px solid var(--admin-border); border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); }
         {# Generic "no card chrome" toggle any dashboard widget can carry
            (see MenuItem::$background's own docblock) - .widget-group IS
            its own .card (same div, see that template's own comment) so
@@ -1036,120 +1163,80 @@
         .widget-group.no-card-bg, .widget-block.no-card-bg > .card {
             background: none; border-color: transparent; box-shadow: none;
         }
-        {# Two button roles, one look, modelled on gandi.net's own buttons.
-           A SECONDARY button is the same colour as the surface behind it -
-           it reads as a link with a hit area, and does not compete with the
-           one action that matters. The PRIMARY is a key cap: solid fill, a
-           darker band along its bottom edge (inset 0 -3px) and a small drop
-           shadow, so it looks like a physical key sitting above the page.
-
-           Pressing it sinks the cap rather than tinting it: the bottom
-           padding moves to the top and the edge disappears, which is what
-           makes it feel like a key going down. That is the whole trick -
-           no colour change is needed for the pressed state.
-
-           The edge colour is derived from the fill with color-mix, so a
-           variant only ever declares its own background and the two stay in
-           step - including in dark mode, where a hand-picked pair drifts. #}
-        {# 3px on every button, gandi's own radius - the cap used to be the only
-           3px control in a sea of 6px ones, which is what made it look like a
-           different component rather than the emphasised member of one family. #}
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+        {# Buttons: one family on the 36px control height and the 6px radius
+           every field and menu shares; the tiers below differ by fill only. #}
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--admin-space-2);
                {# line-height set explicitly: an <a> inherits the body's 1.5 while
                   a <button> computes `normal` (~1.2), so two caps sitting side by
-                  side rendered 36px and 42px tall. Declared at 1.2 - the compact
-                  height the original button had - so every control matches it
-                  whatever element it happens to be. #}
-               line-height: 1.2;
-               padding: .45rem .9rem; border-radius: 3px; border: 1px solid var(--admin-border);
-               background: transparent; color: inherit; text-decoration: none; font-size: .9rem;
-               cursor: pointer; transition: background .12s ease, border-color .12s ease, color .12s ease, box-shadow .12s ease; }
-        {# Two tiers, after gandi.net's `.button--tertiary`: that button is neutral
-           at rest and only tints on interaction - its face picks up a faint fill
-           (#e0d9ff), a matching rim (#8566fe) and a matching key edge (#c2b3ff).
+                  side rendered at different heights. A min-height of 36px does
+                  the sizing, whatever element the button happens to be. #}
+               line-height: 1.2; min-height: 2.25rem;
+               padding: 0 var(--admin-space-3); border-radius: var(--admin-radius); border: 1px solid transparent;
+               background: transparent; color: inherit; text-decoration: none; font: inherit; font-size: var(--admin-fs-sm); font-weight: 500; white-space: nowrap;
+               cursor: pointer; transition: background var(--admin-duration) var(--admin-ease), border-color var(--admin-duration) var(--admin-ease), color var(--admin-duration) var(--admin-ease), box-shadow var(--admin-duration) var(--admin-ease); }
+        {# Three tiers. The quiet one (a bare .btn: row actions, pagination,
+           toolbars) is flat until the pointer reaches it. The page's own
+           actions (the .global-actions row) are white keys with a hairline
+           edge. One action per row - the one that commits, marked
+           data-primary-action - is filled with the accent: the only filled
+           control on the page, so it never has to compete.
 
-           Same mechanism here, but the tint follows the button's SEMANTIC rather
-           than one fixed brand colour, so a destructive action reads red the
-           moment you reach for it while sitting quiet in the layout until then.
-           One custom property carries it: --btn-tone, defaulted to the accent and
-           overridden per variant. Every interaction rule below is written against
-           that single property, so adding a variant is one declaration, not four.
-
-           Gandi's navbar also carries exactly ONE filled cap among six items - a
-           cap only means "this is the action" while its neighbours lack one - so
-           the cap is reserved for the committing action and everything else is
-           neutral. #}
+           --btn-tone carries a button's meaning (accent by default, danger
+           for a destructive one): the hover tint and the danger buttons are
+           written against it, so a variant is one declaration. #}
         {# An action a bundle declared without a class (an <a> in the page's
            action row) reads as one of the row's buttons, not as a raw blue
            underlined link. #}
-        .global-actions > a:not([class*="btn"]) { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .9rem; border-radius: 3px;
-            line-height: 1.2; font-size: .9rem; color: inherit; text-decoration: none; white-space: nowrap; }
-        .global-actions > a:not([class*="btn"]):hover { color: color-mix(in srgb, var(--admin-accent) 72%, var(--admin-text)); background: color-mix(in srgb, var(--admin-accent) 10%, transparent); }
+        .global-actions > a:not([class*="btn"]) { display: inline-flex; align-items: center; gap: var(--admin-space-2); min-height: 2.25rem; padding: 0 var(--admin-space-3); border-radius: var(--admin-radius);
+            border: 1px solid var(--admin-border-strong); background: var(--admin-surface); box-shadow: 0 1px 1px rgba(17, 20, 38, .04);
+            line-height: 1.2; font-size: var(--admin-fs-sm); font-weight: 500; color: var(--admin-text); text-decoration: none; white-space: nowrap; }
+        .global-actions > a:not([class*="btn"]):hover { background: var(--admin-gray-50); border-color: var(--admin-gray-400); }
         .btn { --btn-tone: var(--admin-accent); }
         .btn-primary { --btn-tone: var(--admin-accent); }
         .btn-success { --btn-tone: var(--admin-success); }
         .btn-danger  { --btn-tone: var(--admin-danger); }
         .btn-warning { --btn-tone: var(--admin-warning); }
 
-        {# Tier 2 - the default: neutral until touched. Text stays the body colour
-           and only leans toward the tone on hover, so the cue is legible without
-           shouting (mixing with --admin-text keeps it "faint" and keeps contrast
-           in dark mode, where a raw danger red on a dark panel is harsh). #}
+        {# Quiet: no fill and no edge at rest, a neutral fill under the pointer. #}
         .btn { background: transparent; border-color: transparent; color: inherit; box-shadow: none; }
-        .btn:hover {
-            border-color: transparent;
-            color: color-mix(in srgb, var(--btn-tone) 72%, var(--admin-text));
-            background: color-mix(in srgb, var(--btn-tone) 10%, transparent); }
-        .btn:active {
-            background: color-mix(in srgb, var(--btn-tone) 18%, transparent);
-            color: color-mix(in srgb, var(--btn-tone) 85%, var(--admin-text));
-            transform: translateY(1px); box-shadow: none; }
+        .btn:hover { border-color: transparent; color: var(--admin-text); background: var(--admin-gray-100); }
+        .btn:active { background: var(--admin-gray-200); box-shadow: none; }
 
-        {# Tier 1 - the key caps: the marked primary action ("Enregistrer" /
-           "Créer", green) and the record's "Voir" link (accent, having no
-           variant class). Secondary submits like "Enregistrer et continuer"
-           stay flat on request - one committing key per bar. #}
-        .global-actions .btn:is([data-primary-action], .action-detail),
-        .admin-confirm-actions .btn-danger, .admin-confirm-actions .btn-primary,
-        .modal-footer .btn-primary, .modal-footer .btn-success, .modal-footer .btn-danger {
-            {# Measured off gandi's Log in at REST, which is the shape being asked
-               for and the opposite of what was here: a WHITE face (#fff), a
-               neutral 1px rim (#9999ac), a barely-there pale inset edge
-               (#ebebf6), near-black text, and a soft blue-tinted drop shadow
-               `rgba(20,20,96,.1) 0 4px 3px`. This was a saturated fill with white
-               text on a dark edge - the inverse - which is why it read as loud
-               and unrelated to the rest of the row.
+        {# Secondary: the page's action row, the dialogs' and the image
+           viewer's buttons. #}
+        .global-actions .btn, .admin-confirm-actions .btn, .modal-footer .btn, .filter-modal-header .btn, .form-footer .btn {
+            background: var(--admin-surface); border-color: var(--admin-border-strong); color: var(--admin-text);
+            box-shadow: 0 1px 1px rgba(17, 20, 38, .04); }
+        .global-actions .btn:hover, .admin-confirm-actions .btn:hover, .modal-footer .btn:hover, .filter-modal-header .btn:hover, .form-footer .btn:hover {
+            background: var(--admin-gray-50); border-color: var(--admin-gray-400); color: var(--admin-text); }
+        .global-actions .btn:active, .admin-confirm-actions .btn:active, .modal-footer .btn:active, .filter-modal-header .btn:active, .form-footer .btn:active {
+            background: var(--admin-gray-100); }
 
-               The semantic tone is kept, but as a *tint* rather than a fill: the
-               rim and edge carry it faintly at rest and the face only takes
-               colour on hover, exactly like gandi's own tertiary. #}
-            --btn-edge: color-mix(in srgb, var(--btn-tone) 22%, var(--admin-surface));
-            background: var(--admin-surface);
-            color: color-mix(in srgb, var(--btn-tone) 42%, var(--admin-text));
-            border: 1px solid color-mix(in srgb, var(--btn-tone) 32%, var(--admin-border));
-            padding-bottom: calc(.45rem + 4px); transform: none;
-            box-shadow: inset 0 -4px 0 0 var(--btn-edge),
-                        0 4px 3px 0 color-mix(in srgb, var(--btn-tone) 14%, transparent); }
-        .global-actions .btn:is([data-primary-action], .action-detail):hover,
-        .admin-confirm-actions .btn-danger:hover, .admin-confirm-actions .btn-primary:hover,
-        .modal-footer .btn-primary:hover, .modal-footer .btn-success:hover, .modal-footer .btn-danger:hover {
-            background: color-mix(in srgb, var(--btn-tone) 14%, var(--admin-surface));
-            border-color: color-mix(in srgb, var(--btn-tone) 55%, transparent);
-            color: color-mix(in srgb, var(--btn-tone) 55%, var(--admin-text));
-            --btn-edge: color-mix(in srgb, var(--btn-tone) 38%, var(--admin-surface));
-            filter: none; }
-        {# Pressed: the cap travels down onto its edge. Keeping a 1px edge (rather
-           than dropping the inset outright) reads as depressed instead of gone
-           flat, and darkening matters because :active is also :hover - the hover
-           brightness alone made a pressed key come out lighter than a resting one. #}
-        .global-actions .btn:is([data-primary-action], .action-detail):active,
-        .admin-confirm-actions .btn-danger:active, .admin-confirm-actions .btn-primary:active,
-        .modal-footer .btn-primary:active, .modal-footer .btn-success:active, .modal-footer .btn-danger:active {
-            padding-bottom: calc(.45rem + 1px); transform: translateY(3px);
-            filter: none;
-            background: color-mix(in srgb, var(--btn-tone) 20%, var(--admin-surface));
-            box-shadow: inset 0 -1px 0 0 var(--btn-edge),
-                        0 1px 1px 0 color-mix(in srgb, var(--btn-tone) 12%, transparent); }
+        {# Primary: the committing action ("Enregistrer", "Créer", "Appliquer",
+           a confirmation), filled with the accent whatever its variant - one
+           accent on the page. A destructive confirmation is filled with the
+           danger instead. #}
+        .global-actions .btn[data-primary-action], .global-actions [data-primary-action] > summary.btn,
+        .admin-confirm-actions .btn-primary, .modal-footer .btn-primary, .modal-footer .btn-success,
+        .filter-modal-header .btn-primary, .form-footer .btn-primary, .form-footer .btn-success {
+            --btn-fill: var(--admin-accent); --btn-ink: var(--admin-on-accent);
+            background: var(--btn-fill); border-color: var(--btn-fill); color: var(--btn-ink);
+            box-shadow: 0 1px 2px rgba(17, 20, 38, .14), inset 0 1px 0 rgba(255, 255, 255, .12); }
+        .admin-confirm-actions .btn-danger, .modal-footer .btn-danger {
+            --btn-fill: var(--admin-danger); --btn-ink: var(--admin-on-danger);
+            background: var(--btn-fill); border-color: var(--btn-fill); color: var(--btn-ink);
+            box-shadow: 0 1px 2px rgba(17, 20, 38, .14); }
+        .global-actions .btn[data-primary-action]:hover, .global-actions [data-primary-action] > summary.btn:hover,
+        .admin-confirm-actions .btn-primary:hover, .modal-footer .btn-primary:hover, .modal-footer .btn-success:hover,
+        .filter-modal-header .btn-primary:hover, .form-footer .btn-primary:hover, .form-footer .btn-success:hover,
+        .admin-confirm-actions .btn-danger:hover, .modal-footer .btn-danger:hover {
+            background: color-mix(in srgb, var(--btn-fill) 86%, var(--admin-text));
+            border-color: color-mix(in srgb, var(--btn-fill) 86%, var(--admin-text)); color: var(--btn-ink); }
+        .global-actions .btn[data-primary-action]:active, .global-actions [data-primary-action] > summary.btn:active,
+        .admin-confirm-actions .btn-primary:active, .modal-footer .btn-primary:active, .modal-footer .btn-success:active,
+        .filter-modal-header .btn-primary:active, .form-footer .btn-primary:active, .form-footer .btn-success:active,
+        .admin-confirm-actions .btn-danger:active, .modal-footer .btn-danger:active {
+            background: color-mix(in srgb, var(--btn-fill) 76%, var(--admin-text)); box-shadow: none; }
 
         .text-danger { color: var(--admin-danger); }
         {# A destructive *button* takes its danger as a tone, not as a permanent
@@ -1171,11 +1258,11 @@
         .datagrid td.actions .btn.text-danger {
             color: var(--admin-danger) !important; }
         .datagrid td.actions .btn.text-danger:hover {
-            color: #fff !important; background: var(--admin-danger); }
+            color: var(--admin-danger) !important; background: var(--admin-danger-soft); }
         .btn.text-danger:hover {
-            color: color-mix(in srgb, var(--btn-tone) 72%, var(--admin-text)) !important; }
+            color: var(--admin-danger) !important; background: var(--admin-danger-soft); border-color: color-mix(in srgb, var(--admin-danger) 30%, var(--admin-surface)); }
         .btn.text-danger:active {
-            color: color-mix(in srgb, var(--btn-tone) 85%, var(--admin-text)) !important; }
+            color: var(--admin-danger) !important; background: color-mix(in srgb, var(--admin-danger) 18%, var(--admin-surface)); }
         {# A submit is in flight: lock the button that started it.
            transparentJS swaps the page over AJAX, so nothing about the
            button changes on its own - it stayed fully live and clickable
@@ -1216,7 +1303,9 @@
            looking arbitrarily larger/smaller next to its neighbours
            depending on how much surrounding whitespace happened to render.
            Square, fixed-size buttons for icon-only actions fix that. #}
-        .btn-icon { width: 2.1rem; height: 2.1rem; padding: 0; justify-content: center; flex-shrink: 0; }
+        .btn-icon { width: 2.25rem; height: 2.25rem; min-height: 0; padding: 0; justify-content: center; flex-shrink: 0; }
+        .datagrid td.actions .btn-icon { width: 2rem; height: 2rem; color: var(--admin-muted); }
+        .datagrid td.actions .btn-icon:hover { color: var(--admin-text); }
         {# A datagrid can easily grow past the viewport width (many
            entities have 8-10+ index columns) - without its own scroll
            container that either overflows the whole page (fighting the
@@ -1229,12 +1318,19 @@
            what makes Chrome and Safari keep it. #}
         .table-responsive::-webkit-scrollbar { height: 10px; }
         .table-responsive::-webkit-scrollbar-track { background: var(--admin-bg); }
-        .table-responsive::-webkit-scrollbar-thumb { background: var(--admin-border); border-radius: 5px; border: 2px solid var(--admin-bg); }
+        .table-responsive::-webkit-scrollbar-thumb { background: var(--admin-gray-300); border-radius: 5px; border: 2px solid var(--admin-bg); }
         .table-responsive::-webkit-scrollbar-thumb:hover { background: var(--admin-muted); }
         table.datagrid { width: 100%; min-width: max-content; border-collapse: collapse; }
-        .datagrid th, .datagrid td { text-align: left; padding: .8rem 1rem; border-bottom: 1px solid var(--admin-border); white-space: nowrap; }
-        .datagrid th { font-size: var(--admin-fs-sm); font-weight: 600; color: var(--admin-muted); }
-        .datagrid th a { color: inherit; text-decoration: none; }
+        {# The table: hairline row separators and nothing vertical, a quiet
+           grey head, figures in tabular digits so a column of numbers lines
+           up, 52px rows. #}
+        .datagrid th, .datagrid td { text-align: left; padding: var(--admin-space-3) var(--admin-space-4); border-bottom: 1px solid var(--admin-border); white-space: nowrap;
+                                     vertical-align: middle; font-variant-numeric: tabular-nums; }
+        .datagrid td { height: 3.25rem; font-size: var(--admin-fs-sm); }
+        .datagrid tbody tr:last-child td { border-bottom: 0; }
+        .datagrid th { padding-top: var(--admin-space-2); padding-bottom: var(--admin-space-2); font-size: var(--admin-fs-xs); font-weight: 600; color: var(--admin-muted); }
+        .datagrid th a { display: inline-flex; align-items: center; gap: var(--admin-space-1); color: inherit; text-decoration: none; border-radius: var(--admin-radius-sm); }
+        .datagrid th a:hover { color: var(--admin-text); }
         {# Tinted header row, like production's. Two reasons, one of them a
            correctness fix rather than taste: the sticky actions cell below
            needs an opaque background to cover the columns scrolling under
@@ -1244,8 +1340,8 @@
            (seen live). Tinting the whole row makes the pinned cell
            indistinguishable from its siblings and anchors the header at the
            same time. #}
-        .datagrid thead th { background: var(--admin-bg); }
-        .datagrid tr:hover td { background: var(--admin-tint); }
+        .datagrid thead th { background: var(--admin-gray-50); }
+        .datagrid tbody tr:hover td { background: var(--admin-hover); }
         {# Row actions stay pinned to the right edge while the rest of the
            row scrolls under them (requested: keep view/edit/delete fixed,
            make the other columns scrollable). Wide grids scroll far enough
@@ -1263,40 +1359,42 @@
            continues underneath rather than ending there. #}
         .datagrid td.actions, .datagrid th.actions { text-align: right; white-space: nowrap;
             position: sticky; right: 0; z-index: 5; background: var(--admin-surface);
-            box-shadow: -8px 0 8px -8px rgba(0,0,0,.25); }
-        .datagrid th.actions { background: var(--admin-bg); z-index: 6; }
-        .datagrid tr:hover td.actions { background: var(--admin-bg); }
-        .datagrid .actions a, .datagrid .actions button { margin-left: .35rem; }
+            box-shadow: -8px 0 8px -8px rgba(17, 20, 38, .14); }
+        .datagrid th.actions { background: var(--admin-gray-50); z-index: 6; }
+        .datagrid tbody tr:hover td.actions { background: var(--admin-hover); }
+        .datagrid .actions a, .datagrid .actions button { margin-left: 2px; }
         {# Sticky: on a full page of rows the pager sat below the fold, so
            reaching page 2 meant scrolling past 20 rows first. Pinned to the
            bottom of the datagrid card it is reachable from any scroll
            position, and it needs its own background + top border or the rows
            show through underneath it. #}
-        .paginator { display: flex; align-items: center; gap: .75rem; padding: .75rem .9rem; color: var(--admin-muted); font-size: .9rem;
-                     position: sticky; bottom: 0; z-index: 7;
-                     background: var(--admin-surface); border-top: 1px solid var(--admin-border); }
-        .paginator .pages { margin-left: auto; display: flex; gap: .25rem; }
-        .paginator .page-current { background: var(--admin-accent); border-color: var(--admin-accent); color: var(--admin-on-accent, #fff); cursor: default; }
+        .paginator { display: flex; align-items: center; gap: var(--admin-space-3); padding: var(--admin-space-2) var(--admin-space-4); color: var(--admin-muted); font-size: var(--admin-fs-sm);
+                     position: sticky; bottom: 0; z-index: 7; font-variant-numeric: tabular-nums;
+                     background: var(--admin-surface); border-top: 1px solid var(--admin-border); border-radius: 0 0 var(--admin-card-radius) var(--admin-card-radius); }
+        .paginator .pages { margin-left: auto; display: flex; gap: 2px; }
+        .paginator .btn { min-width: 2rem; min-height: 2rem; padding: 0 var(--admin-space-2); color: var(--admin-text); }
+        .paginator .page-current { background: var(--admin-accent-soft); border-color: transparent; color: var(--admin-accent); font-weight: 600; cursor: default; }
+        .paginator .page-current:hover { background: var(--admin-accent-soft); color: var(--admin-accent); }
         .paginator .pages-ellipsis { border: none; background: none; cursor: default; }
-        dialog#admin-confirm { border: 1px solid var(--admin-border); border-radius: var(--admin-radius); background: var(--admin-surface);
-                               color: inherit; padding: 1.5rem; max-width: 420px; box-shadow: 0 18px 50px rgba(0,0,0,.25); }
-        dialog#admin-confirm::backdrop { background: rgba(15, 23, 42, .45); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
-        dialog#admin-confirm p { margin: 0 0 1.25rem; white-space: pre-line; }
-        .admin-confirm-actions { display: flex; justify-content: flex-end; gap: .5rem; }
+        dialog#admin-confirm { border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg); background: var(--admin-surface);
+                               color: inherit; padding: var(--admin-space-6); width: min(28rem, calc(100vw - 2rem)); max-width: 28rem; box-shadow: var(--admin-shadow-lg); }
+        dialog#admin-confirm::backdrop { background: rgba(15, 17, 30, .45); }
+        dialog#admin-confirm p { margin: 0 0 var(--admin-space-6); white-space: pre-line; line-height: var(--admin-lh); }
+        .admin-confirm-actions { display: flex; justify-content: flex-end; gap: var(--admin-space-2); }
         {# Image viewer. A native <dialog> like the confirmation above, but the
            photo itself is only fetched when a thumbnail is clicked: a gallery
            row shows a dozen 96px tiles, and pulling a dozen originals to draw
            them is what used to time the page out. #}
         dialog#admin-image-viewer { border: none; background: transparent; padding: 0; overflow: visible;
                                     max-width: min(94vw, 1400px); max-height: 94vh; color: #fff; }
-        dialog#admin-image-viewer::backdrop { background: rgba(15, 23, 42, .72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+        dialog#admin-image-viewer::backdrop { background: rgba(15, 17, 30, .78); }
         .admin-image-viewer-frame { display: flex; flex-direction: column; align-items: center; gap: .75rem; }
         .admin-image-viewer-frame img { display: block; max-width: min(94vw, 1400px); max-height: 80vh; width: auto; height: auto;
                                         border-radius: var(--admin-radius); background: var(--admin-surface); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
         dialog#admin-image-viewer.is-loading .admin-image-viewer-frame img { min-width: 220px; min-height: 160px; }
         .admin-image-viewer-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
-        .admin-image-viewer-bar .btn { background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border); }
-        .admin-image-viewer-bar .btn:hover { border-color: var(--admin-accent); color: var(--admin-accent); }
+        .admin-image-viewer-bar .btn { background: var(--admin-surface); color: var(--admin-text); border: 1px solid var(--admin-border-strong); }
+        .admin-image-viewer-bar .btn:hover { background: var(--admin-gray-50); color: var(--admin-text); }
         .admin-image-viewer-spinner { position: absolute; opacity: 0; }
         dialog#admin-image-viewer.is-loading .admin-image-viewer-spinner { opacity: 1; }
         {# Was `.btn-danger { background: var(--admin-danger) }` - a leftover that
@@ -1304,24 +1402,27 @@
            default below it in the cascade. The tone system handles the colour
            now; only the confirm cap is filled. #}
         .form-footer-danger { border-top: none; padding-top: 0; }
-        form.admin-form .form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 1.25rem; padding: 1.25rem; }
-        form.admin-form .form-row { grid-column: span var(--col-span, 12); min-width: 0; margin-bottom: 1rem; }
+        {# A form: a card of fields on a 12-column grid, 24px in from its
+           edges, 20px between rows; the labels small and set above their
+           field, the help under it in the muted ink. #}
+        form.admin-form .form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 var(--admin-space-5); padding: var(--admin-space-6); }
+        form.admin-form .form-row { grid-column: span var(--col-span, 12); min-width: 0; margin-bottom: var(--admin-space-5); }
         {# page/system.html.twig (Settings + API keys) - not a 12-col field
            grid like .form-grid above (it has only up to 3 top-level
            children: intl/unv/valid, each already a self-contained block,
            see that template's own comment), just the same padding so its
            content doesn't sit flush against the card's border. #}
-        form.admin-form .system-form-body { padding: 1.25rem; }
-        form.admin-form .system-form-body .form-translatable + .form-translatable { margin-top: 1.5rem; }
+        form.admin-form .system-form-body { padding: var(--admin-space-6); }
+        form.admin-form .system-form-body .form-translatable + .form-translatable { margin-top: var(--admin-space-6); }
         {# Section headers (settings page's own intl/unv split - see
            SystemController::renderSystemPage()) - a plain heading, not a
            bordered/backgrounded box: this is a divider between two parts
            of ONE form, not a separate card-within-a-card (see
            .form-password's own comment below for why boxes-within-boxes
            were removed from this same page). #}
-        form.admin-form .system-form-group-title { font-size: 1rem; font-weight: 700; margin: 0 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--admin-border); }
-        form.admin-form .system-form-group-title:not(:first-child) { margin-top: 2rem; }
-        form.admin-form label { display: block; font-weight: 600; margin-bottom: .4rem; font-size: var(--admin-fs-md); }
+        form.admin-form .system-form-group-title { font-size: var(--admin-fs-md); font-weight: 600; margin: 0 0 var(--admin-space-4); padding-bottom: var(--admin-space-3); border-bottom: 1px solid var(--admin-border); }
+        form.admin-form .system-form-group-title:not(:first-child) { margin-top: var(--admin-space-8); }
+        form.admin-form label { display: block; font-weight: 600; margin-bottom: var(--admin-space-1); font-size: var(--admin-fs-sm); color: var(--admin-text); }
         {# `color: inherit` next to `font: inherit`, and it is not decoration:
            form controls are the one place `color` does NOT inherit. The UA
            gives input/select/textarea `color: fieldtext` (and buttons
@@ -1336,8 +1437,22 @@
         form.admin-form input[type=text], form.admin-form input[type=email], form.admin-form input[type=number],
         form.admin-form input[type=tel], form.admin-form input[type=url], form.admin-form input[type=search],
         form.admin-form input[type=password], form.admin-form select, form.admin-form textarea {
-            width: 100%; padding: .5rem .65rem; border: 1px solid var(--admin-border); border-radius: 6px; font: inherit; color: inherit; background: var(--admin-surface);
+            width: 100%; min-height: 2.375rem; padding: .4375rem var(--admin-space-3); border: 1px solid var(--admin-border-strong); border-radius: var(--admin-radius);
+            font: inherit; font-size: var(--admin-fs-md); color: inherit; background: var(--admin-surface); box-shadow: 0 1px 1px rgba(17, 20, 38, .03);
+            transition: border-color var(--admin-duration) var(--admin-ease), box-shadow var(--admin-duration) var(--admin-ease);
         }
+        form.admin-form input:hover:not(:disabled):not([readonly]), form.admin-form select:hover:not(:disabled), form.admin-form textarea:hover:not(:disabled):not([readonly]) {
+            border-color: var(--admin-gray-400);
+        }
+        {# The field's focus: its border in the focus colour and a soft halo,
+           in place of the outline (the halo follows the radius). #}
+        form.admin-form input:focus, form.admin-form select:focus, form.admin-form textarea:focus,
+        .filter-modal-body input:focus, .filter-modal-body select:focus, .search-form input:focus,
+        .widget-settings-field input[type="text"]:focus, .widget-settings-field select:focus {
+            outline: none; border-color: var(--admin-focus); box-shadow: 0 0 0 3px var(--admin-ring);
+        }
+        form.admin-form input[type=checkbox]:focus, form.admin-form input[type=radio]:focus { box-shadow: none; }
+        form.admin-form input[type=checkbox]:focus-visible, form.admin-form input[type=radio]:focus-visible { outline: 2px solid var(--admin-focus); outline-offset: 2px; }
         {# Editable fields are white; the page grey is reserved for controls you
            genuinely cannot type into. This was --admin-bg for *every* control,
            so an enabled field looked exactly like a disabled one - a live
@@ -1345,7 +1460,7 @@
            only the read-only slug. Restoring that distinction. #}
         form.admin-form input:disabled, form.admin-form select:disabled, form.admin-form textarea:disabled,
         form.admin-form input[readonly], form.admin-form textarea[readonly] {
-            background: var(--admin-bg); color: var(--admin-muted); cursor: not-allowed;
+            background: var(--admin-gray-50); color: var(--admin-muted); cursor: not-allowed; box-shadow: none;
         }
         {# base-async.scss paints .form-errors as a lightpink/lightcoral box - an
            EasyAdmin-era look this admin doesn't use, showing errors as plain red
@@ -1354,7 +1469,7 @@
            that same stylesheet an *empty* container collapsed to a 2px pink line
            drawn under every single field, error or not. Drop the box here (the
            public site keeps it) and hide the container entirely when empty. #}
-        form.admin-form .form-errors { color: var(--admin-danger); font-size: .85rem; margin-top: .25rem;
+        form.admin-form .form-errors { color: var(--admin-danger); font-size: var(--admin-fs-sm); margin-top: var(--admin-space-1);
             background: none; border: 0; padding: 0; }
         form.admin-form .form-errors:empty { display: none; }
         @media (max-width: 720px) {
@@ -1366,17 +1481,14 @@
                hyphenating mid-word every second line. Trimmed here rather
                than in either rule's base value so nothing about the desktop
                layout moves. #}
-            .admin-main { padding-left: .85rem; padding-right: .85rem; }
-            form.admin-form .form-grid { padding-left: .75rem; padding-right: .75rem; }
-            {# .admin-topbar and .admin-header bleed to the edge of the column
-               with a -2rem margin that cancels .admin-main's padding exactly.
-               Trim the padding without trimming these and the cancellation
-               overshoots by the difference on each side - the topbar grew 37px
-               wider than the viewport and the whole page scrolled sideways.
-               They have to move together. #}
-            .admin-topbar { margin-left: -.85rem; margin-right: -.85rem; }
-            .admin-header { margin-left: -.85rem; margin-right: -.85rem;
-                            padding-left: .85rem; padding-right: .85rem; }
+            .admin-main { --admin-main-px: var(--admin-space-4); --admin-main-pt: var(--admin-space-4); }
+            form.admin-form .form-grid, form.admin-form .system-form-body { padding: var(--admin-space-4); }
+            {# .admin-topbar bleeds to the edge of the column with a negative
+               margin that cancels .admin-main's padding exactly: both read
+               --admin-main-px, so trimming the padding moves the bleed with it
+               (they once drifted apart and the page scrolled sideways). #}
+            .admin-header { margin-bottom: var(--admin-space-4); }
+            .admin-header > .admin-header-icon { display: none; }
         }
         {# BooleanField's confirm-modal markup (form_div_layout.html.twig) is
            Bootstrap ".modal fade" markup: it only ever hides/shows via
@@ -1405,7 +1517,7 @@
         .modal.fade[style*="display:block"] {
             display: flex !important; position: fixed; inset: 0; z-index: 100030;
             align-items: center; justify-content: center;
-            background: rgba(0, 0, 0, .45);
+            background: rgba(15, 17, 30, .45);
             {# Padding, not an inset offset: the element IS the backdrop, so it
                must stay edge-to-edge or the sidebar shows through un-dimmed.
                Padding shifts the flex-centred dialog onto the content column
@@ -1414,15 +1526,16 @@
         }
         .modal .modal-dialog { width: min(30rem, 100%); margin: 0; }
         .modal .modal-content { background: var(--admin-surface); border: 1px solid var(--admin-border);
-                                border-radius: 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, .35); overflow: hidden; }
+                                border-radius: var(--admin-radius-lg); box-shadow: var(--admin-shadow-lg); overflow: hidden; }
         .modal .modal-header { display: flex; align-items: center; justify-content: space-between;
-                               gap: .5rem; padding: .7rem 1rem; border-bottom: 1px solid var(--admin-border); }
-        .modal .modal-body { padding: 1rem; }
-        .modal .modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem;
-                               padding: .7rem 1rem; border-top: 1px solid var(--admin-border); }
+                               gap: var(--admin-space-2); padding: var(--admin-space-4) var(--admin-space-6); border-bottom: 1px solid var(--admin-border); }
+        .modal .modal-header .modal-title, .modal .modal-header h5 { margin: 0; font-size: var(--admin-fs-md); font-weight: 600; }
+        .modal .modal-body { padding: var(--admin-space-6); }
+        .modal .modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: var(--admin-space-2);
+                               padding: var(--admin-space-3) var(--admin-space-6); border-top: 1px solid var(--admin-border); background: var(--admin-gray-50); }
         .modal .btn-close { border: 0; background: none; cursor: pointer; color: var(--admin-muted);
-                            font-size: 1.1rem; line-height: 1; padding: .2rem .35rem; border-radius: 6px; }
-        .modal .btn-close:hover { background: var(--admin-bg); color: var(--admin-text); }
+                            font-size: 1.1rem; line-height: 1; padding: .2rem .35rem; border-radius: var(--admin-radius); }
+        .modal .btn-close:hover { background: var(--admin-gray-100); color: var(--admin-text); }
         .modal img { max-width: 100%; height: auto; display: block; }
         {# select2/tag widgets otherwise compute their own fixed pixel width
            from the underlying <select> at init time, which can end up
@@ -2156,8 +2269,8 @@
            wiring needed, just appearance. #}
         form.admin-form .form-check-input[type=checkbox] {
             appearance: none; -webkit-appearance: none; width: 34px; height: 19px; margin: 0; flex-shrink: 0;
-            border: none; border-radius: 999px; background: var(--admin-border); position: relative; cursor: pointer;
-            transition: background .15s ease;
+            border: none; border-radius: 999px; background: var(--admin-switch-off); position: relative; cursor: pointer;
+            transition: background var(--admin-duration) var(--admin-ease);
         }
         form.admin-form .form-check-input[type=checkbox]::after {
             content: ''; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%;
@@ -2170,11 +2283,43 @@
         form.admin-form footer hr { display: none; }
         form.admin-form .form-entity, form.admin-form .form-translatable, form.admin-form .form-collection-items,
         form.admin-form .form-collection-no-add-button { display: block; }
-        .form-footer { display: flex; gap: .5rem; padding: 1rem 1.25rem; border-top: 1px solid var(--admin-border); }
-        dl.detail { padding: 1.25rem; display: grid; grid-template-columns: 200px 1fr; gap: .5rem 1rem; margin: 0; }
-        dl.detail dt { font-weight: 600; color: var(--admin-muted); }
-        dl.detail dd { margin: 0; }
-        .empty-state { padding: 3rem; text-align: center; color: var(--admin-muted); }
+        .form-footer { display: flex; gap: var(--admin-space-2); padding: var(--admin-space-4) var(--admin-space-6); border-top: 1px solid var(--admin-border); }
+        {# The form's save bar: a form page's action row (crud/_form.html.twig
+           marks it is-form-actions) leaves the page head for the bottom of the
+           window, over the content column, so saving never needs a scroll
+           back up. The committing action sits at its right end (order), the
+           others before it. #}
+        .global-actions.is-form-actions { position: fixed; z-index: 16; left: var(--admin-aside-w); right: 0; bottom: 0; margin: 0;
+            display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; justify-content: safe flex-end; gap: var(--admin-space-2);
+            min-height: 3.75rem; padding: var(--admin-space-3) var(--admin-space-8); overflow-x: auto;
+            background: color-mix(in srgb, var(--admin-surface) 94%, transparent); border-top: 1px solid var(--admin-border);
+            box-shadow: 0 -1px 3px rgba(17, 20, 38, .05); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+        .global-actions.is-form-actions > * { flex: 0 0 auto; }
+        .global-actions.is-form-actions > [data-back-action] { order: -1; margin-right: auto; }
+        .global-actions.is-form-actions > button[type=submit]:not([data-primary-action]) { order: 1; }
+        .global-actions.is-form-actions > [data-primary-action] { order: 2; }
+        .admin-main:has(.global-actions.is-form-actions) { padding-bottom: calc(3.75rem + var(--admin-space-12)); }
+        @media (max-width: 1024px) {
+            .global-actions.is-form-actions { left: 0; padding-left: var(--admin-space-4); padding-right: var(--admin-space-4); }
+        }
+        {# A record's fields as a list of label and value rows, one hairline
+           between rows, the label column in the muted ink. #}
+        dl.detail { padding: var(--admin-space-2) var(--admin-space-6); display: grid; grid-template-columns: minmax(10rem, 14rem) 1fr; margin: 0; }
+        dl.detail dt, dl.detail dd { padding: var(--admin-space-3) 0; border-bottom: 1px solid var(--admin-border); min-width: 0; }
+        dl.detail dt { font-size: var(--admin-fs-sm); font-weight: 500; color: var(--admin-muted); padding-right: var(--admin-space-4); }
+        dl.detail dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+        dl.detail dt:nth-last-child(2), dl.detail dd:last-child { border-bottom: 0; }
+        @media (max-width: 720px) {
+            dl.detail { grid-template-columns: 1fr; padding: var(--admin-space-1) var(--admin-space-4); }
+            dl.detail dt { padding-bottom: 0; border-bottom: 0; }
+        }
+        {# An empty list: a round mark, what is (not) there, what to do. #}
+        .empty-state { display: flex; flex-direction: column; align-items: center; gap: var(--admin-space-2); padding: var(--admin-space-16) var(--admin-space-6); text-align: center; color: var(--admin-muted); }
+        .empty-state-icon { display: flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; margin-bottom: var(--admin-space-2);
+                            border-radius: var(--admin-radius-pill); background: var(--admin-gray-100); color: var(--admin-muted); font-size: 1.125rem; }
+        .empty-state-title { margin: 0; color: var(--admin-text); font-size: var(--admin-fs-md); font-weight: 600; }
+        .empty-state-text { margin: 0; max-width: 28rem; font-size: var(--admin-fs-sm); }
+        .empty-state-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--admin-space-2); margin-top: var(--admin-space-3); }
         {# Floating, not in flow. These sat in the normal document flow, so
            every flash pushed the whole page down by its own height - the
            maintenance banner in particular, which is present on every
@@ -2204,28 +2349,31 @@
            the topbar itself starts, and a plain `top: .5rem` landed the
            toast stack right on top of it (reported live: the toast
            overlapped the search bar/action buttons). #}
-        .flashes { position: absolute; top: calc(3.3rem + .75rem); right: 0; z-index: 30;
-                   width: 100%; max-width: 22rem;
-                   display: flex; flex-direction: column; gap: .5rem; pointer-events: none; }
-        .flash { padding: .7rem .9rem; border-radius: 8px; border: 1px solid var(--admin-border);
-                 border-left-width: 3px; background: var(--admin-surface); pointer-events: auto;
-                 box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
-                 animation: flash-in .22s ease; }
+        .flashes { position: absolute; top: calc(var(--admin-topbar-h) + var(--admin-space-3)); right: var(--admin-space-4); z-index: 30;
+                   width: calc(100% - 2 * var(--admin-space-4)); max-width: 24rem;
+                   display: flex; flex-direction: column; gap: var(--admin-space-2); pointer-events: none; }
+        {# A white toast with the state in its icon and a fine coloured
+           edge: readable in both themes, the colour where the eye lands. #}
+        .flash { padding: var(--admin-space-3) var(--admin-space-4); border-radius: var(--admin-radius-lg); border: 1px solid var(--admin-border);
+                 background: var(--admin-surface); color: var(--admin-text); pointer-events: auto; font-size: var(--admin-fs-sm);
+                 box-shadow: var(--admin-shadow-lg); --flash-tone: var(--admin-accent);
+                 animation: flash-in .22s var(--admin-ease); }
         @keyframes flash-in { from { opacity: 0; transform: translate(.75rem, -.25rem); } }
-        .flash-success { border-color: #86efac; border-left-color: #16a34a; background: #f0fdf4; color: #166534; }
-        .flash-warning { border-color: #fde68a; border-left-color: #d97706; background: #fffbeb; color: #92400e; }
-        .flash-danger, .flash-error { border-color: #fecaca; border-left-color: #dc2626; background: #fef2f2; color: #991b1b; }
+        .flash-success { --flash-tone: var(--admin-success); }
+        .flash-warning { --flash-tone: var(--admin-warning); }
+        .flash-danger, .flash-error { --flash-tone: var(--admin-danger); border-color: color-mix(in srgb, var(--admin-danger) 35%, var(--admin-surface)); background: var(--admin-danger-soft); }
+        .flash .flash-icon { color: var(--flash-tone); }
         {# A flash had no way out: no close control and no timeout, so one
            "the website is now displayed in English" sat over the page until
            the next full navigation. Every flash now carries a dismiss, and
            the non-error ones retire themselves. #}
-        .flash { display: flex; align-items: flex-start; gap: .6rem; }
+        .flash { display: flex; align-items: flex-start; gap: var(--admin-space-3); }
         {# margin-top centers the icon glyph against the FIRST line of
            .flash-body's text specifically (not the whole, possibly-wrapped
            message) - text sits in a 22.5px line-height at 15px font-size,
            the icon box is ~15.2px tall, so half the ~7.3px leading (.15rem
            undershot it, reported live as visibly high) is what centers it. #}
-        .flash-icon { flex-shrink: 0; margin-top: .23rem; font-size: .95rem; opacity: .85; }
+        .flash-icon { flex-shrink: 0; margin-top: .2rem; font-size: .95rem; }
         .flash-body { flex: 1; min-width: 0; padding-top: .05rem; }
         .flash-close { flex-shrink: 0; border: 0; background: none; color: inherit; cursor: pointer;
                        font: inherit; font-size: 1.15rem; line-height: 1; padding: 0 .1rem;
@@ -2233,15 +2381,16 @@
         .flash-close:hover { opacity: 1; }
         .flash.is-dismissing { opacity: 0; transform: translate(.75rem, 0);
                                transition: opacity .25s ease, transform .25s ease; }
-        .search-form { display: inline-flex; gap: .4rem; }
-        .search-form input { padding: .45rem .65rem; border: 1px solid var(--admin-border); border-radius: 6px; font: inherit; min-width: 220px;
-                             background: var(--admin-bg); color: var(--admin-text); }
-        .quick-access { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .75rem; padding: 1.25rem; }
-        .quick-access a { display: block; padding: 1rem; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); text-decoration: none; color: inherit; background: var(--admin-surface); }
-        .quick-access a:hover { border-color: var(--admin-accent); color: var(--admin-accent); }
+        .search-form { display: inline-flex; gap: var(--admin-space-2); }
+        .search-form input { min-height: 2.25rem; padding: 0 var(--admin-space-3); border: 1px solid var(--admin-border-strong); border-radius: var(--admin-radius); font: inherit; min-width: 220px;
+                             background: var(--admin-surface); color: var(--admin-text); }
+        .quick-access { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--admin-space-3); padding: var(--admin-space-5); }
+        .quick-access a { display: block; padding: var(--admin-space-4); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg); text-decoration: none; color: inherit; background: var(--admin-surface); }
+        .quick-access a:hover { border-color: var(--admin-border-strong); background: var(--admin-gray-50); }
         .dashboard-header { align-items: center; gap: 1rem; }
-        .dashboard-brand-icon { width: 3.5rem; height: 3.5rem; display: flex; align-items: center; justify-content: center;
-                                font-size: 1.6rem; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface); }
+        .dashboard-brand-icon { width: 2.75rem; height: 2.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                                font-size: 1.125rem; color: var(--admin-gray-700); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg);
+                                background: var(--admin-surface); box-shadow: var(--admin-card-shadow); }
         .dashboard-slogan { color: var(--admin-muted); }
         {# Now a sibling of the h1/slogan inside the title stack (moved into
            .admin-header, kept always visible instead of scrolling away with
@@ -2528,21 +2677,22 @@
             .widget-grid { --widget-columns: 1; --widget-col-width: 100%; gap: 1.25rem .75rem; }
             .widget-grid > .widget-block, .widget-grid > .widget-group { flex-basis: 100%; }
         }
-        {# A section's card (its links): the title above the card, in bold navy with
-           its icon small beside it, the links in the white card below as tinted
-           rows that alternate, each with its icon and a chevron. #}
+        {# A section's card (its links): the title above the card with its icon
+           small beside it, the links in the white card below as rows parted
+           by hairlines, each with its icon and a chevron. #}
         .widget-group { padding: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: .55rem; align-items: center; align-content: start; }
         .widget-group.card { background: transparent; border: 0; box-shadow: none; border-radius: 0; }
-        .widget-group > .widget-icon { font-size: .95rem; color: var(--admin-accent); width: 1.2rem; text-align: center; margin: 0 0 .55rem; }
-        .widget-group > .widget-group-title { margin: 0 0 .55rem; font-size: 1.02rem; font-weight: 700; color: var(--admin-text); }
-        .widget-group > ul { grid-column: 1 / -1; align-self: stretch; background: var(--admin-surface); border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); padding: .6rem; }
+        .widget-group > .widget-icon { font-size: .875rem; color: var(--admin-muted); width: 1.25rem; text-align: center; margin: 0 0 var(--admin-space-2); }
+        .widget-group > .widget-group-title { margin: 0 0 var(--admin-space-2); font-size: var(--admin-fs-md); font-weight: 600; color: var(--admin-text); }
+        .widget-group > ul { grid-column: 1 / -1; align-self: stretch; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); padding: var(--admin-space-1) 0; }
         .widget-group > ul > li { margin: 0; }
-        .widget-group > ul > li:nth-child(odd) > a { background: var(--admin-tint); }
-        .widget-group > ul > li > a { display: flex; width: 100%; padding: .55rem .7rem; border-radius: 10px; font-weight: 600; font-size: .88rem; }
+        .widget-group > ul > li + li { border-top: 1px solid var(--admin-border); }
+        .widget-group > ul > li > a { display: flex; width: 100%; padding: var(--admin-space-3) var(--admin-space-4); border-radius: 0; font-weight: 500; font-size: var(--admin-fs-sm); }
         .widget-group > ul > li > a::after { content: "\f054"; font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 5 Free"; font-weight: 900; font-size: .65rem; margin-left: auto; color: var(--admin-muted); }
         .widget-group > ul > li > a[data-leaves-admin]::after { content: none; }
-        .widget-group > ul > li > a > i:first-child { color: var(--admin-accent); }
-        .widget-group > ul > li > a:hover { background: var(--admin-tint-strong); color: var(--admin-text); }
+        .widget-group > ul > li > a > i:first-child { color: var(--admin-muted); }
+        .widget-group > ul > li > a:hover { background: var(--admin-hover); color: var(--admin-text); }
+        .widget-group > ul > li > a:hover > i:first-child { color: var(--admin-accent); }
         .widget-group.no-card-bg > ul { background: transparent; box-shadow: none; }
         .widget-group h2, .composite-pane h2 { margin: .6rem 0 .7rem; font-size: 1.25rem; }
         .widget-icon { font-size: 2rem; }
@@ -2556,7 +2706,7 @@
         .dash-card { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: var(--widget-height, 0); }
         .dash-card-head { display: flex; align-items: center; gap: .45rem; min-height: 1.9rem; margin: 0 0 .55rem; padding: 0 .1rem; }
         .dash-card-titles { display: grid; gap: .05rem; min-width: 0; }
-        .dash-card-title { margin: 0; font-size: var(--admin-fs-lg); font-weight: 700; color: var(--admin-text); line-height: 1.25; min-width: 0; }
+        .dash-card-title { margin: 0; font-size: var(--admin-fs-md); font-weight: 600; color: var(--admin-text); line-height: var(--admin-lh-tight); min-width: 0; }
         .dash-card-sub { font-size: var(--admin-fs-xs); color: var(--admin-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
         .dash-card-actions { margin-left: auto; display: inline-flex; align-items: center; gap: .15rem; flex: none; }
         .dash-card-action { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; border-radius: 8px; color: var(--admin-muted); text-decoration: none; font-size: .82rem; }
@@ -2564,27 +2714,28 @@
         .dash-card-action.item-settings { display: none; }
         body.is-customizing .dash-card-action.item-settings { display: inline-flex; }
         .dash-card--compact .dash-card-sub { white-space: normal; }
-        .dash-card-panel { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; background: var(--admin-surface); border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); padding: 1.15rem 1.3rem; color: var(--admin-text); }
+        .dash-card-panel { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-card-radius); box-shadow: var(--admin-card-shadow); padding: var(--admin-space-2) var(--admin-space-5); color: var(--admin-text); }
         .widget-block.no-card-bg .dash-card-panel { background: transparent; box-shadow: none; padding: 0; }
         body.is-customizing .dash-card-head { padding-right: 7rem; }
         .dash-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: .2rem; }
-        .dash-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .3rem .7rem; padding: .65rem .8rem; border-radius: 10px; font-size: var(--admin-fs-sm); color: var(--admin-text); text-decoration: none; }
-        .dash-rows > :nth-child(odd) > .dash-row, .dash-rows > .dash-row:nth-child(odd) { background: var(--admin-tint); }
-        .dash-row-icon { color: var(--admin-accent); width: 1.1rem; text-align: center; font-size: .85rem; }
-        .dash-row-label { font-weight: 600; min-width: 0; }
+        .dash-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--admin-space-1) var(--admin-space-3); padding: var(--admin-space-3) 0; border-radius: 0; font-size: var(--admin-fs-sm); color: var(--admin-text); text-decoration: none; }
+        .dash-rows > * + * > .dash-row, .dash-rows > .dash-row + .dash-row { border-top: 1px solid var(--admin-border); }
+        .dash-row-icon { color: var(--admin-muted); width: 1.25rem; text-align: center; font-size: .8125rem; }
+        .dash-row-label { font-weight: 500; min-width: 0; }
         .dash-row-label small { display: block; font-weight: 400; color: var(--admin-muted); font-size: var(--admin-fs-xs); margin-top: .1rem; }
-        .dash-row-value { font-weight: 700; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-        a.dash-row:hover { background: var(--admin-tint-strong); }
+        .dash-row-value { font-weight: 600; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        a.dash-row:hover { background: var(--admin-hover); box-shadow: -1.25rem 0 0 var(--admin-hover), 1.25rem 0 0 var(--admin-hover); }
+        a.dash-row:hover .dash-row-icon { color: var(--admin-accent); }
         .dash-row-action { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .65rem; border-radius: 999px; background: var(--admin-accent); color: var(--admin-on-accent, #fff); font-size: .78rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
-        .dash-row-action:hover { filter: brightness(1.08); color: var(--admin-on-accent, #fff); }
-        .dash-empty { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 6rem; color: var(--admin-muted); font-size: .95rem; }
+        .dash-row-action:hover { background: color-mix(in srgb, var(--admin-accent) 86%, var(--admin-text)); color: var(--admin-on-accent, #fff); }
+        .dash-empty { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 6rem; color: var(--admin-muted); font-size: var(--admin-fs-sm); }
         {# Two compact cards to a row on a small tablet; on a phone, at the
            15px body text, one - two side by side cut every row's label. #}
         @media (min-width: 561px) and (max-width: 720px) {
             .widget-grid > .widget-block:has(> .dash-card--compact) { flex-basis: calc(50% - .375rem); min-width: 0; }
         }
         @media (max-width: 720px) {
-            .dash-card-panel { padding: 1rem 1.05rem; }
+            .dash-card-panel { padding: var(--admin-space-1) var(--admin-space-4); }
         }
         {# .composite-pane shares this same <ul><li><a> markup (see
            composite.html.twig's link-list pane branch) but deliberately
@@ -2602,8 +2753,8 @@
         .widget-group li a:hover, .composite-pane li a:hover { color: var(--admin-accent); }
         .widget-group li a i, .composite-pane li a i { width: 1.2rem; text-align: center; }
         .widget-group li a .fa-circle-plus, .composite-pane li a .fa-circle-plus { color: var(--admin-accent); }
-        .analytics-card { padding: 1.5rem; }
-        .analytics-card-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.25rem; }
+        .analytics-card { padding: var(--admin-space-6); }
+        .analytics-card-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--admin-space-6); margin-bottom: var(--admin-space-5); }
         {# .widget-controls floats absolutely over the card's top-right
            corner (handle+toggle-visibility+toggle-background+remove, see
            _block.html.twig - 4 icons, no "settings" among them; series
@@ -2629,7 +2780,7 @@
            same remedy as .widget-welcome above: the extra 1rem IS the gap,
            not a safety margin on top of one. #}
         body.is-customizing .analytics-card-header { padding-right: 7rem; }
-        .analytics-card-header h2 { margin: 0; font-size: 1.1rem; }
+        .analytics-card-header h2 { margin: 0; font-size: var(--admin-fs-md); font-weight: 600; }
         {# The Counter card's header holds only a title and its gear, and in
            customize mode a span-1 card gives them ~107px between the card
            padding and the 6rem reserved for the control icons. "Articles
@@ -2659,11 +2810,14 @@
         .analytics-retention { display: flex; flex-wrap: wrap; gap: .35em .9em; align-items: baseline; margin-top: .4em; font-size: .85em; color: var(--admin-muted, inherit); }
         .analytics-retention[hidden] { display: none; }
         .analytics-retention-title { font-weight: 600; }
-        .analytics-stat-row { display: flex; gap: 1.75rem; flex-wrap: wrap; }
+        .analytics-stat-row { display: flex; gap: var(--admin-space-4) var(--admin-space-8); flex-wrap: wrap; }
         .analytics-stat { min-width: 6rem; }
-        .analytics-stat-value { display: block; font-size: 1.4rem; font-weight: 700; line-height: 1.2; }
-        .analytics-stat-label { display: block; font-size: .82rem; color: var(--admin-muted); }
-        .analytics-stat-change { font-size: .8rem; font-weight: 600; margin-left: .4rem; }
+        .analytics-stat-value { display: block; font-size: 1.5rem; font-weight: 600; line-height: var(--admin-lh-tight); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+        .analytics-stat-label { display: block; margin-top: 2px; font-size: var(--admin-fs-sm); color: var(--admin-muted); }
+        .analytics-stat-change { display: inline-block; vertical-align: middle; margin-left: var(--admin-space-2); padding: 0 .375rem; border-radius: var(--admin-radius-sm);
+                                 font-size: var(--admin-fs-xs); font-weight: 600; letter-spacing: 0; line-height: 1.375rem; font-variant-numeric: tabular-nums; background: var(--admin-gray-100); color: var(--admin-muted); }
+        .analytics-stat-change.is-up { background: var(--admin-success-soft); }
+        .analytics-stat-change.is-down { background: var(--admin-danger-soft); }
         .analytics-stat-change.is-up { color: var(--admin-success); }
         .analytics-stat-change.is-down { color: var(--admin-danger); }
         {# "Counter" widget's own big number - deliberately much larger
@@ -2685,7 +2839,7 @@
            bulk fighting the centring. #}
         [data-counter-card] .analytics-empty-state { margin: auto 0; padding: 1rem; }
         .counter-value-row { display: flex; align-items: baseline; gap: .5rem; }
-        .counter-value { font-size: 2.75rem; font-weight: 700; line-height: 1.1; }
+        .counter-value { font-size: 2.25rem; font-weight: 600; line-height: 1.1; letter-spacing: -.015em; font-variant-numeric: tabular-nums; }
         {# Not styled as a link at rest: at 2.75rem an underline and an accent
            colour turn the tile's whole point into decoration. It announces
            itself on hover/focus instead, and the focus ring is what keeps it
@@ -2695,9 +2849,9 @@
         a.counter-value-link:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 3px; border-radius: 4px; }
         .analytics-range-picker { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; transition: opacity .15s ease; }
         .analytics-range-picker.is-loading { opacity: .5; }
-        .analytics-range-btn { border: 1px solid var(--admin-border); background: transparent; color: var(--admin-muted); font-size: .78rem; font-weight: 600; padding: .3rem .75rem; border-radius: 999px; cursor: pointer; transition: background .15s ease, color .15s ease, border-color .15s ease; }
-        .analytics-range-btn:hover { border-color: var(--admin-accent); color: var(--admin-text); }
-        .analytics-range-btn.is-active { background: var(--admin-accent); border-color: var(--admin-accent); color: var(--admin-on-accent, #fff); }
+        .analytics-range-btn { border: 1px solid var(--admin-border); background: var(--admin-surface); color: var(--admin-muted); font: inherit; font-size: var(--admin-fs-xs); font-weight: 600; padding: .25rem .625rem; border-radius: var(--admin-radius); cursor: pointer; transition: background var(--admin-duration) var(--admin-ease), color var(--admin-duration) var(--admin-ease), border-color var(--admin-duration) var(--admin-ease); }
+        .analytics-range-btn:hover { border-color: var(--admin-border-strong); color: var(--admin-text); background: var(--admin-gray-50); }
+        .analytics-range-btn.is-active { background: var(--admin-accent-soft); border-color: color-mix(in srgb, var(--admin-accent) 30%, var(--admin-surface)); color: var(--admin-accent); }
         .analytics-chart-wrap { position: relative; height: 240px; }
         {# Pinned-day marker: a vertical rule at the clicked point, drawn as
            a DOM overlay rather than a Chart.js plugin so it needs nothing
@@ -2724,7 +2878,7 @@
            article has been picked in its settings panel) - not article-
            specific, lives here alongside the other shared card primitives
            for the same reason .widget-settings-panel does. #}
-        .analytics-empty-state { color: var(--admin-muted); font-size: .85rem; text-align: center; padding: 2rem 1rem; margin: 0; }
+        .analytics-empty-state { color: var(--admin-muted); font-size: var(--admin-fs-sm); text-align: center; padding: var(--admin-space-8) var(--admin-space-4); margin: 0; }
         {# Belt-and-suspenders with the JS reset in the "Terminé" handler
            below: this panel's own visibility is otherwise driven purely by
            its `hidden` attribute, with nothing tying it to customize mode
@@ -2935,27 +3089,27 @@
            aside width so its PANEL centres on the content column, but the
            scrim must still cover the whole viewport or the sidebar stays
            bright and clickable behind an open modal. #}
-        .filter-modal-backdrop { position: absolute; inset: 0 0 0 calc(-1 * var(--admin-aside-w)); background: rgba(0,0,0,.35); }
+        .filter-modal-backdrop { position: absolute; inset: 0 0 0 calc(-1 * var(--admin-aside-w)); background: rgba(15, 17, 30, .4); }
         .filter-modal-panel { position: relative; width: min(38rem, 100%); max-height: calc(100vh - 6rem); display: flex; flex-direction: column;
-            background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); box-shadow: 0 16px 48px rgba(0,0,0,.25); overflow: hidden; }
+            background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-lg); box-shadow: var(--admin-shadow-lg); overflow: hidden; }
         {# 3 columns with the title centred, so Effacer/Appliquer sit hard
            against the two edges however wide the title is - the shape
            production uses. #}
         .filter-modal-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .5rem;
-            padding: .75rem .9rem; border-bottom: 1px solid var(--admin-border); background: var(--admin-bg); }
+            padding: var(--admin-space-3) var(--admin-space-4); border-bottom: 1px solid var(--admin-border); background: var(--admin-surface); }
         .filter-modal-header > a { justify-self: start; }
         .filter-modal-header > button { justify-self: end; }
         .filter-modal-title { display: inline-flex; align-items: center; gap: .4rem; font-weight: 600; }
-        .filter-modal-body { padding: .9rem; overflow: auto; display: grid; gap: .75rem; }
+        .filter-modal-body { padding: var(--admin-space-5) var(--admin-space-6); overflow: auto; display: grid; gap: var(--admin-space-4); }
         {# One filter per row, label above control, every control the same
            width - the point of the rebuild. The old bar laid them out
            inline so a date range, a comparison pair and a plain select all
            ended up different heights on one wrapped line. #}
-        .filter-modal-body label { display: grid; gap: .25rem; font-size: .82rem; color: var(--admin-muted); }
+        .filter-modal-body label { display: grid; gap: var(--admin-space-1); font-size: var(--admin-fs-sm); color: var(--admin-muted); }
         .filter-modal-body label > span { font-weight: 600; color: var(--admin-text); }
         .filter-modal-body input, .filter-modal-body select {
-            width: 100%; padding: .45rem .55rem; border: 1px solid var(--admin-border); border-radius: 6px;
-            font: inherit; font-size: .9rem; color: inherit; background: var(--admin-bg); }
+            width: 100%; min-height: 2.25rem; padding: .375rem var(--admin-space-3); border: 1px solid var(--admin-border-strong); border-radius: var(--admin-radius);
+            font: inherit; font-size: var(--admin-fs-sm); color: inherit; background: var(--admin-surface); }
         .filter-modal-body .filter-range, .filter-modal-body .filter-comparison { display: flex; gap: .4rem; }
         {# The operator select must not eat the row: it holds a symbol, the
            value input holds the actual term. #}
@@ -2990,9 +3144,22 @@
            sidebar entry already has. #}
         body:not(.is-customizing) [data-action-row] .is-hidden { display: none; }
         body.is-customizing [data-action-row] .is-hidden { opacity: .38; text-decoration: line-through; }
-        .filter-count { display: inline-flex; align-items: center; justify-content: center; min-width: 1.15rem; height: 1.15rem; padding: 0 .3rem;
-            margin-left: .35rem; border-radius: 999px; background: var(--admin-accent); color: var(--admin-on-accent, #fff); font-size: .7rem; font-weight: 700; }
-        .filter-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; padding: .75rem .9rem; margin-bottom: 1rem;
+        .filter-count { display: inline-flex; align-items: center; justify-content: center; min-width: 1.25rem; height: 1.25rem; padding: 0 .3rem;
+            margin-left: 2px; border-radius: var(--admin-radius-pill); background: var(--admin-accent-soft); color: var(--admin-accent); font-size: var(--admin-fs-xs); font-weight: 600; font-variant-numeric: tabular-nums; }
+        {# The active filters, each a chip above the list: what it keeps and
+           an x that drops it; "Clear" drops them all. #}
+        .filter-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--admin-space-2); margin: calc(-1 * var(--admin-space-2)) 0 var(--admin-space-4); }
+        .filter-chip { display: inline-flex; align-items: center; gap: var(--admin-space-1); max-width: 100%; min-height: 1.75rem; padding: 0 var(--admin-space-1) 0 var(--admin-space-3);
+                       border: 1px solid var(--admin-border-strong); border-radius: var(--admin-radius-pill); background: var(--admin-surface);
+                       font-size: var(--admin-fs-sm); color: var(--admin-text); }
+        .filter-chip-label { color: var(--admin-muted); white-space: nowrap; }
+        .filter-chip-value { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .filter-chip-remove { display: inline-flex; align-items: center; justify-content: center; width: 1.375rem; height: 1.375rem; margin-left: 2px;
+                              border-radius: var(--admin-radius-pill); color: var(--admin-muted); text-decoration: none; font-size: .75rem; }
+        .filter-chip-remove:hover { background: var(--admin-gray-100); color: var(--admin-text); }
+        .filter-chips-clear { font-size: var(--admin-fs-sm); color: var(--admin-accent); text-decoration: none; padding: 0 var(--admin-space-1); border-radius: var(--admin-radius-sm); }
+        .filter-chips-clear:hover { text-decoration: underline; text-underline-offset: 2px; }
+        .filter-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--admin-space-3); padding: var(--admin-space-3) var(--admin-space-4); margin-bottom: var(--admin-space-4);
                       background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius); }
         .filter-bar label { display: flex; flex-direction: column; gap: .2rem; font-size: .82rem; color: var(--admin-muted); }
         .filter-bar input, .filter-bar select { padding: .4rem .55rem; border: 1px solid var(--admin-border); border-radius: 6px; font: inherit; background: var(--admin-bg); }
@@ -3004,16 +3171,23 @@
         .new-dropdown summary::-webkit-details-marker { display: none; }
         .new-dropdown-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; min-width: 180px;
                              background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--admin-radius);
-                             box-shadow: 0 8px 24px rgba(0,0,0,.15); padding: .3rem; }
-        .new-dropdown-menu a { display: block; padding: .45rem .7rem; border-radius: 6px; color: inherit; text-decoration: none; }
-        .new-dropdown-menu a:hover { background: var(--admin-bg); color: var(--admin-accent); }
+                             box-shadow: var(--admin-shadow-md); padding: var(--admin-space-1); }
+        .new-dropdown-menu a { display: block; padding: var(--admin-space-2) var(--admin-space-3); border-radius: var(--admin-radius); color: inherit; text-decoration: none; font-size: var(--admin-fs-sm); }
+        .new-dropdown-menu a:hover { background: var(--admin-gray-100); color: var(--admin-text); }
         .datagrid th.batch, .datagrid td.batch { width: 2rem; text-align: center; }
 
         {# ── Field-type templates (crud/field/*.html.twig) ──────────────── #}
-        .badge { display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .55rem; border-radius: 999px;
-                 background: var(--admin-bg); border: 1px solid var(--admin-border); font-size: .8rem; line-height: 1.5; white-space: nowrap; }
-        .badge i { font-size: .75rem; }
-        .badge-accent { background: color-mix(in srgb, var(--admin-accent) 12%, transparent); border-color: color-mix(in srgb, var(--admin-accent) 35%, transparent); color: var(--admin-accent); }
+        {# Badges: a soft fill, no edge, 13px medium text, a small radius.
+           A state's colour (an enum's getColor(), --badge-tone) tints the
+           fill and darkens into the text, so it stays readable whatever
+           colour the enum picked and in both themes. #}
+        .badge { display: inline-flex; align-items: center; gap: var(--admin-space-1); min-height: 1.375rem; padding: 0 .4375rem; border-radius: var(--admin-radius-sm);
+                 background: var(--admin-gray-100); border: 1px solid transparent; color: var(--admin-gray-700); font-size: var(--admin-fs-xs); font-weight: 500; line-height: 1.25rem; white-space: nowrap;
+                 font-variant-numeric: tabular-nums; }
+        .badge i { font-size: .6875rem; }
+        .badge-accent { background: var(--admin-accent-soft); border-color: transparent; color: var(--admin-accent); }
+        .badge.badge-tone { background: color-mix(in srgb, var(--badge-tone) 13%, var(--admin-surface)); border-color: transparent;
+                            color: color-mix(in srgb, var(--badge-tone) var(--admin-badge-ink, 40%), var(--admin-text)); }
         .badge-muted { color: var(--admin-muted); }
         .badge-list { display: flex; flex-wrap: wrap; gap: .3rem; }
         {# No single chip may dictate a column's width. Table cells size to their
@@ -3083,13 +3257,13 @@
            underlined link style inside the pill. #}
         a.badge { text-decoration: none; }
         a.badge:not(.badge-accent) { color: inherit; }
-        a.badge:hover { border-color: var(--admin-accent); }
+        a.badge:hover { border-color: color-mix(in srgb, currentColor 35%, transparent); }
         {# A related entity rendered as a badge (SelectField/AssociationField
            with entityDisplay and/or crudControllerFqcn set). In 'avatar' mode
            the badge holds only the image, so the pill padding would frame it
            oddly - drop it and let the circle be the badge. #}
         .badge-entity { text-decoration: none; }
-        .badge-entity:hover { border-color: var(--admin-accent); }
+        .badge-entity:hover { border-color: color-mix(in srgb, currentColor 35%, transparent); }
         .badge-entity:has(.badge-avatar) { padding: 0; border: 0; background: none; }
         .badge-avatar { width: 1.6rem; height: 1.6rem; border-radius: 999px; object-fit: cover; display: block;
             border: 1px solid var(--admin-border); background: var(--admin-bg); }
@@ -3102,7 +3276,7 @@
            stretching the whole page to 750px of sideways scroll. */
         .field-switch { display: inline-flex; align-items: center; cursor: pointer; position: relative; }
         .field-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-        .field-switch .track { width: 34px; height: 19px; border-radius: 999px; background: var(--admin-border); position: relative; transition: background .15s ease; flex: 0 0 auto; }
+        .field-switch .track { width: 34px; height: 19px; border-radius: 999px; background: var(--admin-switch-off); position: relative; transition: background .15s ease; flex: 0 0 auto; }
         .field-switch .track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s ease; }
         .field-switch input:checked + .track { background: var(--admin-accent); }
         .field-switch input:checked + .track::after { transform: translateX(15px); }
@@ -3147,9 +3321,9 @@
            pinned edges layer predictably. #}
         .datagrid td.cell-id, .datagrid th.cell-id {
             position: sticky; left: 0; z-index: 4; background: var(--admin-surface);
-            box-shadow: 8px 0 8px -8px rgba(0, 0, 0, .18); }
-        .datagrid th.cell-id { background: var(--admin-bg); z-index: 6; }
-        .datagrid tr:hover td.cell-id { background: var(--admin-bg); }
+            box-shadow: 8px 0 8px -8px rgba(17, 20, 38, .12); }
+        .datagrid th.cell-id { background: var(--admin-gray-50); z-index: 6; }
+        .datagrid tbody tr:hover td.cell-id { background: var(--admin-hover); }
 
         {# ------------------------------------------------------------------
            The datagrid on a phone.
@@ -3261,7 +3435,7 @@
         .field-id a { color: inherit; text-decoration: none; }
         .field-id a:hover { color: var(--admin-accent); }
 
-        .field-slug code { background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 4px; padding: .1rem .4rem; font-size: .85em; }
+        .field-slug code { background: var(--admin-gray-50); border: 1px solid var(--admin-border); border-radius: var(--admin-radius-sm); padding: .0625rem .375rem; font-family: var(--admin-font-mono); font-size: .8125em; }
         .field-slug .lock { color: var(--admin-muted); font-size: .8em; margin-left: .3rem; }
 
         .field-translatable { display: inline-flex; align-items: center; gap: .4rem; }
@@ -3271,7 +3445,7 @@
 
         .field-association a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--admin-muted); }
         .field-association a:hover { color: var(--admin-accent); border-color: var(--admin-accent); }
-        .batch-toolbar { padding: .6rem .9rem; border-top: 1px solid var(--admin-border); }
+        .batch-toolbar { border-top: 1px solid var(--admin-border); }
         .manual-menu-section { margin-top: .5rem; }
         .manual-tree { list-style: none; margin: 0; padding-left: 1.1rem; }
         .manual-tree a { display: block; padding: .3rem 1.25rem; color: inherit; text-decoration: none; font-size: .92rem; }
@@ -3280,6 +3454,19 @@
         .manual-content { padding: 1.5rem; }
         .manual-meta { text-align: right; color: var(--admin-muted); font-size: .82rem; margin-bottom: .5rem; }
         .manual-excerpt { color: var(--admin-muted); }
+        .batch-toolbar { padding: var(--admin-space-2) var(--admin-space-4); background: var(--admin-gray-50); }
+        {# Reduced motion: nothing slides, fades or spins for longer than a
+           frame - the state changes, the movement does not happen. #}
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+                                     transition-duration: .01ms !important; scroll-behavior: auto !important; }
+        }
+        {# Forced colours (Windows high contrast): the shapes drawn with a
+           fill or a shadow get a real edge, the focus ring the system's. #}
+        @media (forced-colors: active) {
+            .btn, .badge, .topbar-search, .card, .filter-chip, .admin-menu .selected > a { border: 1px solid CanvasText; }
+            :focus-visible { outline-color: Highlight; }
+        }
     </style>
     {# The site's two colours (admin.theme.primary / .secondary, or the
        configuration's admin.theme): every colour token above derived from
@@ -4018,29 +4205,32 @@
                 <button type="button" class="admin-icon-btn admin-mobile-nav-toggle" id="admin-mobile-nav-toggle" title="{{ 'topbar.open_menu'|trans({}, 'admin') }}" aria-expanded="false" aria-controls="admin-mobile-nav-backdrop">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                {% if admin_context is defined and admin_context.crudControllerFqcn %}
-                    {# persistent search, present on every page of a CRUD (index/
-                       new/edit/detail) not just the index listing - always
-                       submits back to that CRUD's own index, matching
-                       production's global-looking-but-context-scoped search bar.
-                       First now (not last): its flex:1 is what absorbs the
-                       leftover space, pulling everything after it - the
-                       customize controls, then the icon cluster - over to
-                       the right side of the bar instead of them sitting
-                       flush left. #}
-                    <form class="topbar-search" method="get" action="{{ admin_url(admin_context.crudControllerFqcn, 'index') }}">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        {# app.request, not a controller-passed "query" var: this
-                           form is defined once here and shared by every CRUD
-                           page (index/new/edit/detail), not just the index
-                           action that actually has a $query to pass in - reading
-                           the live request keeps an active search term visible
-                           regardless of which page rendered the topbar. #}
-                        <input type="search" name="query" value="{{ app.request.query.get('query') }}" placeholder="{{ 'datagrid.search_placeholder'|trans({}, 'admin') }}">
-                    </form>
-                {% else %}
-                    <span></span>
-                {% endif %}
+                {# The search, on every page. On a CRUD's pages it is that CRUD's
+                   search: the form submits ?query= to its index, as it always
+                   did. On every page, typing also lists the back office's
+                   sections matching the words (built from the sidebar by the
+                   script further down: the search results), Up/Down to pick one,
+                   Enter to open it; "/" or Ctrl/Cmd+K comes back here from
+                   anywhere, Escape leaves. Without the script it is a plain
+                   search form. #}
+                {% set _crudSearch = admin_context is defined and admin_context.crudControllerFqcn %}
+                <form class="topbar-search" role="search" method="get" action="{{ _crudSearch ? admin_url(admin_context.crudControllerFqcn, 'index') : path('admin') }}"
+                      data-admin-search data-admin-search-crud="{{ _crudSearch ? '1' : '0' }}"
+                      data-label-in="{{ 'topbar.search.in'|trans({}, 'admin') }}" data-label-none="{{ 'topbar.search.no_match'|trans({}, 'admin') }}">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    {# app.request, not a controller-passed "query" var: this
+                       form is defined once here and shared by every CRUD
+                       page (index/new/edit/detail), not just the index
+                       action that actually has a $query to pass in - reading
+                       the live request keeps an active search term visible
+                       regardless of which page rendered the topbar. #}
+                    <input type="search" name="query" value="{{ _crudSearch ? app.request.query.get('query') }}" autocomplete="off" spellcheck="false"
+                           placeholder="{{ (_crudSearch ? 'datagrid.search_placeholder' : 'topbar.search.placeholder')|trans({}, 'admin') }}"
+                           aria-label="{{ 'topbar.search.label'|trans({}, 'admin') }}" aria-keyshortcuts="/ Control+K Meta+K"
+                           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="admin-search-results">
+                    <kbd class="topbar-search-key" title="{{ 'topbar.search.shortcut'|trans({}, 'admin') }}" aria-hidden="true">/</kbd>
+                    <ul class="topbar-search-results" id="admin-search-results" role="listbox" aria-label="{{ 'topbar.search.label'|trans({}, 'admin') }}" hidden></ul>
+                </form>
                 {# Dashboard-only customize controls (widget palette, column
                    count) - empty on every other admin page, since only
                    dashboard.html.twig overrides this block. #}
@@ -4406,6 +4596,163 @@
             pendingByClick = false;
         });
     })();
+</script>
+<script>
+        // The page's action row stays in the page's head (a form's goes to
+        // the save bar, crud/_form.html.twig): the top bar holds the search
+        // and the icons only. It used to be hoisted into the top bar.
+        //
+        // The top bar's search ([data-admin-search]): the back office's
+        // sections found by name, from the sidebar's own links (so a site's
+        // or a bundle's menu items come with it, the hidden ones left out),
+        // and on a CRUD's pages its list search as the first choice. Bound
+        // once on the document: transparentJS swaps the top bar on every
+        // navigation, the listeners stay.
+        (function () {
+            if (window.__adminSearchBound) return;
+            window.__adminSearchBound = true;
+
+            var active = -1, matches = [];
+            function fold(text) { return (text || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+            function parts() {
+                var form = document.querySelector('[data-admin-search]');
+                return form ? { form: form, input: form.querySelector('input[type=search]'), list: form.querySelector('[role=listbox]') } : null;
+            }
+            function entries() {
+                var list = [], seen = {};
+                document.querySelectorAll('.admin-aside .admin-menu:not(.admin-usermenu) a[href]').forEach(function (a) {
+                    var href = a.getAttribute('href');
+                    if (!href || '#' === href || seen[href] || a.closest('li.is-hidden')) return;
+                    seen[href] = true;
+                    var text = a.querySelector('.label-text'), group = a.closest('li.section-group');
+                    var section = group ? group.querySelector(':scope > .section .label-text') : null, icon = a.querySelector('i');
+                    var label = (text || a).textContent.trim(), sectionLabel = section ? section.textContent.trim() : '';
+                    list.push({ link: a, label: label, section: sectionLabel !== label ? sectionLabel : '', icon: icon ? icon.className : 'fa-solid fa-arrow-right',
+                                label_: fold(label), section_: fold(sectionLabel) });
+                });
+                return list;
+            }
+            function find(term) {
+                var words = fold(term).split(' ').filter(Boolean);
+                if (!words.length) return [];
+                return entries().map(function (e) {
+                    var all = e.label_ + ' ' + e.section_, score = 0;
+                    for (var i = 0; i < words.length; i++) { if (all.indexOf(words[i]) < 0) return null; }
+                    if (0 === e.label_.indexOf(words[0])) score += 4;
+                    else if (e.label_.indexOf(' ' + words[0]) >= 0) score += 3;
+                    else if (e.label_.indexOf(words[0]) >= 0) score += 2;
+                    return { entry: e, score: score };
+                }).filter(Boolean).sort(function (a, b) { return b.score - a.score || a.entry.label.localeCompare(b.entry.label); })
+                  .slice(0, 8).map(function (m) { return m.entry; });
+            }
+            function scope() {
+                var current = document.querySelector('.admin-aside .admin-menu li.selected > a .label-text');
+                return current ? current.textContent.trim() : (document.querySelector('.admin-header h1') || { textContent: '' }).textContent.trim();
+            }
+            function close(p) {
+                p = p || parts(); if (!p) return;
+                p.list.hidden = true; p.list.innerHTML = ''; matches = []; active = -1;
+                p.input.setAttribute('aria-expanded', 'false'); p.input.removeAttribute('aria-activedescendant');
+            }
+            function select(p, index) {
+                var options = p.list.querySelectorAll('[role=option]');
+                if (!options.length) { active = -1; return; }
+                active = (index + options.length) % options.length;
+                options.forEach(function (o, i) { o.setAttribute('aria-selected', i === active ? 'true' : 'false'); });
+                p.input.setAttribute('aria-activedescendant', options[active].id);
+                options[active].scrollIntoView({ block: 'nearest' });
+            }
+            function render(p) {
+                var term = p.input.value.trim();
+                if (!term) { close(p); return; }
+                var crud = '1' === p.form.getAttribute('data-admin-search-crud');
+                matches = find(term);
+                p.list.innerHTML = '';
+                var options = [];
+                if (crud) options.push({ submit: true, label: p.form.getAttribute('data-label-in').replace('%term%', term).replace('%scope%', scope()), icon: 'fa-solid fa-magnifying-glass' });
+                matches.forEach(function (e) { options.push({ entry: e, label: e.label, section: e.section, icon: e.icon }); });
+                options.forEach(function (o, i) {
+                    var li = document.createElement('li'), icon = document.createElement('i'), label = document.createElement('span');
+                    li.id = 'admin-search-option-' + i; li.setAttribute('role', 'option'); li.setAttribute('aria-selected', 'false');
+                    li.__adminSearch = o;
+                    icon.className = o.icon; icon.setAttribute('aria-hidden', 'true');
+                    label.className = 'topbar-search-label'; label.textContent = o.label;
+                    li.appendChild(icon); li.appendChild(label);
+                    if (o.section) { var section = document.createElement('span'); section.className = 'topbar-search-section'; section.textContent = o.section; li.appendChild(section); }
+                    p.list.appendChild(li);
+                });
+                if (!options.length) {
+                    var none = document.createElement('li'); none.className = 'topbar-search-empty'; none.setAttribute('role', 'presentation');
+                    none.textContent = p.form.getAttribute('data-label-none'); p.list.appendChild(none);
+                }
+                p.list.hidden = false; p.input.setAttribute('aria-expanded', 'true');
+                select(p, crud && matches.length ? 0 : 0);
+            }
+            function choose(p, option) {
+                var o = option && option.__adminSearch;
+                if (!o) return false;
+                if (o.submit) { close(p); p.form.requestSubmit ? p.form.requestSubmit() : p.form.submit(); return true; }
+                close(p); p.input.blur();
+                // The sidebar's own link: transparentJS navigates it like any click.
+                o.entry.link.click();
+                return true;
+            }
+
+            document.addEventListener('input', function (e) {
+                if (!e.target.closest || !e.target.closest('[data-admin-search]')) return;
+                var p = parts(); if (p) render(p);
+            });
+            document.addEventListener('keydown', function (e) {
+                var p = parts(); if (!p) return;
+                var inSearch = e.target === p.input;
+                if (!inSearch) {
+                    // "/" from anywhere that is not a field; Ctrl/Cmd+K from anywhere.
+                    var editable = e.target.closest && e.target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
+                    if (('/' === e.key && !editable && !e.ctrlKey && !e.metaKey && !e.altKey) || ('k' === (e.key || '').toLowerCase() && (e.ctrlKey || e.metaKey) && !e.altKey)) {
+                        e.preventDefault(); p.input.focus(); p.input.select();
+                    }
+                    return;
+                }
+                var open = !p.list.hidden;
+                if ('ArrowDown' === e.key || 'ArrowUp' === e.key) {
+                    if (!open) render(p);
+                    if (!p.list.hidden) { e.preventDefault(); select(p, active + ('ArrowDown' === e.key ? 1 : -1)); }
+                } else if ('Enter' === e.key) {
+                    if (open && active >= 0 && choose(p, p.list.querySelectorAll('[role=option]')[active])) e.preventDefault();
+                    else if ('1' !== p.form.getAttribute('data-admin-search-crud')) e.preventDefault();
+                } else if ('Escape' === e.key) {
+                    // Handled here, so a nest overlay's own Escape leaves the page alone (defaultPrevented).
+                    if (open) { e.preventDefault(); close(p); }
+                    else if (p.input.value) { e.preventDefault(); p.input.value = ''; }
+                    else p.input.blur();
+                }
+            });
+            // A choice is a click on an option; mousedown keeps the focus in the field meanwhile.
+            document.addEventListener('mousedown', function (e) {
+                if (e.target.closest && e.target.closest('.topbar-search-results [role=option]')) e.preventDefault();
+            });
+            document.addEventListener('click', function (e) {
+                var option = e.target.closest && e.target.closest('.topbar-search-results [role=option]');
+                if (option) { var p = parts(); if (p) choose(p, option); }
+            });
+            document.addEventListener('focusout', function (e) {
+                if (!e.target.closest || !e.target.closest('[data-admin-search]')) return;
+                setTimeout(function () { var p = parts(); if (p && !p.form.contains(document.activeElement)) close(p); }, 0);
+            });
+            document.addEventListener('submit', function (e) {
+                var form = e.target.closest && e.target.closest('[data-admin-search]');
+                if (form && '1' !== form.getAttribute('data-admin-search-crud')) e.preventDefault();
+            }, true);
+
+            // The top bar's shadow, once the page has scrolled under it.
+            var scrolled = false;
+            function onScroll() {
+                var now = (window.scrollY || document.documentElement.scrollTop) > 4;
+                if (now !== scrolled) { scrolled = now; document.documentElement.classList.toggle('is-scrolled', now); }
+            }
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        })();
 </script>
 {% if customize_enabled is defined and customize_enabled %}
 <script>
@@ -6008,60 +6355,6 @@
         });
         }
 
-        // Hoist the page's action bar into the topbar. It lives inside
-        // .admin-header in the templates (where each CRUD page renders it), but
-        // there it shares a line with the record title and a long title pushed
-        // it onto three rows. The topbar is full-width, already sticky, and has
-        // room once the idle search shrinks - so the buttons get a dedicated
-        // line at the very top. Moving the element itself (not a copy) keeps
-        // form= associations, the customize drag/drop and the icon picker all
-        // working untouched.
-        (function () {
-            if (window.__adminActionsHoisted) return;
-            window.__adminActionsHoisted = true;
-
-            // Narrow viewports keep the bar in the header, where it may
-            // wrap onto its own full-width line (see the max-width:1024px
-            // rules) - the topbar cannot fit search + actions + icons on
-            // a phone, and unlike the header it is not allowed to wrap.
-            var wide = window.matchMedia('(min-width: 900px)');
-
-            function hoist() {
-                var topbar = document.querySelector('.admin-topbar');
-                if (!topbar) return;
-                var bar = document.querySelector('.admin-header .global-actions');
-                if (bar && wide.matches) {
-                    // Where it came from, to put it back if the window narrows.
-                    bar.__adminHome = { parent: bar.parentNode, next: bar.nextSibling };
-                    var icons = topbar.querySelector('.admin-topbar-icons');
-                    if (icons) topbar.insertBefore(bar, icons);
-                    else topbar.appendChild(bar);
-                    return;
-                }
-                // A window narrowed after the page was drawn: the hoisted bar
-                // (257px of buttons that never shrink) set the topbar 596px
-                // wide in a 500px window, the page scrolling sideways. Back
-                // into the header, where it wraps.
-                var hoisted = topbar.querySelector('.global-actions');
-                var home = hoisted && hoisted.__adminHome;
-                if (hoisted && !wide.matches && home && home.parent.isConnected) {
-                    home.parent.insertBefore(hoisted, home.next && home.next.parentNode === home.parent ? home.next : null);
-                }
-            }
-
-            function boot() {
-                hoist();
-                if (wide.addEventListener) wide.addEventListener('change', hoist);
-                else if (wide.addListener) wide.addListener(hoist);
-                // transparentJS swaps the main region wholesale, which brings a
-                // fresh .admin-header (and a fresh action bar) with it.
-                new MutationObserver(function () { hoist(); })
-                    .observe(document.body, { childList: true, subtree: true });
-            }
-
-            if ('loading' === document.readyState) document.addEventListener('DOMContentLoaded', boot);
-            else boot();
-        })();
 
         // Lazy-load the rest of a windowed collection.
         //

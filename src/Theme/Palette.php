@@ -89,53 +89,57 @@ final class Palette
         $s = self::rgb($this->secondary);
         $white = [255, 255, 255];
 
-        // Light: white cards on a page faintly tinted by the primary.
+        // Light: white cards on a soft neutral grey page. The grey takes the
+        // secondary's hue at a low saturation (an ink-tinted neutral, never
+        // the accent): one accent colour on the page, nothing else coloured.
+        // Borders and the hover and stripe tints are the text faded into the
+        // card, so they stay neutral whatever the site's colours.
+        [$h, $sat] = self::hsl($s);
         $surface = $white;
-        $bg = self::mix($p, $white, .055);
+        $bg = self::fromHsl($h, min($sat, .16), .962);
         $text = $this->reach('text', 'light', $s, $bg, 7.0, [0, 0, 0]);
         $accent = $this->reach('accent', 'light', $p, $surface, 4.5, [0, 0, 0]);
         $accent = $this->reach('accent', 'light', $accent, $bg, 4.5, [0, 0, 0]);
         $this->light = [
             'bg' => self::hex($bg),
             'surface' => self::hex($surface),
-            'border' => self::hex(self::mix($text, $surface, .12)),
+            'border' => self::hex(self::mix($text, $surface, .11)),
             'text' => self::hex($text),
             'muted' => self::hex(self::fade($text, $bg, 5.2)),
             'accent' => self::hex($accent),
             'on-accent' => self::hex(self::onColor($accent, $text)),
-            'accent-soft' => self::hex(self::mix($accent, $surface, .12)),
-            'tint' => self::hex(self::mix($p, $white, .06)),
-            'tint-strong' => self::hex(self::mix($p, $white, .11)),
+            'accent-soft' => self::hex(self::mix($accent, $surface, .10)),
+            'tint' => self::hex(self::mix($text, $surface, .035)),
+            'tint-strong' => self::hex(self::mix($text, $surface, .07)),
             'focus' => self::hex($this->reach('focus', 'light', $accent, $surface, 3.0, [0, 0, 0])),
             'series-1' => self::hex($accent),
             'series-2' => self::hex($this->series2($s, $accent, $surface, [0, 0, 0], 'light')),
         ];
 
         // Dark: a page and cards of the secondary's hue, always dark whatever
-        // its lightness (a light secondary still gives a dark page).
-        [$h, $sat] = self::hsl($s);
-        $bg = self::fromHsl($h, min($sat, .32), .085);
-        $surface = self::fromHsl($h, min($sat, .30), .13);
+        // its lightness (a light secondary still gives a dark page); the
+        // cards one step above the page, the borders a faint white.
+        $bg = self::fromHsl($h, min($sat, .22), .075);
+        $surface = self::fromHsl($h, min($sat, .20), .115);
         $text = $this->reach('text', 'dark', self::fromHsl($h, min($sat, .25), .94), $bg, 12.0, $white);
         $accent = $this->reach('accent', 'dark', $p, $surface, 6.0, $white);
         $this->dark = [
             'bg' => self::hex($bg),
             'surface' => self::hex($surface),
-            'border' => self::hex(self::mix($white, $surface, .09)),
+            'border' => self::hex(self::mix($white, $surface, .10)),
             'text' => self::hex($text),
             'muted' => self::hex(self::fade($text, $surface, 5.6)),
             'accent' => self::hex($accent),
             'on-accent' => self::hex(self::onColor($accent, $bg)),
-            'accent-soft' => self::hex(self::mix($accent, $surface, .18)),
-            'tint' => self::hex(self::mix($p, $surface, .10)),
-            'tint-strong' => self::hex(self::mix($p, $surface, .16)),
+            'accent-soft' => self::hex(self::mix($accent, $surface, .16)),
+            'tint' => self::hex(self::mix($white, $surface, .035)),
+            'tint-strong' => self::hex(self::mix($white, $surface, .07)),
             'focus' => self::hex($this->reach('focus', 'dark', $accent, $surface, 3.0, $white)),
             'series-1' => self::hex($accent),
             'series-2' => self::hex($this->series2(self::fromHsl($h, min($sat, .45), .7), $accent, $surface, $white, 'dark')),
         ];
     }
 
-    /** The secondary as a chart mark: 3:1 against the card, and apart from the first series. */
     private function series2(array $color, array $accent, array $surface, array $towards, string $theme): array
     {
         $color = $this->reach('series-2', $theme, $color, $surface, 3.0, $towards);
@@ -151,12 +155,15 @@ final class Palette
     /** $color moved towards $towards until it reaches $ratio against $against; noted when moved. */
     private function reach(string $token, string $theme, array $color, array $against, float $ratio, array $towards): array
     {
-        if (self::contrast($color, $against) >= $ratio) {
+        // Measured on the colours as they are written (#rrggbb): a pair just
+        // over the ratio before rounding could land just under it after.
+        $against = self::rgb(self::hex($against));
+        if (self::contrast(self::rgb(self::hex($color)), $against) >= $ratio) {
             return $color;
         }
         for ($t = .02; $t <= 1.0; $t += .02) {
             $moved = self::mix($towards, $color, $t);
-            if (self::contrast($moved, $against) >= $ratio) {
+            if (self::contrast(self::rgb(self::hex($moved)), $against) >= $ratio) {
                 $this->note($token, $theme);
 
                 return $moved;
