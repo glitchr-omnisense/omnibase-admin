@@ -49,7 +49,7 @@ class AdminExtension extends AbstractBaseExtension
         // Doctrine tells the resolver which of those fields are columns: a
         // getSlug() computed from the title is not put in an address
         // findEntity() could not resolve - the record is linked by its id.
-        // The argument is asked of the installed class: a glitchr/omnibase
+        // The argument is asked of the installed class: an omnisense/omnibase
         // that does not have it yet is wired as before.
         foreach ((new \ReflectionMethod(\Base\Field\FieldValueResolver::class, '__construct'))->getParameters() as $parameter) {
             if ('doctrine' === $parameter->getName()) {

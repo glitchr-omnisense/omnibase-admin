@@ -10,7 +10,7 @@ use Tests\Base\Admin\FirewallSessionTrait;
 
 /**
  * The demonstration's banner in the back office: a screen of the layout
- * (/admin/hours) shows glitchr/omnibase's "Démonstration — données remises à
+ * (/admin/hours) shows omnisense/omnibase's "Démonstration — données remises à
  * zéro chaque nuit" when the kernel runs the demonstration, and nothing of it
  * otherwise. Whole requests through the host application's kernel (the
  * omnibase harness).
@@ -28,7 +28,7 @@ class DemoBannerTest extends KernelTestCase
             self::markTestSkipped('Requires a host application (the omnibase harness).');
         }
         if (!class_exists(DemoMode::class)) {
-            self::markTestSkipped('Requires a glitchr/omnibase with the demo environment.');
+            self::markTestSkipped('Requires an omnisense/omnibase with the demo environment.');
         }
 
         $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';

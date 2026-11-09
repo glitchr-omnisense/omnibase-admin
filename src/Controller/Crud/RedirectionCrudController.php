@@ -15,7 +15,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 /**
  * "Redirections": the addresses the site no longer answers, and where each
- * leads now (Base\Entity\Layout\Redirection, glitchr/omnibase). An old address
+ * leads now (Base\Entity\Layout\Redirection, omnisense/omnibase). An old address
  * is typed or pasted whole - it is kept as its path -, the new one is a path
  * of the site or another site's address; permanent (301) unless it is a
  * detour. The list shows how many visitors each one carried, and when last:

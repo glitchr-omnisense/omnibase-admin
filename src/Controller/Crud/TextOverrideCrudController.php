@@ -19,7 +19,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * button, a paragraph, in one of the site's languages. Pick the text by its
  * key (the list shows its current wording), write the new one; delete it to
  * bring the original back. {placeholders} stay as they are. The text wins over
- * translations/ through glitchr/omnibase's OverridingTranslator.
+ * translations/ through omnisense/omnibase's OverridingTranslator.
  * Moved here from the apps' App\Controller\Admin\Crud\TextOverrideCrudController.
  */
 class TextOverrideCrudController extends AbstractCrudController

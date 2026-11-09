@@ -7,7 +7,7 @@ use Base\Admin\Test\CrudFieldsTestCase;
 use PHPUnit\Framework\TestCase;
 
 /**
- * glitchr/omnibase loads every class of a bundle's src/ when it boots (the
+ * omnisense/omnibase loads every class of a bundle's src/ when it boots (the
  * aliases of each first-level directory), in the console as on a page. A
  * class there that extends PHPUnit stops an application whose console has no
  * PHPUnit (symfony/phpunit-bridge installs it in var/cache/phpunit, read by

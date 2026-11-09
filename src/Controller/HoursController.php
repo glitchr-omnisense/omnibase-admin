@@ -18,7 +18,7 @@ use Symfony\Component\Translation\TranslatableMessage;
 /**
  * "Opening hours" (/admin/hours): the usual week, day by day, and the days
  * off it - closed, or open at other hours, for one day or a run of days.
- * What glitchr/omnibase's OpeningHours reads everywhere: the footer, the day
+ * What omnisense/omnibase's OpeningHours reads everywhere: the footer, the day
  * an order is for, the time slots, the page's JSON-LD.
  *
  * The site's own hours; with ?scope=store:12, one place's (its own week, or

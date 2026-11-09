@@ -9,7 +9,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * The business behind the site: its phone and its address. Read by
- * glitchr/omnibase's LocalBusiness (the page's JSON-LD: Twig
+ * omnisense/omnibase's LocalBusiness (the page's JSON-LD: Twig
  * local_business_jsonld()), where what is typed here wins over the
  * configuration (base.local_business); the phone is also the one omnibase's
  * notifier signs its messages with (base.settings.phone).
