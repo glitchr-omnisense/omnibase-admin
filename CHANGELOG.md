@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 ### Changed
+- The page's trail no longer reads as an error of the form: its section was printed as a bare `<li><span>...</span></li>`,
+  the shape of a form's error list, so a page read for its errors (omnibase/marketplace's "without a script" tests) found
+  a form error "The shop" beside the field's own. Its items carry classes now (`.admin-breadcrumb`,
+  `.admin-breadcrumb-section`, `.admin-breadcrumb-link`); a field's error is said once, at the field.
+  `FormErrorsOnceTest`.
 - A new look for the back office: calm, organised, one accent. A soft grey page with white cards (hairline border,
   10px radius, a shadow that only separates), a fixed sidebar of sections (quiet section labels, 34px rows, the current
   page on the accent's soft fill), a slim white top bar with the search; the page's trail (section, then the list a

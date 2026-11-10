@@ -65,7 +65,11 @@
 {#- The trail: the menu section the page sits in, then - on a record's
     page or a form - the list it belongs to, as a link back. The current
     page is the heading below it. Read from the menu (admin_context()), so a
-    page outside the menu simply has no trail. -#}
+    page outside the menu simply has no trail.
+    Its items carry classes: a bare <li><span>...</span></li> is the shape of
+    a form's error list (form_errors), and a page read for its errors - a
+    test, a crawler, an assistive tool - took the section's name for an
+    error of the form (FormErrorsOnceTest). -#}
 {%- set _crumbSection = null -%}
 {%- set _crumbList = null -%}
 {%- set _adminCtx = admin_context() -%}
@@ -81,8 +85,8 @@
 {% if _crumbSection or (_listUrl and not _onList) %}
     <nav class="admin-breadcrumbs" aria-label="{{ 'breadcrumb.label'|trans({}, 'admin') }}">
         <ol>
-            {% if _crumbSection %}<li><span>{{ _crumbSection.label|trans({}, 'admin') }}</span></li>{% endif %}
-            {% if _listUrl and not _onList %}<li><a href="{{ _listUrl }}">{{ _crumbList.label|trans({}, 'admin') }}</a></li>{% endif %}
+            {% if _crumbSection %}<li class="admin-breadcrumb"><span class="admin-breadcrumb-section">{{ _crumbSection.label|trans({}, 'admin') }}</span></li>{% endif %}
+            {% if _listUrl and not _onList %}<li class="admin-breadcrumb"><a class="admin-breadcrumb-link" href="{{ _listUrl }}">{{ _crumbList.label|trans({}, 'admin') }}</a></li>{% endif %}
         </ol>
     </nav>
 {% endif %}
