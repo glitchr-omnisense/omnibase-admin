@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Tests\Base\Admin\FirewallSessionTrait;
+use Tests\Base\Admin\ReleasesWhatItHolds;
 
 /**
  * The opening-hours screen (/admin/hours) as an administrator uses it: the
@@ -21,6 +22,7 @@ use Tests\Base\Admin\FirewallSessionTrait;
  */
 class HoursControllerTest extends KernelTestCase
 {
+    use ReleasesWhatItHolds;
     use FirewallSessionTrait;
 
     private EntityManagerInterface $em;
@@ -54,6 +56,7 @@ class HoursControllerTest extends KernelTestCase
             $this->em->flush();
         }
         parent::tearDown();
+        $this->releaseWhatItHolds();
     }
 
     private function clean(): void

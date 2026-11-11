@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Tests\Base\Admin\ReleasesWhatItHolds;
 
 /**
  * A record whose readable identifier is computed - an accessor with no
@@ -21,6 +22,8 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
  */
 class ComputedIdentifierTest extends KernelTestCase
 {
+    use ReleasesWhatItHolds;
+
     private ?Complaint $complaint = null;
 
     /** @var string[] */
@@ -64,6 +67,7 @@ class ComputedIdentifierTest extends KernelTestCase
         }
 
         parent::tearDown();
+        $this->releaseWhatItHolds();
     }
 
     private function resolver(): FieldValueResolver

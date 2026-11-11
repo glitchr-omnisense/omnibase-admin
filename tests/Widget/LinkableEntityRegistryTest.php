@@ -7,6 +7,7 @@ use Base\Admin\Widget\LinkableEntityRegistry;
 use Base\Entity\Thread;
 use Base\Service\Model\LinkableInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Tests\Base\Admin\ReleasesWhatItHolds;
 
 /**
  * Runs under a host application's PHPUnit (KERNEL_CLASS=App\Kernel: an
@@ -18,6 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
  */
 class LinkableEntityRegistryTest extends KernelTestCase
 {
+    use ReleasesWhatItHolds;
     use HostContentType;
 
     private LinkableEntityRegistry $registry;

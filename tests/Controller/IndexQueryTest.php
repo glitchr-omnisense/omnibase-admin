@@ -19,6 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Tests\Base\Admin\ReleasesWhatItHolds;
 
 /**
  * The list's query on the persistence chosen (omnibase's plan "omnibase agnostic", step B1b): its search, its filters
@@ -30,6 +31,8 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
  */
 class IndexQueryTest extends KernelTestCase
 {
+    use ReleasesWhatItHolds;
+
     private AbstractCrudController $controller;
 
     /** @var list<Redirection> */
@@ -75,6 +78,7 @@ class IndexQueryTest extends KernelTestCase
             $this->written = [];
         }
         parent::tearDown();
+        $this->releaseWhatItHolds();
     }
 
     public function testTheListReadThroughTheFinderIsTheFormerQuerysOnDoctrine(): void

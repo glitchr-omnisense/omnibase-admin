@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Tests\Base\Admin\FirewallSessionTrait;
+use Tests\Base\Admin\ReleasesWhatItHolds;
 
 /**
  * The back office's two colours as an administrator meets them: every page
@@ -18,6 +19,7 @@ use Tests\Base\Admin\FirewallSessionTrait;
  */
 class ThemeControllerTest extends KernelTestCase
 {
+    use ReleasesWhatItHolds;
     use FirewallSessionTrait;
 
     private EntityManagerInterface $em;
@@ -60,6 +62,7 @@ class ThemeControllerTest extends KernelTestCase
             }
         }
         parent::tearDown();
+        $this->releaseWhatItHolds();
     }
 
     private function request(string $path): Response

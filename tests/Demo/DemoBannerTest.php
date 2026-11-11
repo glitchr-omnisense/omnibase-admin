@@ -7,6 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\Base\Admin\FirewallSessionTrait;
+use Tests\Base\Admin\ReleasesWhatItHolds;
 
 /**
  * The demonstration's banner in the back office: a screen of the layout
@@ -17,6 +18,7 @@ use Tests\Base\Admin\FirewallSessionTrait;
  */
 class DemoBannerTest extends KernelTestCase
 {
+    use ReleasesWhatItHolds;
     use FirewallSessionTrait;
 
     /** @var object[] */
@@ -49,6 +51,7 @@ class DemoBannerTest extends KernelTestCase
         }
         $this->users = [];
         parent::tearDown();
+        $this->releaseWhatItHolds();
     }
 
     /** A screen of the back office as an administrator, the kernel told which environment it demonstrates. */

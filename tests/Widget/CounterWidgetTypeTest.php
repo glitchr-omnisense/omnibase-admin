@@ -5,6 +5,7 @@ namespace Tests\Base\Admin\Widget;
 use Base\Admin\Config\MenuItem;
 use Base\Admin\Widget\CounterWidgetType;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Tests\Base\Admin\ReleasesWhatItHolds;
 
 /**
  * Runs under a host application's PHPUnit (KERNEL_CLASS=App\Kernel: an
@@ -14,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
  */
 class CounterWidgetTypeTest extends KernelTestCase
 {
+    use ReleasesWhatItHolds;
     use HostContentType;
 
     private CounterWidgetType $type;
