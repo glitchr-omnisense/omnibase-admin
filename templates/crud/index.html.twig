@@ -320,7 +320,7 @@
                     <td class="{{ field.cssClass }} {{ field.property == 'id' ? 'cell-id' }}"
                         data-label="{{ (field.label ?? field.property|humanize)|trans({}, 'forms') }}"
                         style="{{ align ? 'text-align:' ~ align }}">
-                        {{ include(['@Admin/' ~ field.templateName ~ '.html.twig', '@Admin/crud/field/text.html.twig'], {field: field, entity: row.entity}) }}
+                        {{ include('@Admin/crud/_field.html.twig', {field: field, entity: row.entity}) }}
                     </td>
                 {% endfor %}
                 <td class="actions">

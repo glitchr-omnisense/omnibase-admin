@@ -1,0 +1,5 @@
+{#- A field's value on the list and on the detail page: the template the field
+    names itself (setTemplatePath(): a bundle's, "@Marketplace/admin/field/
+    attachments.html.twig"), else the admin's for its kind
+    (@Admin/<templateName>.html.twig), else the text one. -#}
+{{- include([field.templatePath, '@Admin/' ~ field.templateName ~ '.html.twig', '@Admin/crud/field/text.html.twig']|filter(t => t is not null), {field: field, entity: entity}) -}}

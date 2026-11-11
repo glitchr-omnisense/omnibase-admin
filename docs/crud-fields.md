@@ -126,6 +126,22 @@ gets the same words from the two functions:
 Before this, a `SelectField` on an enum stopped the form on "No choices, or
 autocomplete option, could be guessed without using data information".
 
+## A field printed by its own template
+
+A field's cell on the list and its line on the detail page are printed by the
+template it names, when it names one; else by the admin's template for its
+kind (`@Admin/crud/field/<kind>.html.twig`), else by the text one:
+
+```php
+yield TextField::new('attachments', '@marketplace.attachment.line')->hideOnForm()
+    ->setTemplatePath('@Marketplace/admin/field/attachments.html.twig');
+```
+
+The template is given `field` (its `value`, `formattedValue`, `customOption()`)
+and `entity`, as the admin's own. A path that does not exist falls back to the
+admin's template; `setTemplateName()` called after it forgets the path. Both
+pages include `@Admin/crud/_field.html.twig`, which makes that choice.
+
 ## A record chosen in any repository
 
 `SelectField::new('room')->setClass(Room::class)` - or any picker, an

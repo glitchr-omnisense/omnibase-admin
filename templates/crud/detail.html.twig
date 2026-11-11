@@ -87,7 +87,7 @@
             {#- Translated as the list's column heads are (crud/index.html.twig):
                 a bundle's label is a key ("@agenda.admin.event.title"). -#}
             <dt>{{ (field.label ?? field.property|humanize)|trans({}, 'forms') }}</dt>
-            <dd>{{ include(['@Admin/' ~ field.templateName ~ '.html.twig', '@Admin/crud/field/text.html.twig'], {field: field, entity: entity}) }}</dd>
+            <dd>{{ include('@Admin/crud/_field.html.twig', {field: field, entity: entity}) }}</dd>
         {% endfor %}
     </dl>
 </div>

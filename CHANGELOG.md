@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+- A field's own template (`setTemplatePath()`) prints it on the list and on the detail page: both included
+  `@Admin/<templateName>.html.twig` only, so a bundle's template was ignored (omnibase/marketplace's attachments on an
+  order or a quote read "2 items" in place of a link per file). The two pages include `@Admin/crud/_field.html.twig`:
+  the field's template, else the admin's for its kind, else the text one. `FieldTemplatePathTest`.
+
 ### Changed
 - The page's trail no longer reads as an error of the form: its section was printed as a bare `<li><span>...</span></li>`,
   the shape of a form's error list, so a page read for its errors (omnibase/marketplace's "without a script" tests) found
