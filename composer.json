@@ -37,14 +37,15 @@
         "symfony/dependency-injection": "^6.0|^7.0|^8.0",
         "symfony/http-kernel": "^6.0|^7.0|^8.0",
         "symfony/form": "^6.0|^7.0|^8.0",
-        "omnibridge/symfony": "1.x-dev",
-        "omnisense/omnibase": "3.0.*-dev || 4.0.*-dev || 5.0.*-dev"
+        "omnibridge/symfony": "^1.1",
+        "omnisense/omnibase": "^5.1"
     },
     "suggest": {
         "omnibridge/doctrine": "The persistence on Doctrine's ORM; also what a list still built on Doctrine's QueryBuilder (createIndexQueryBuilder(), Filter::applyWith()) and the former write hooks (persistEntity()...) need, both deprecated",
         "omnibridge/eloquent": "The persistence on Illuminate's database (base.persistence: eloquent): the back office reads and writes through it"
     },
     "require-dev": {
+        "doctrine/orm": "^2.15|^3.0",
         "phpunit/phpunit": "^9.6",
         "symfony/framework-bundle": "^6.0|^7.0|^8.0",
         "symfony/twig-bundle": "^6.0|^7.0|^8.0",
@@ -54,7 +55,11 @@
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true,
-        "minimum-stability": "dev"
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.x-dev"
+        }
     }
 }

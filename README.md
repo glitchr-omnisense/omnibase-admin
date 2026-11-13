@@ -14,21 +14,25 @@ This package owns the `Base\Admin\` namespace. It is a from-scratch replacement 
 composer require omnibase/admin
 ```
 
-Then register the bundle (if not using Flex auto-discovery):
+Under Symfony it runs on the core's Symfony host: Composer brings `omnisense/omnibase` 5.1 and
+`omnibridge/symfony` with it; `config/bundles.php` registers the core's bundle before this one
+(see the core's README for the other bundles a site usually adds):
 
 ```php
 // config/bundles.php
-return [
-    // ...
-    Base\Admin\AdminBundle::class => ['all' => true],
-];
+Omnibridge\Symfony\Omnibase\BaseBundle::class => ['all' => true],
+Base\Admin\AdminBundle::class => ['all' => true],
 ```
+
+A first screen: import the CRUD routes and give the back office its front door, a dashboard
+controller - [docs/installation.md](docs/installation.md) has both, then `/admin` opens the
+back office for a signed-in `ROLE_ADMIN`.
 
 ## Requirements
 
 - PHP 8.1+
 - Symfony 6.0+ / 7.0+ / 8.0+
-- `omnisense/omnibase` 3.0 or 4.0
+- `omnisense/omnibase` 5.1 or later 5.x, `omnibridge/symfony` 1.1 or later 1.x
 
 ## Documentation
 

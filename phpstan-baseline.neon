@@ -1,0 +1,73 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: src/Config/Action.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: src/Config/Actions.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: src/Config/Crud.php
+
+		-
+			message: '#^Call to static method getOnlineDelay\(\) on an unknown class App\\Entity\\User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/EventSubscriber/ActiveAdminsSubscriber.php
+
+		-
+			message: '#^Class App\\Entity\\User not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/EventSubscriber/ActiveAdminsSubscriber.php
+
+		-
+			message: '#^Parameter \$userRepository of method Base\\Admin\\EventSubscriber\\ActiveAdminsSubscriber\:\:__construct\(\) has invalid type App\\Repository\\UserRepository\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/EventSubscriber/ActiveAdminsSubscriber.php
+
+		-
+			message: '#^Property Base\\Admin\\EventSubscriber\\ActiveAdminsSubscriber\:\:\$userRepository has unknown class App\\Repository\\UserRepository as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/EventSubscriber/ActiveAdminsSubscriber.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: src/Filter/Filter.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: src/Filter/Filters.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 2
+			path: src/Layout/LayoutConfig.php
+
+		-
+			message: '#^Parameter \$complaints of method Base\\Admin\\Widget\\ComplaintsWidgetType\:\:__construct\(\) has invalid type Base\\Repository\\User\\ComplaintRepository\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Widget/ComplaintsWidgetType.php
+
+		-
+			message: '#^Property Base\\Admin\\Widget\\ComplaintsWidgetType\:\:\$complaints has unknown class Base\\Repository\\User\\ComplaintRepository as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Widget/ComplaintsWidgetType.php

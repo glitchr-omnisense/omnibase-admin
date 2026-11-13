@@ -9,7 +9,7 @@ order: 10
 
 What `composer.json` requires: PHP 8.1 or later, `symfony/config`,
 `dependency-injection`, `http-kernel` and `form` 6, 7 or 8, `omnibridge/symfony`
-1.x and `omnisense/omnibase` 3.0 or 4.0.
+1.1 or later and `omnisense/omnibase` 5.1 or later 5.x.
 
 ## The bundle
 
@@ -21,7 +21,7 @@ composer require omnibase/admin
 // config/bundles.php
 return [
     // ...
-    Base\BaseBundle::class => ['all' => true],
+    Omnibridge\Symfony\Omnibase\BaseBundle::class => ['all' => true],
     Base\Admin\AdminBundle::class => ['all' => true],
 ];
 ```

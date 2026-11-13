@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-13
+
+### Changed
+
+- Installs with the default minimum-stability: stable requirements (`omnisense/omnibase` ^5.1, `omnibridge/symfony` ^1.1), a branch alias,
+  no `minimum-stability: dev` left to the sites.
+- CI: glitchr-studio/ci's package workflow (the bundle installed alone, composer validate, PHPUnit,
+  PHPStan against its baseline, a consumer install without require-dev) and its release workflow.
+- `doctrine/orm` in require-dev: the write hooks' tests run without a host.
+
 ### Fixed
 - A field's own template (`setTemplatePath()`) prints it on the list and on the detail page: both included
   `@Admin/<templateName>.html.twig` only, so a bundle's template was ignored (omnibase/marketplace's attachments on an
