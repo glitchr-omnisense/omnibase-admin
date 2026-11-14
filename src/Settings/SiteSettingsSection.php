@@ -3,12 +3,8 @@
 namespace Base\Admin\Settings;
 
 use Omnibridge\Symfony\Omnibase\Field\Type\BooleanType;
-// Still by their former names, on purpose: omnibridge/symfony 1.x's LayoutSettingListType compares a setting's
-// form_type with the new names (its upload options for an image, its date conversion for a date picker), which
-// the former names never matched since the move (omnisense/omnibase 5.0) - naming them here would change what the
-// settings page does with the logos and the launch date. Moved once the bridge compares either name.
-use Base\Field\Type\DateTimePickerType;
-use Base\Field\Type\ImageType;
+use Omnibridge\Symfony\Omnibase\Field\Type\DateTimePickerType;
+use Omnibridge\Symfony\Omnibase\Field\Type\ImageType;
 use Omnibridge\Symfony\Omnibase\Field\Type\RouteType;
 use Omnibridge\Symfony\Omnibase\Field\Type\SelectType;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;

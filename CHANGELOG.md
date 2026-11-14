@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-11-14
+
+### Changed
+
+- Requires `omnibridge/symfony` ^1.1.2, whose `LayoutSettingListType` reads a setting's form type under either of its
+  names: `SiteSettingsSection` names `Omnibridge\Symfony\Omnibase\Field\Type\{DateTimePickerType, ImageType}`, no
+  longer their former names `Base\Field\Type\*`, with the same settings page (the logos' upload options, the dates
+  converted). The bundle names no former name of the core any more.
+- `Base\Admin\Form\FormTypes::same()` is kept as it is: it compares by reflection, so any class alias (a site's
+  own included) and a name in another case match, where the bridge's `FormTypes` reads the core's former-names
+  map only.
+- Test: `SiteSettingsSectionFormTest` builds the settings form with the section's logo and launch date (kernel test,
+  run in the omnibase harness).
+
 ## [1.0.1] - 2026-11-14
 
 ### Changed
