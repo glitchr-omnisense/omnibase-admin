@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
-use Base\Bundle\AbstractBaseExtension;
+use Omnibridge\Symfony\Omnibase\Bundle\AbstractBaseExtension;
 
 class AdminExtension extends AbstractBaseExtension
 {

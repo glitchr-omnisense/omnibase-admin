@@ -185,7 +185,7 @@ save bar at the foot of the window (`.global-actions.is-form-actions`).
 `Base\Admin\Controller\Crud\ComplaintCrudController` (`/admin/complaints`, route
 `admin_crud_complaints_index`). Read only - a report comes from the site - with three
 actions: handled, dismissed, reopened (`Complaint::settle()`, by the signed-in staff
-member). Who sees a report is `Base\Security\Voter\ComplaintVoter`'s call
+member). Who sees a report is `Omnibridge\Symfony\Omnibase\Security\Voter\ComplaintVoter`'s call
 (`COMPLAINT_READ`, `COMPLAINT_HANDLE`): the staff above the person it is about.
 
 The dashboard tile `admin_complaints` (`Base\Admin\Widget\ComplaintsWidgetType`):

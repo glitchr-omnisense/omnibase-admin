@@ -1,7 +1,7 @@
 {% extends '@Admin/layout.html.twig' %}
 
 {# Renders admin-styled chrome for an exception occurring on an /admin/*
-   path - see Base\Controller\ErrorController::Main() (base-bundle), which
+   path - see Omnibridge\Symfony\Omnibase\Controller\ErrorController::Main() (base-bundle), which
    picks this template over the front-end's exception.html.twig based on
    the request path, falling back to the front-end one if this bundle
    isn't installed. No admin_context is set here (this is reached from an

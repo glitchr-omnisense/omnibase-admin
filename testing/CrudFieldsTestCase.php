@@ -3,6 +3,7 @@
 namespace Base\Admin\Test;
 
 use Base\Admin\Config\Actions;
+use Base\Admin\Form\FormTypes;
 use Base\Field\FieldDescriptor;
 use PHPUnit\Framework\TestCase;
 
@@ -52,44 +53,44 @@ abstract class CrudFieldsTestCase extends TestCase
     private const NEVER_REQUIRED = [
         'Symfony\Component\Form\Extension\Core\Type\HiddenType',
         'Symfony\Component\Form\Extension\Core\Type\CollectionType',
-        'Base\Field\Type\EditorType',
-        'Base\Field\Type\WysiwygType',
-        'Base\Field\Type\CollectionType',
-        'Base\Field\Type\TranslationType',
-        'Base\Field\Type\TranslatableType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\EditorType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\WysiwygType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\CollectionType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\TranslationType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\TranslatableType',
     ];
 
     /** Form types that are not required unless they say so (their own default). */
     private const OPTIONAL_BY_DEFAULT = [
         'Symfony\Component\Form\Extension\Core\Type\CheckboxType',
-        'Base\Field\Type\BooleanType',
-        'Base\Field\Type\DateTimePickerType',
-        'Base\Field\Type\PasswordType',
-        'Base\Field\Type\SlugType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\BooleanType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\DateTimePickerType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\PasswordType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\SlugType',
     ];
 
     /** Form types that never hand null to the record (a checkbox is false, a list is empty, a file is kept). */
     private const NEVER_NULL = [
         'Symfony\Component\Form\Extension\Core\Type\CheckboxType',
-        'Base\Field\Type\BooleanType',
-        'Base\Field\Type\FileType',
-        'Base\Field\Type\ImageType',
-        'Base\Field\Type\AvatarType',
-        'Base\Field\Type\AudioType',
-        'Base\Field\Type\VideoType',
-        'Base\Field\Type\AssociationFileType',
-        'Base\Field\Type\SlugType',
-        'Base\Field\Type\TranslationType',
-        'Base\Field\Type\TranslatableType',
-        'Base\Field\Type\CollectionType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\BooleanType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\FileType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\ImageType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\AvatarType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\AudioType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\VideoType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\AssociationFileType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\SlugType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\TranslationType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\TranslatableType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\CollectionType',
         'Symfony\Component\Form\Extension\Core\Type\CollectionType',
     ];
 
     /** Choice types, multiple when the property is a list. */
     private const CHOICES = [
-        'Base\Field\Type\SelectType',
-        'Base\Field\Type\AssociationType',
-        'Base\Field\Type\AttributeType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\SelectType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\AssociationType',
+        'Omnibridge\Symfony\Omnibase\Field\Type\AttributeType',
     ];
 
     /** Accessor suffixes over a mapped property: periodValue, linksText, statusName... */
@@ -395,7 +396,7 @@ abstract class CrudFieldsTestCase extends TestCase
         if ($this->isAny($type, self::CHOICES) && $this->isMultiple($entity, $field) && !($options['required_when_multiple'] ?? false)) {
             return false;
         }
-        if ('Base\Field\Type\SelectType' === $type && ($options['tags'] ?? false) && null === ($options['required'] ?? $field->isRequired())) {
+        if (FormTypes::same($type, 'Omnibridge\Symfony\Omnibase\Field\Type\SelectType') && ($options['tags'] ?? false) && null === ($options['required'] ?? $field->isRequired())) {
             return false;
         }
 

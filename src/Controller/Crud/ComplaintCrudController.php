@@ -13,7 +13,7 @@ use Base\Field\DateTimeField;
 use Base\Field\IdField;
 use Base\Field\TextareaField;
 use Base\Field\TextField;
-use Base\Security\Voter\ComplaintVoter;
+use Omnibridge\Symfony\Omnibase\Security\Voter\ComplaintVoter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

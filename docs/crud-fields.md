@@ -146,7 +146,7 @@ pages include `@Admin/crud/_field.html.twig`, which makes that choice.
 
 `SelectField::new('room')->setClass(Room::class)` - or any picker, an
 `AssociationField` included - works whatever the repository of the class: one
-of omnibase's (`Base\Database\Repository\ServiceEntityRepository`, asked
+of omnibase's (`Omnibridge\Doctrine\Omnibase\Database\Repository\ServiceEntityRepository`, asked
 through `cacheById()`), or Doctrine's own (`extends
 Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository`, what
 `make:entity` writes), asked through `find()` and `findBy()` on the

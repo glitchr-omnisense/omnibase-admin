@@ -8,7 +8,7 @@ use Base\Entity\Layout\Widget\Page;
 use Base\Field\IdField;
 use Base\Field\SlugField;
 use Base\Field\TranslationField;
-use Base\Field\Type\WysiwygType;
+use Omnibridge\Symfony\Omnibase\Field\Type\WysiwygType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 
 /**

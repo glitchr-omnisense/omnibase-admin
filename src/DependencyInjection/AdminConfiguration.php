@@ -5,7 +5,7 @@ namespace Base\Admin\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 
 use Base\Field\FieldValueResolver;
-use Base\Bundle\AbstractBaseConfiguration;
+use Omnibridge\Symfony\Omnibase\Bundle\AbstractBaseConfiguration;
 
 class AdminConfiguration extends AbstractBaseConfiguration
 {

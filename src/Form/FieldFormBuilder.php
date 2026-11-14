@@ -4,8 +4,8 @@ namespace Base\Admin\Form;
 
 use Base\Field\FieldDescriptor;
 use Base\Field\FieldInterface;
-use Base\Field\Type\AssociationType;
-use Base\Field\Type\SelectType;
+use Omnibridge\Symfony\Omnibase\Field\Type\AssociationType;
+use Omnibridge\Symfony\Omnibase\Field\Type\SelectType;
 use Base\Database\Mapping\EntityShapes;
 use Base\Database\UnitOfWorks;
 use Doctrine\Persistence\ManagerRegistry;
@@ -117,7 +117,7 @@ class FieldFormBuilder
             if (null === ($options['class'] ?? null)) {
                 $options['class'] = $pickedClass;
             }
-        } elseif (AssociationType::class === $formType) {
+        } elseif (FormTypes::same($formType, AssociationType::class)) {
             unset($options['embed']);
         }
 
@@ -141,7 +141,7 @@ class FieldFormBuilder
      */
     protected function getPickedClass(FormBuilderInterface $builder, FieldDescriptor $descriptor): ?string
     {
-        if (AssociationType::class !== $descriptor->getFormType()) {
+        if (!FormTypes::same($descriptor->getFormType(), AssociationType::class)) {
             return null;
         }
 

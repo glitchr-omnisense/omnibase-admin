@@ -6,7 +6,7 @@ use Base\Admin\Controller\CrudControllerInterface;
 use Base\Admin\DependencyInjection\Compiler\AdminRoutePass;
 use Base\Admin\Widget\DashboardWidgetTypeInterface;
 use Base\Admin\Widget\PaletteDashboardWidgetTypeInterface;
-use Base\Bundle\AbstractBaseBundle;
+use Omnibridge\Symfony\Omnibase\Bundle\AbstractBaseBundle;
 use Base\Traits\SingletonTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 

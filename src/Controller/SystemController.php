@@ -5,13 +5,14 @@ namespace Base\Admin\Controller;
 use Base\Admin\Config\Action;
 use Base\Admin\Config\Actions;
 use Base\Admin\Context\AdminContext;
+use Base\Admin\Form\FormTypes;
 use Base\Admin\Layout\PageCustomization;
 use Base\Admin\Menu\MenuBuilder;
 use Base\Admin\Settings\SettingsSectionInterface;
 use Base\Admin\Settings\SettingsSections;
 use Base\Database\Attribute\Vault;
-use Base\Field\Type\PasswordType;
-use Base\Form\Type\LayoutSettingListType;
+use Omnibridge\Symfony\Omnibase\Field\Type\PasswordType;
+use Omnibridge\Symfony\Omnibase\Form\Type\LayoutSettingListType;
 use Base\Repository\Layout\Settings;
 use Base\Service\SettingBagInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -153,7 +154,7 @@ class SystemController extends AbstractController
 
         foreach ($fields as $key => $field) {
             $fields[$key]['form_type'] ??= PasswordType::class;
-            if (PasswordType::class === $fields[$key]['form_type']) {
+            if (FormTypes::same($fields[$key]['form_type'], PasswordType::class)) {
                 $fields[$key] += [
                     'inline' => true, 'revealer' => true, 'repeater' => false,
                     'min_length' => 0, 'max_strength' => 0, 'secure' => false,

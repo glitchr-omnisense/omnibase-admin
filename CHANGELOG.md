@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-14
+
+### Changed
+- The bundle names the core's moved classes by their new names (`Omnibridge\Symfony\Omnibase\...`): `AdminBundle`, its
+  extension and configuration extend `Omnibridge\Symfony\Omnibase\Bundle\AbstractBase{Bundle,Extension,Configuration}`,
+  the form types, `LayoutSettingListType` and `ComplaintVoter` are imported from omnibridge/symfony, the tests and
+  `testing/CrudFieldsTestCase` as well. No former name of omnisense/omnibase's `former-names*.php` is needed any more,
+  but the two below.
+- `ComplaintsWidgetType` is typed on the core's `Base\Repository\User\Complaints` (the same Doctrine repository behind
+  it; the persistence's own where another one is chosen), no longer on the Doctrine class's former name.
+- A form type named in a string is compared under either of its names (`Base\Admin\Form\FormTypes::same()`): the
+  association picker (`FieldFormBuilder`), the API keys page's password defaults (`SystemController::apiKey()`) and
+  `CrudFieldsTestCase` answer the same whether a field or a bundle's section gives `Base\Field\Type\*` or
+  `Omnibridge\Symfony\Omnibase\Field\Type\*` (omnibridge/symfony 1.x still gives a kind's type by its former name).
+- docs: the write hooks are the `*Record()` ones and a filter's own condition is `matchWith()`; the former ones are
+  listed as deprecated.
+
+### Kept, on purpose
+- `SiteSettingsSection` still names `DateTimePickerType` and `ImageType` by their former names: omnibridge/symfony 1.x's
+  `LayoutSettingListType` compares a setting's `form_type` with the new names (upload options of an image, date
+  conversion of a date picker), which the former names have not matched since omnisense/omnibase 5.0 - the new names
+  would change what the settings page does with the logos and the launch date.
+- The deprecated entry points other bundles still reach, unchanged: the former write hooks (`persistEntity()`,
+  `updateEntity()`, `deleteEntity()`, `removeEntity()`), the list on Doctrine's QueryBuilder (`createIndexQueryBuilder()`,
+  `applySearch()`, `applyFilters()`, `Filter::apply()`, `Filter::applyWith()`), `FieldFormBuilder`'s ManagerRegistry
+  argument, `getPickedUserClass()`, and the former names of the screens (`Base\Controller\Backoffice\Crud\*`,
+  `src/Resources/former-names.php`).
+
 ## [1.0.0] - 2026-11-13
 
 ### Changed

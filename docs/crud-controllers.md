@@ -200,7 +200,8 @@ The marketplace's `exchange_rates/refreshRates`, the invoices' `send`, `markPaid
 `Filters::add(Filter::new('property', 'Label')->asChoice([...]))` gives one
 explicitly: `asBoolean()`, `asDate()` (a `from`/`to` range), `asNumeric()` (`=`,
 `>`, `<`, `≠`), `asChoice($choices)`, `asAssociation($entities, $labelCallback)`,
-or `applyWith(callable)` for a query of its own. A CRUD of a `Thread` gets a
+or `matchWith(callable)` for a condition of its own (`fn (mixed $value)` giving a
+`Criterion`, a `Group` or `null`: every persistence reads it). A CRUD of a `Thread` gets a
 `state` filter unless it declares one.
 
 A property added by its name alone is guessed from its column: a boolean, a number, or a date
@@ -216,9 +217,15 @@ reader's language.
 | `configureRecordNote(object $entity): ?string` | `null` | Show a line about the record under its heading on the detail and edit pages (plain text, escaped) |
 | `isDeletable(object $entity): bool` | `true` | Refuse deleting a record others rely on: the button disappears and the delete routes refuse it |
 | `createEntity(string $fqcn): object` | the constructor, its owner parameter (`owner`, `author` typed with the user's class) filled with the signed-in user | Build a new record otherwise |
-| `persistEntity($em, $entity)`, `updateEntity($em, $entity)` | `persist()` and `flush()`; `flush()` | Do more on a save |
-| `removeEntity($em, $entity)` | `remove()` | Change how a record goes (single and batch deletes both run it); `deleteEntity()` adds the flush |
-| `createIndexQueryBuilder(Crud $crud, array $sort)` | the repository's query builder, alias `entity`, sorted | Narrow the list |
+| `persistRecord(UnitOfWork $unitOfWork, $entity)`, `updateRecord(UnitOfWork $unitOfWork, $entity)` | `persist()` and `flush()`; `flush()` | Do more on a save |
+| `removeRecord(UnitOfWork $unitOfWork, $entity)` | `remove()` | Change how a record goes (single and batch deletes both run it); `deleteRecord()` adds the flush |
+| `indexCriteria(Crud $crud, string $query, Filters $filters, array $filterValues)` | the search's group and each active filter's | Narrow the list (add a `Criterion`, a `Group::of()`...) |
+
+The `*Record()` hooks write through the persistence the site chose (`Omnibridge\Persistence\UnitOfWork`).
+Their former names, typed on Doctrine's entity manager - `persistEntity()`, `updateEntity()`,
+`deleteEntity()`, `removeEntity()` -, and the list built on Doctrine's QueryBuilder -
+`createIndexQueryBuilder()`, `applySearch()`, `applyFilters()`, `Filter::applyWith()` - are deprecated and
+still called when a controller overrides them (they need omnibridge/doctrine).
 
 The pages (`index`, `detail`, `new`, `edit`, `delete`, `batchDelete`, `toggle`,
 `collectionEntries`) are public methods too; an override calls the parent or

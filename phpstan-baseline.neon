@@ -59,15 +59,3 @@ parameters:
 			identifier: new.static
 			count: 2
 			path: src/Layout/LayoutConfig.php
-
-		-
-			message: '#^Parameter \$complaints of method Base\\Admin\\Widget\\ComplaintsWidgetType\:\:__construct\(\) has invalid type Base\\Repository\\User\\ComplaintRepository\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Widget/ComplaintsWidgetType.php
-
-		-
-			message: '#^Property Base\\Admin\\Widget\\ComplaintsWidgetType\:\:\$complaints has unknown class Base\\Repository\\User\\ComplaintRepository as its type\.$#'
-			identifier: class.notFound
-			count: 1
-			path: src/Widget/ComplaintsWidgetType.php
