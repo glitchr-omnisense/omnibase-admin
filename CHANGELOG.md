@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-11-14
+
+### Changed
+
+- Accepts omnisense/omnibase 6.0 and omnibridge/symfony 2.0 (`^5.1 || ^6.0`, `^1.1.2 || ^2.0`); the same code runs on
+  both lines. On 6.0 a field's default form type is given by its new name (omnibridge/symfony 2.0's `SymfonyKinds`), which
+  `Base\Admin\Form\FormTypes::same()` matches as it is; on 5.1 it still matches the former name. The bundle's own former
+  names (`Base\Controller\Backoffice\Crud\*`, `src/Resources/former-names.php`) and its deprecated entry points
+  (`Filter::applyWith()`, the `*Entity()` write hooks, the QueryBuilder list hooks) stay until 2.0: they rely on Doctrine
+  and on this bundle only, nothing 6.0 removed.
+
 ## [1.0.2] - 2026-11-14
 
 ### Changed
