@@ -6,13 +6,9 @@ use Base\Admin\Controller\CrudControllerInterface;
 use Base\Admin\DependencyInjection\Compiler\AdminRoutePass;
 use Base\Admin\Widget\DashboardWidgetTypeInterface;
 use Base\Admin\Widget\PaletteDashboardWidgetTypeInterface;
-use Omnibridge\Symfony\Omnibase\Bundle\AbstractBaseBundle;
+use Base\Bundle\AbstractBaseBundle;
 use Base\Traits\SingletonTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-
-// The former names of the core's screens that moved here (src/Resources/former-names.php), also
-// when this bundle's autoload files were not dumped (a checkout mounted over an installed copy).
-require_once __DIR__.'/Resources/former-names.php';
 
 class AdminBundle extends AbstractBaseBundle
 {

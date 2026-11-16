@@ -145,13 +145,10 @@ pages include `@Admin/crud/_field.html.twig`, which makes that choice.
 ## A record chosen in any repository
 
 `SelectField::new('room')->setClass(Room::class)` - or any picker, an
-`AssociationField` included - works whatever the repository of the class: one
-of omnibase's (`Omnibridge\Doctrine\Omnibase\Database\Repository\ServiceEntityRepository`, asked
-through `cacheById()`), or Doctrine's own (`extends
-Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository`, what
-`make:entity` writes), asked through `find()` and `findBy()` on the
-identifier. With a Doctrine repository the form used to die on submission:
-`Undefined method "cacheById"`.
+`AssociationField` included - works whatever the repository of the class: a
+repository class of its own (extending `Base\Database\Repository\ServiceEntityRepository`,
+asked through `cacheById()`) or none (`Repositories::of()` gives the class the
+agnostic parent repository, with the whole finder language).
 
 ## A collection of objects: `allowObject()`
 

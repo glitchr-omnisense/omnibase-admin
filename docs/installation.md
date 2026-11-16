@@ -21,7 +21,7 @@ composer require omnibase/admin
 // config/bundles.php
 return [
     // ...
-    Omnibridge\Symfony\Omnibase\BaseBundle::class => ['all' => true],
+    Base\BaseBundle::class => ['all' => true],
     Base\Admin\AdminBundle::class => ['all' => true],
 ];
 ```

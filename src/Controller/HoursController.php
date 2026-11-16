@@ -8,7 +8,7 @@ use Base\Repository\Hours\ScopedWeeks;
 use Base\Repository\Hours\SpecialDays;
 use Base\Repository\Hours\WeekDays;
 use Base\Service\OpeningHours;
-use Omnibridge\Persistence\UnitOfWork;
+use Base\Contract\UnitOfWork;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;

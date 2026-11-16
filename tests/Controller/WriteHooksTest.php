@@ -4,15 +4,13 @@ namespace Tests\Base\Admin\Controller;
 
 use Base\Admin\Controller\AbstractCrudController;
 use Base\Database\Repository\Repositories;
-use Doctrine\ORM\EntityManagerInterface;
-use Omnibridge\Persistence\UnitOfWork;
+use Base\Contract\UnitOfWork;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The CRUD's writes (omnibase's plan "omnibase agnostic", step B1a): through the persistence the site chose
- * (persistRecord(), updateRecord(), deleteRecord(), removeRecord() on omnisense/omnibridge's UnitOfWork), unless the
- * controller still overrides a former hook (persistEntity()...), which is then called with Doctrine's entity manager as
- * before - and a class that defines both is given the new one.
+ * The CRUD's writes go through the persistence the site chose (persistRecord(), updateRecord(), deleteRecord(),
+ * removeRecord() on omnisense/omnibridge's UnitOfWork), an override of one of them is the one called, and nothing of an
+ * ORM's entity manager is left on the controller.
  */
 class WriteHooksTest extends TestCase
 {
@@ -28,8 +26,7 @@ class WriteHooksTest extends TestCase
     {
         $controller = new WriteHooksPlainController();
         $entity = new \stdClass();
-        $this->wire($controller, $entityManager = $this->createMock(EntityManagerInterface::class), $unitOfWork = $this->unitOfWork());
-        $entityManager->expects(self::never())->method(self::anything());
+        $this->wire($controller, $unitOfWork = $this->unitOfWork());
 
         $this->write($controller, 'persist', $entity);
         $this->write($controller, 'update', $entity);
@@ -39,46 +36,24 @@ class WriteHooksTest extends TestCase
         self::assertSame(['persist', 'flush', 'flush', 'remove', 'flush', 'remove'], self::$calls);
     }
 
-    public function testAFormerHookOverriddenIsStillCalledWithTheEntityManager(): void
+    public function testAnOverriddenHookIsTheOneCalled(): void
     {
-        $controller = new WriteHooksFormerController();
-        $entity = new \stdClass();
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::once())->method('flush')->willReturnCallback(static function (): void { self::$calls[] = 'em flush'; });
-        $entityManager->expects(self::once())->method('remove')->willReturnCallback(static function (): void { self::$calls[] = 'em remove'; });
-        $this->wire($controller, $entityManager, $unitOfWork = $this->unitOfWork());
-
-        $this->write($controller, 'update', $entity);
-        // removeEntity() overridden: the batch delete's removeRecord() runs it too.
-        $controller->removeRecord($unitOfWork, $entity);
-        // persist is not overridden: the unit of work's.
-        $this->write($controller, 'persist', $entity);
-
-        self::assertSame(['former update', 'em flush', 'former remove', 'em remove', 'persist', 'flush'], self::$calls);
-    }
-
-    public function testTheNewHookWinsWhereAClassDefinesBoth(): void
-    {
-        $controller = new WriteHooksBothController();
-        $this->wire($controller, $entityManager = $this->createMock(EntityManagerInterface::class), $this->unitOfWork());
-        $entityManager->expects(self::never())->method(self::anything());
+        $controller = new WriteHooksOwnController();
+        $this->wire($controller, $unitOfWork = $this->unitOfWork());
 
         $this->write($controller, 'update', new \stdClass());
+        // removeRecord() overridden: the single delete runs it too.
+        $this->write($controller, 'delete', new \stdClass());
 
-        self::assertSame(['new update', 'flush'], self::$calls);
+        self::assertSame(['own update', 'flush', 'own remove', 'remove', 'flush'], self::$calls);
     }
 
-    public function testAFormerHookBelowANewOneIsTheOneCalled(): void
+    public function testNoEntityManagerIsLeftOnTheController(): void
     {
-        // A site's controller overriding the former hook, under a bundle's that moved to the new one.
-        $controller = new WriteHooksFormerBelowNewController();
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->method('flush')->willReturnCallback(static function (): void { self::$calls[] = 'em flush'; });
-        $this->wire($controller, $entityManager, $this->unitOfWork());
-
-        $this->write($controller, 'update', new \stdClass());
-
-        self::assertSame(['former update', 'em flush'], self::$calls);
+        self::assertFalse(property_exists(AbstractCrudController::class, 'entityManager'));
+        foreach (['persistEntity', 'updateEntity', 'deleteEntity', 'removeEntity', 'createIndexQueryBuilder', 'applySearch', 'applyFilters'] as $method) {
+            self::assertFalse(method_exists(AbstractCrudController::class, $method), $method);
+        }
     }
 
     private function unitOfWork(): UnitOfWork
@@ -91,24 +66,8 @@ class WriteHooksTest extends TestCase
         return $unitOfWork;
     }
 
-    public function testWithoutDoctrineTheNewHooksWriteAndAFormerOneIsRefusedAloud(): void
+    private function wire(AbstractCrudController $controller, UnitOfWork $unitOfWork): void
     {
-        // Step B1d: no entity manager where omnibridge/doctrine is not installed.
-        $plain = new WriteHooksPlainController();
-        $this->wire($plain, null, $this->unitOfWork());
-        $this->write($plain, 'update', new \stdClass());
-        self::assertSame(['flush'], self::$calls);
-
-        $former = new WriteHooksFormerController();
-        $this->wire($former, null, $this->unitOfWork());
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('omnibridge/doctrine is not installed');
-        $this->write($former, 'update', new \stdClass());
-    }
-
-    private function wire(AbstractCrudController $controller, ?EntityManagerInterface $entityManager, UnitOfWork $unitOfWork): void
-    {
-        (new \ReflectionProperty(AbstractCrudController::class, 'entityManager'))->setValue($controller, $entityManager);
         $controller->setPersistence($unitOfWork, $this->createMock(Repositories::class));
     }
 
@@ -131,50 +90,17 @@ class WriteHooksPlainController extends AbstractCrudController
     }
 }
 
-class WriteHooksFormerController extends WriteHooksPlainController
-{
-    public function updateEntity(EntityManagerInterface $entityManager, object $entity): void
-    {
-        WriteHooksTest::call('former update');
-        parent::updateEntity($entityManager, $entity);
-    }
-
-    public function removeEntity(EntityManagerInterface $entityManager, object $entity): void
-    {
-        WriteHooksTest::call('former remove');
-        parent::removeEntity($entityManager, $entity);
-    }
-}
-
-class WriteHooksBothController extends WriteHooksPlainController
+class WriteHooksOwnController extends WriteHooksPlainController
 {
     public function updateRecord(UnitOfWork $unitOfWork, object $entity): void
     {
-        WriteHooksTest::call('new update');
+        WriteHooksTest::call('own update');
         parent::updateRecord($unitOfWork, $entity);
     }
 
-    public function updateEntity(EntityManagerInterface $entityManager, object $entity): void
+    public function removeRecord(UnitOfWork $unitOfWork, object $entity): void
     {
-        WriteHooksTest::call('former update');
-        parent::updateEntity($entityManager, $entity);
-    }
-}
-
-class WriteHooksNewController extends WriteHooksPlainController
-{
-    public function updateRecord(UnitOfWork $unitOfWork, object $entity): void
-    {
-        WriteHooksTest::call('new update');
-        parent::updateRecord($unitOfWork, $entity);
-    }
-}
-
-class WriteHooksFormerBelowNewController extends WriteHooksNewController
-{
-    public function updateEntity(EntityManagerInterface $entityManager, object $entity): void
-    {
-        WriteHooksTest::call('former update');
-        parent::updateEntity($entityManager, $entity);
+        WriteHooksTest::call('own remove');
+        parent::removeRecord($unitOfWork, $entity);
     }
 }

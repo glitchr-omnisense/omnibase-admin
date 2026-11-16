@@ -6,7 +6,8 @@ use Base\Entity\Hours\ScopedWeek;
 use Base\Entity\Hours\SpecialDay;
 use Base\Entity\Hours\WeekDayHours;
 use Base\Service\OpeningHours;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
+use Base\Database\Repository\Repositories;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +26,8 @@ class HoursControllerTest extends KernelTestCase
     use ReleasesWhatItHolds;
     use FirewallSessionTrait;
 
-    private EntityManagerInterface $em;
+    private UnitOfWork $unitOfWork;
+    private Repositories $repositories;
     private SessionInterface $session;
     /** @var object[] */
     private array $users = [];
@@ -39,21 +41,22 @@ class HoursControllerTest extends KernelTestCase
         self::bootKernel();
         $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
         $_SERVER['HTTP_USER_AGENT'] ??= 'phpunit';
-        $this->em = static::getContainer()->get('doctrine')->getManager();
+        $this->unitOfWork = static::getContainer()->get(UnitOfWork::class);
+        $this->repositories = static::getContainer()->get(Repositories::class);
         $this->clean();
     }
 
     protected function tearDown(): void
     {
-        if (isset($this->em)) {
-            $this->em->clear();
+        if (isset($this->unitOfWork)) {
+            $this->unitOfWork->clear();
             $this->clean();
             foreach ($this->users as $user) {
-                if ($managed = $this->em->find($user::class, $user->getId())) {
-                    $this->em->remove($managed);
+                if ($managed = $this->repositories->of($user::class)->find($user->getId())) {
+                    $this->unitOfWork->remove($managed);
                 }
             }
-            $this->em->flush();
+            $this->unitOfWork->flush();
         }
         parent::tearDown();
         $this->releaseWhatItHolds();
@@ -62,8 +65,11 @@ class HoursControllerTest extends KernelTestCase
     private function clean(): void
     {
         foreach ([ScopedWeek::class, SpecialDay::class, WeekDayHours::class] as $class) {
-            $this->em->createQuery('DELETE FROM '.$class.' e')->execute();
+            foreach ($this->repositories->of($class)->findAll() as $record) {
+                $this->unitOfWork->remove($record);
+            }
         }
+        $this->unitOfWork->flush();
     }
 
     /** @param string[] $roles */
@@ -77,8 +83,8 @@ class HoursControllerTest extends KernelTestCase
         $user->setEmail($name.'@example.org');
         $user->setPlainPassword('test-'.$name);
         $user->setRoles($roles);
-        $this->em->persist($user);
-        $this->em->flush();
+        $this->unitOfWork->persist($user);
+        $this->unitOfWork->flush();
         $this->users[] = $user;
 
         $this->session = static::getContainer()->get('session.factory')->createSession();
@@ -107,7 +113,7 @@ class HoursControllerTest extends KernelTestCase
     {
         $hours = static::getContainer()->get(OpeningHours::class);
         $hours->reset();
-        $this->em->clear();
+        $this->unitOfWork->clear();
 
         return $hours;
     }
@@ -153,7 +159,7 @@ class HoursControllerTest extends KernelTestCase
             'week' => [3 => [['open' => '13:00', 'close' => '09:00']]],
         ]);
         $this->assertSame(302, $response->getStatusCode());
-        $this->assertSame([], $this->em->getRepository(WeekDayHours::class)->findAll(), 'nothing saved');
+        $this->assertSame([], $this->repositories->of(WeekDayHours::class)->findAll(), 'nothing saved');
     }
 
     public function testASpecialDayIsAddedShownAndDeleted(): void
@@ -185,7 +191,7 @@ class HoursControllerTest extends KernelTestCase
         $this->assertStringContainsString('Congés', $html);
         $this->assertStringContainsString('10:00 – 14:00', $html);
 
-        $closed = $this->em->getRepository(SpecialDay::class)->findOneBy(['reason' => 'Congés']);
+        $closed = $this->repositories->of(SpecialDay::class)->findOneBy(['reason' => 'Congés']);
         $action = '/admin/hours/special/'.$closed->getId().'/delete';
         $this->assertSame(302, $this->request('POST', $action, ['_token' => $this->token($html, $action)])->getStatusCode());
         $this->assertCount(1, $this->hours()->specialDays());

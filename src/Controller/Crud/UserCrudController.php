@@ -48,7 +48,7 @@ class UserCrudController extends AbstractCrudController
         // without touching the field re-persists the inflated,
         // group-inherited set back onto the user's own 'roles' column.
         // A property_path:'ownRoles' override was tried and reverted -
-        // RoleField's choice guessing requires a real mapped Doctrine
+        // RoleField's choice guessing requires a real mapped
         // column to introspect and threw on the synthetic property.
         // Needs a real fix (e.g. an explicit getter/setter data-mapper
         // override, or a dedicated OwnRoleType) before this is safe.

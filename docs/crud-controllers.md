@@ -221,11 +221,12 @@ reader's language.
 | `removeRecord(UnitOfWork $unitOfWork, $entity)` | `remove()` | Change how a record goes (single and batch deletes both run it); `deleteRecord()` adds the flush |
 | `indexCriteria(Crud $crud, string $query, Filters $filters, array $filterValues)` | the search's group and each active filter's | Narrow the list (add a `Criterion`, a `Group::of()`...) |
 
-The `*Record()` hooks write through the persistence the site chose (`Omnibridge\Persistence\UnitOfWork`).
-Their former names, typed on Doctrine's entity manager - `persistEntity()`, `updateEntity()`,
-`deleteEntity()`, `removeEntity()` -, and the list built on Doctrine's QueryBuilder -
-`createIndexQueryBuilder()`, `applySearch()`, `applyFilters()`, `Filter::applyWith()` - are deprecated and
-still called when a controller overrides them (they need omnibridge/doctrine).
+The `*Record()` hooks write through the persistence the site chose (`Base\Contract\UnitOfWork`), and
+the list, its search, its filters and the previous/next record are read through its repository of the entity's
+class (`$this->repositories->of($class)`), which answers the core's finder language for every class, with a
+repository class of its own or none: a controller narrows its list with `indexCriteria()`, a filter says its
+condition with `matchWith()`, and code of a screen finds and writes records through `$this->repositories` and
+`$this->unitOfWork`, never through an ORM's entity manager or query builder.
 
 The pages (`index`, `detail`, `new`, `edit`, `delete`, `batchDelete`, `toggle`,
 `collectionEntries`) are public methods too; an override calls the parent or

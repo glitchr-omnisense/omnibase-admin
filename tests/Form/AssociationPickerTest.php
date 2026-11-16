@@ -5,8 +5,8 @@ namespace Tests\Base\Admin\Form;
 use Base\Admin\Form\FieldFormBuilder;
 use Base\Entity\Thread\Comment;
 use Base\Field\AssociationField;
-use Omnibridge\Symfony\Omnibase\Field\Type\AssociationType;
-use Omnibridge\Symfony\Omnibase\Field\Type\SelectType;
+use Base\Field\Type\AssociationType;
+use Base\Field\Type\SelectType;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -38,7 +38,7 @@ class AssociationPickerTest extends KernelTestCase
 
     private function builder(): FieldFormBuilder
     {
-        return new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Omnibridge\Persistence\UnitOfWork::class));
+        return new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Base\Contract\UnitOfWork::class));
     }
 
     private function typeOf(AssociationField $field): string

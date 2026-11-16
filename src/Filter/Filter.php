@@ -6,7 +6,6 @@ use Base\Database\Repository\Finder\Criterion;
 use Base\Database\Repository\Finder\Group;
 use Base\Database\Repository\Finder\Key;
 use Base\Database\Repository\Finder\Parser;
-use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Translation\TranslatableInterface;
 
 /**
@@ -14,12 +13,9 @@ use Symfony\Contracts\Translation\TranslatableInterface;
  * it constrains the list. Single class - the type string drives both the
  * rendering (inline bar) and the condition.
  *
- * The condition is a group of the core's finder language (match(), omnibase's
- * plan "omnibase agnostic", step B1b), which the persistence the site chose
- * compiles: omnibridge/doctrine and omnibridge/eloquent alike. A filter of its
- * own says its condition with matchWith(). apply() and applyWith() are the
- * former way, on Doctrine's QueryBuilder: a list whose active filter has only
- * applyWith() is still built on Doctrine (deprecated).
+ * The condition is a group of the core's finder language (match()), which the
+ * persistence the site chose compiles, whatever keeps the records. A filter of
+ * its own says its condition with matchWith().
  */
 class Filter
 {
@@ -35,8 +31,6 @@ class Filter
     protected string $type = self::TYPE_TEXT;
     /** @var array<string, string> value => label */
     protected array $choices = [];
-    /** @var callable|null custom applier: fn(QueryBuilder $qb, string $alias, mixed $value) */
-    protected mixed $applyCallable = null;
     /** @var callable|null custom condition: fn(mixed $value): Criterion|Group|null */
     protected mixed $matchCallable = null;
 
@@ -106,11 +100,10 @@ class Filter
      * guess at an id. $entities is typically `$repository->findAll()` (or
      * a narrower query - findBy(), a custom finder, ...); each becomes one
      * choice, keyed by id, labeled with $labelCallback($entity) or the
-     * entity's own __toString() if none is given. The WHERE clause itself
-     * (entity.<property> = :id) is identical to a plain equality filter -
-     * Doctrine resolves a scalar compared against a to-one association to
-     * its join column automatically - so this is really "asChoice(), but
-     * the choices come from a repository instead of a hand-written array".
+     * entity's own __toString() if none is given. The condition is the
+     * association's key equal to the id chosen (Key::of(), its own column,
+     * no join), so this is really "asChoice(), but the choices come from a
+     * repository instead of a hand-written array".
      *
      * @param iterable<object> $entities
      */
@@ -134,35 +127,14 @@ class Filter
     }
 
     /**
-     * The filter's condition on Doctrine's QueryBuilder (fn(QueryBuilder $qb, string $alias, mixed $value)).
-     *
-     * @deprecated since omnibase's plan "omnibase agnostic", step B1b: say the condition with matchWith(), which every
-     *             persistence compiles; a list whose active filter has only this one is built on Doctrine
-     */
-    public function applyWith(callable $applyCallable): static
-    {
-        $this->applyCallable = $applyCallable;
-        return $this;
-    }
-
-    /**
-     * The filter's condition in the core's finder language (step B1b): fn(mixed $value): Criterion|Group|null - the
-     * value as the URL gives it (a {comparison, value} pair read as its value), a criterion (Criterion::of('roles',
-     * '%'.$value.'%', Parser::OPTION_PARTIAL)) or a group (Group::of()), null for no condition. It wins over
-     * applyWith() wherever the list is not built on a QueryBuilder.
+     * The filter's condition in the core's finder language: fn(mixed $value): Criterion|Group|null - the value as the
+     * URL gives it (a {comparison, value} pair read as its value), a criterion (Criterion::of('roles',
+     * '%'.$value.'%', Parser::OPTION_PARTIAL)) or a group (Group::of()), null for no condition.
      */
     public function matchWith(callable $matchCallable): static
     {
         $this->matchCallable = $matchCallable;
         return $this;
-    }
-
-    /**
-     * Whether the persistence chosen can say the filter's condition: every filter but one given only applyWith().
-     */
-    public function isNeutral(): bool
-    {
-        return null === $this->applyCallable || null !== $this->matchCallable;
     }
 
     // comparison operators, historical URL shape:
@@ -192,8 +164,7 @@ class Filter
     }
 
     /**
-     * The filter's condition as a group of the core's finder language (step B1b), what apply() writes on a
-     * QueryBuilder: a boolean equal, a date between the first second of its "from" day and the last of its "to" day,
+     * The filter's condition as a group of the core's finder language: a boolean equal, a date between the first second of its "from" day and the last of its "to" day,
      * a number compared (=, >, <, !=), a choice equal, an association by its key (its own column, no join), a text
      * equal or not, else contained, whatever its case (LOWER(...) LIKE '%value%'). Null for no condition.
      *
@@ -236,79 +207,6 @@ class Filter
         };
 
         return [] === $members ? null : Group::of(Parser::SEPARATOR_AND, ...$members);
-    }
-
-    /**
-     * The filter's condition on Doctrine's QueryBuilder: the list built on it (the core without the finder's groups,
-     * a controller overriding createIndexQueryBuilder(), applySearch() or applyFilters(), an active filter given only
-     * applyWith()).
-     *
-     * @param mixed $value the raw request value (already checked non-empty)
-     */
-    public function apply(QueryBuilder $queryBuilder, string $alias, mixed $value): void
-    {
-        // normalize the {comparison, value} URL shape; scalars mean the
-        // type's default comparison
-        $comparison = null;
-        if (\is_array($value) && \array_key_exists('value', $value)) {
-            $comparison = $value['comparison'] ?? null;
-            $value = $value['value'];
-        }
-
-        if (null !== $this->applyCallable) {
-            ($this->applyCallable)($queryBuilder, $alias, $value);
-            return;
-        }
-
-        $field = $alias . '.' . $this->property;
-        $param = 'filter_' . str_replace('.', '_', $this->property);
-
-        switch ($this->type) {
-            case self::TYPE_BOOLEAN:
-                $queryBuilder->andWhere(sprintf('%s = :%s', $field, $param))
-                    ->setParameter($param, '1' === $value || 'true' === $value || true === $value);
-                break;
-
-            case self::TYPE_DATE:
-                // value: ['from' => 'Y-m-d', 'to' => 'Y-m-d'], either side optional
-                $from = \is_array($value) ? ($value['from'] ?? null) : null;
-                $to = \is_array($value) ? ($value['to'] ?? null) : null;
-                if ($from) {
-                    $queryBuilder->andWhere(sprintf('%s >= :%s_from', $field, $param))
-                        ->setParameter($param . '_from', new \DateTimeImmutable($from . ' 00:00:00'));
-                }
-                if ($to) {
-                    $queryBuilder->andWhere(sprintf('%s <= :%s_to', $field, $param))
-                        ->setParameter($param . '_to', new \DateTimeImmutable($to . ' 23:59:59'));
-                }
-                break;
-
-            case self::TYPE_NUMERIC:
-                $operator = match ($comparison) {
-                    self::COMPARISON_GT => '>',
-                    self::COMPARISON_LT => '<',
-                    self::COMPARISON_NEQ => '!=',
-                    default => '=',
-                };
-                $queryBuilder->andWhere(sprintf('%s %s :%s', $field, $operator, $param))
-                    ->setParameter($param, $value);
-                break;
-
-            case self::TYPE_CHOICE:
-            case self::TYPE_ASSOCIATION:
-                $queryBuilder->andWhere(sprintf('%s = :%s', $field, $param))
-                    ->setParameter($param, $value);
-                break;
-
-            default:
-                if (self::COMPARISON_EQ === $comparison || self::COMPARISON_NEQ === $comparison) {
-                    $queryBuilder->andWhere(sprintf('%s %s :%s', $field, self::COMPARISON_NEQ === $comparison ? '!=' : '=', $param))
-                        ->setParameter($param, $value);
-                    break;
-                }
-                $queryBuilder->andWhere(sprintf('LOWER(%s) LIKE :%s', $field, $param))
-                    ->setParameter($param, '%' . mb_strtolower((string) $value) . '%');
-        }
     }
 
     /**

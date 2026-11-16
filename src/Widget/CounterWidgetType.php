@@ -7,7 +7,7 @@ use Base\Admin\Router\AdminRouteRegistry;
 use Base\Enum\ThreadState;
 use Base\Service\Analytics;
 use Base\Database\UnitOfWorks;
-use Omnibridge\Persistence\UnitOfWork;
+use Base\Contract\UnitOfWork;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 

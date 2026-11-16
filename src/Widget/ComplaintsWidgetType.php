@@ -5,7 +5,7 @@ namespace Base\Admin\Widget;
 use Base\Admin\Config\Menu\MenuItem;
 use Base\Entity\User\Complaint;
 use Base\Repository\User\Complaints;
-use Omnibridge\Symfony\Omnibase\Security\Voter\ComplaintVoter;
+use Base\Security\Voter\ComplaintVoter;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**

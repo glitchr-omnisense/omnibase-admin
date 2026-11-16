@@ -49,7 +49,7 @@ class FormErrorsOnceTest extends KernelTestCase
 
     private function page(): string
     {
-        $builder = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Omnibridge\Persistence\UnitOfWork::class)))
+        $builder = (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Base\Contract\UnitOfWork::class)))
             ->createFormBuilder(new Comment(), [
                 TextField::new('name', 'Name')->setColumns(6),
             ], formOptions: ['csrf_protection' => false]);

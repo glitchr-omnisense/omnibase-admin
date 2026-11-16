@@ -4,8 +4,8 @@ namespace Base\Admin\Filter;
 
 /**
  * Filter registry for one CRUD, filled in configureFilters().
- * add() accepts a property name (type guessed later from Doctrine
- * metadata) or a fully configured Filter.
+ * add() accepts a property name (type guessed later from the entity's
+ * shape) or a fully configured Filter.
  */
 class Filters
 {

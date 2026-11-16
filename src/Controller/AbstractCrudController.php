@@ -15,21 +15,18 @@ use Base\Field\FieldInterface;
 use Base\Field\FieldValueResolver;
 use Base\Field\IdField;
 use Base\Admin\Form\FieldFormBuilder;
-use Base\Admin\Index\RecordPage;
-use Base\Admin\Orm\Paginator;
 use Base\Admin\Router\AdminUrlGenerator;
 use Base\Database\Mapping\EntityShape;
 use Base\Database\Repository\Repositories;
 use Base\Database\UnitOfWorks;
 use Base\Service\Model\LinkableInterface;
-use Base\Database\Repository\Entities;
+use Base\Service\Model\Pagination;
+use Base\Service\PaginatorInterface;
 use Base\Database\Repository\Finder\Criterion;
 use Base\Database\Repository\Finder\Group;
 use Base\Database\Repository\Finder\Parser;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\QueryBuilder;
 use LogicException;
-use Omnibridge\Persistence\UnitOfWork;
+use Base\Contract\UnitOfWork;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,18 +39,14 @@ use Base\Admin\Router\AdminRouteRegistry;
  * Direct, linear CRUD pipeline: every page is an ordinary controller action
  * calling overridable hooks - no event dispatch, no listener-side rendering.
  *
- * Hook names (configureFields/configureActions/configureCrud/
- * createIndexQueryBuilder/...) intentionally match the historical API so
- * existing controllers port without rewriting their bodies.
+ * Every record is read and written through the persistence the site chose
+ * (the core's Repositories and finder language, omnisense/omnibridge's
+ * UnitOfWork): a list's conditions are indexCriteria()'s, a filter's are
+ * Filter::match()'s, the writes are the *Record() hooks.
  */
 abstract class AbstractCrudController extends AbstractController implements CrudControllerInterface
 {
-    /**
-     * Doctrine's entity manager where omnibridge/doctrine is installed, null otherwise (step B1d): the list built on
-     * Doctrine's QueryBuilder and the former write hooks need it, and the bundles' controllers that still read it.
-     */
-    protected ?EntityManagerInterface $entityManager = null;
-    /** The persistence chosen (base.persistence): the records' writes and lookups (omnibase's plan "omnibase agnostic", step B1a). */
+    /** The persistence chosen (base.persistence): the records' writes and lookups. */
     protected UnitOfWork $unitOfWork;
     protected Repositories $repositories;
     protected FieldFormBuilder $fieldFormBuilder;
@@ -67,7 +60,6 @@ abstract class AbstractCrudController extends AbstractController implements Crud
 
     #[Required]
     public function setAdminServices(
-        ?EntityManagerInterface $entityManager,
         FieldFormBuilder $fieldFormBuilder,
         FieldValueResolver $fieldValueResolver,
         AdminUrlGenerator $adminUrlGenerator,
@@ -77,7 +69,6 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         \Base\Admin\Router\AdminRouteRegistry $routeRegistry,
         \Base\Admin\Layout\PageCustomization $pageCustomization,
     ): void {
-        $this->entityManager = $entityManager;
         $this->fieldFormBuilder = $fieldFormBuilder;
         $this->fieldValueResolver = $fieldValueResolver;
         $this->adminUrlGenerator = $adminUrlGenerator;
@@ -89,10 +80,9 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     }
 
     /**
-     * The persistence the site chose (omnisense/omnibridge's UnitOfWork, the core's Repositories): Doctrine's entity
-     * manager behind them on Doctrine, omnibridge/eloquent's on Eloquent. The records are found, written and removed
-     * through it, and the list is read through its repositories (step B1b); the entity manager stays for the list built
-     * on Doctrine's QueryBuilder (indexPage()) and the former write hooks.
+     * The persistence the site chose (omnisense/omnibridge's UnitOfWork, the core's Repositories), whatever keeps the
+     * records behind them: they are found, written and removed through it, and the list is read through its
+     * repositories, which answer the core's finder language for every class.
      */
     #[Required]
     public function setPersistence(UnitOfWork $unitOfWork, Repositories $repositories): void
@@ -103,11 +93,20 @@ abstract class AbstractCrudController extends AbstractController implements Crud
 
     /**
      * What the persistence chosen maps of a class (the core's EntityShape, omnisense/omnibridge's Schema description of
-     * it: fields and their types, associations, inheritance), in place of Doctrine's ClassMetadata (step B1c).
+     * it: fields and their types, associations, inheritance), whatever keeps the records.
      */
     protected function shape(string $class): EntityShape
     {
         return UnitOfWorks::shapes($this->unitOfWork)->shape($class);
+    }
+
+    protected PaginatorInterface $paginator;
+
+    /** omnibase's Paginator: the list's page, counted and sliced by the persistence chosen. */
+    #[Required]
+    public function setPaginator(PaginatorInterface $paginator): void
+    {
+        $this->paginator = $paginator;
     }
 
     protected ?TranslatorInterface $labelTranslator = null;
@@ -282,29 +281,12 @@ abstract class AbstractCrudController extends AbstractController implements Crud
      */
     protected function adjacentEntityUrl(object $entity, string $direction, string $page): string
     {
-        $entities = $this->repositories->of(static::getEntityFqcn());
-        if ($this->readsFinderGroups($entities)) {
-            // The next id up (prev) or down (next), through the finder (step B1b): on the persistence chosen.
-            $neighbour = $entities->findOneBy(
-                [Group::of(Parser::SEPARATOR_AND, Criterion::of('id', $entity->getId(), 'prev' === $direction ? Parser::OPTION_GREATER : Parser::OPTION_LOWER))],
-                ['id' => 'prev' === $direction ? 'ASC' : 'DESC'],
-            );
-            $neighbourId = null !== $neighbour && method_exists($neighbour, 'getId') ? $neighbour->getId() : null;
-        } else {
-            $queryBuilder = $this->doctrine('the neighbouring record of a list on Doctrine\'s QueryBuilder')->createQueryBuilder()
-                ->select('e.id')
-                ->from(static::getEntityFqcn(), 'e')
-                ->setMaxResults(1)
-                ->setParameter('id', $entity->getId());
-
-            if ('prev' === $direction) {
-                $queryBuilder->where('e.id > :id')->orderBy('e.id', 'ASC');
-            } else {
-                $queryBuilder->where('e.id < :id')->orderBy('e.id', 'DESC');
-            }
-
-            $neighbourId = $queryBuilder->getQuery()->getOneOrNullResult()['id'] ?? null;
-        }
+        // The next id up (prev) or down (next), through the finder: on the persistence chosen.
+        $neighbour = $this->repositories->of(static::getEntityFqcn())->findOneBy(
+            [Group::of(Parser::SEPARATOR_AND, Criterion::of('id', $entity->getId(), 'prev' === $direction ? Parser::OPTION_GREATER : Parser::OPTION_LOWER))],
+            ['id' => 'prev' === $direction ? 'ASC' : 'DESC'],
+        );
+        $neighbourId = null !== $neighbour && method_exists($neighbour, 'getId') ? $neighbour->getId() : null;
 
         if (null === $neighbourId) {
             return '';
@@ -394,7 +376,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
 
     /**
      * The concrete creatable classes reachable from this CRUD's "new"
-     * button: the entity itself plus any Doctrine discriminator-map
+     * button: the entity itself plus any discriminator-map
      * subclass that has its own registered CRUD controller. More than one
      * entry turns the index's create button into a subclass chooser (the
      * historical "action-discriminator" dropdown); a lone entry (the
@@ -903,15 +885,9 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     }
 
     /*
-     * The write hooks. persistRecord(), updateRecord(), deleteRecord() and removeRecord() write through the
-     * persistence the site chose (omnisense/omnibridge's UnitOfWork: Doctrine's entity manager behind it on Doctrine,
-     * omnibridge/eloquent's on Eloquent); new, edit, the inline switch, delete and the batch delete call them.
-     *
-     * persistEntity(), updateEntity(), deleteEntity() and removeEntity() are the former hooks, typed on Doctrine's
-     * entity manager. A controller that still overrides one of them keeps it called, with the entity manager, in
-     * place of its new hook (a class defining both is given the new one): unchanged on Doctrine, but a write that
-     * Doctrine makes on Eloquent's entities - move the override to the new hook to run on Eloquent. Their parameter
-     * stays EntityManagerInterface: widening it would refuse every override written against it.
+     * The write hooks: persistRecord(), updateRecord(), deleteRecord() and removeRecord() write through the persistence
+     * the site chose (omnisense/omnibridge's UnitOfWork); new, edit, the inline switch, delete and the batch delete call
+     * them. Override them to change how a record is written, on every persistence.
      */
 
     public function persistRecord(UnitOfWork $unitOfWork, object $entity): void
@@ -938,100 +914,34 @@ abstract class AbstractCrudController extends AbstractController implements Crud
      */
     public function removeRecord(UnitOfWork $unitOfWork, object $entity): void
     {
-        if ($this->overridesFormerHook('remove')) {
-            $this->removeEntity($this->doctrine('the former hook removeEntity()'), $entity);
-
-            return;
-        }
         $unitOfWork->remove($entity);
     }
 
-    /** @deprecated since the plan "omnibase agnostic"'s step B1a, override persistRecord() */
-    public function persistEntity(EntityManagerInterface $entityManager, object $entity): void
-    {
-        $entityManager->persist($entity);
-        $entityManager->flush();
-    }
-
-    /** @deprecated since the plan "omnibase agnostic"'s step B1a, override updateRecord() */
-    public function updateEntity(EntityManagerInterface $entityManager, object $entity): void
-    {
-        $entityManager->flush();
-    }
-
-    /** @deprecated since the plan "omnibase agnostic"'s step B1a, override deleteRecord() */
-    public function deleteEntity(EntityManagerInterface $entityManager, object $entity): void
-    {
-        $this->removeEntity($entityManager, $entity);
-        $entityManager->flush();
-    }
-
-    /** @deprecated since the plan "omnibase agnostic"'s step B1a, override removeRecord() */
-    public function removeEntity(EntityManagerInterface $entityManager, object $entity): void
-    {
-        $entityManager->remove($entity);
-    }
-
-    /** A write of the actions: the controller's former hook when it overrides one, else the new one. */
+    /** A write of the actions, through its hook (persist, update, delete). */
     private function write(string $hook, object $entity): void
     {
-        if ($this->overridesFormerHook($hook)) {
-            $this->{$hook.'Entity'}($this->doctrine('the former hook '.$hook.'Entity()'), $entity);
-
-            return;
-        }
         $this->{$hook.'Record'}($this->unitOfWork, $entity);
     }
 
-    /** Doctrine's entity manager, for what is still written on it; refused aloud where Doctrine is not installed. */
-    private function doctrine(string $what): EntityManagerInterface
-    {
-        return $this->entityManager ?? throw new \LogicException(sprintf('%s (%s) is written on Doctrine\'s entity manager, and omnibridge/doctrine is not installed: move it to the persistence chosen (indexCriteria(), Filter::matchWith(), the *Record() hooks).', $what, static::class));
-    }
-
-    /** Whether a class below this one overrides the former hook (persistEntity()...) and not the new one beside it. */
-    private function overridesFormerHook(string $hook): bool
-    {
-        $former = (new \ReflectionMethod($this, $hook.'Entity'))->getDeclaringClass()->getName();
-        if (self::class === $former) {
-            return false;
-        }
-        $new = (new \ReflectionMethod($this, $hook.'Record'))->getDeclaringClass()->getName();
-
-        // The new hook declared by the class of the former one, or below it, wins; declared above it (or only here), not.
-        return !is_a($new, $former, true);
-    }
-
     /**
-     * The list's page (omnibase's plan "omnibase agnostic", step B1b): its search and its filters as criteria of the
-     * core's finder language (indexCriteria()), its order, its page, read through the repository of the persistence
-     * the site chose (RecordPage: findBy() and count(), which omnibridge/doctrine and omnibridge/eloquent compile).
-     *
-     * It is built on Doctrine's QueryBuilder, as before, when the finder cannot say it: under omnisense/omnibase 4.x
-     * (no Finder\Group), on a repository that reads no finder (a plain Doctrine EntityRepository), and - deprecated -
-     * for a controller that overrides createIndexQueryBuilder(), applySearch() or applyFilters(), or whose active
-     * filter has only applyWith().
+     * The list's page: its search and its filters as criteria of the core's finder language (indexCriteria()), its
+     * order, its page, through omnibase's Paginator on the repository of the persistence the site chose.
      *
      * @param array<string, string> $sort
      */
-    protected function indexPage(Crud $crud, array $sort, string $query, \Base\Admin\Filter\Filters $filters, array $filterValues, int $page): RecordPage|Paginator
+    protected function indexPage(Crud $crud, array $sort, string $query, \Base\Admin\Filter\Filters $filters, array $filterValues, int $page): Pagination
     {
-        $entities = $this->repositories->of(static::getEntityFqcn());
-        if ($this->indexOnFinder($entities, $filters, $filterValues)) {
-            return new RecordPage($entities, $this->indexCriteria($crud, $query, $filters, $filterValues), $sort, $page, $crud->getPaginatorPageSize());
-        }
-
-        $queryBuilder = $this->createIndexQueryBuilder($crud, $sort);
-        if ('' !== $query) {
-            $this->applySearch($queryBuilder, $crud, $query);
-        }
-        $this->applyFilters($queryBuilder, $filters, $filterValues);
-
-        return new Paginator($queryBuilder, $page, $crud->getPaginatorPageSize());
+        return $this->paginator->paginate(
+            $this->repositories->of(static::getEntityFqcn()),
+            $this->indexCriteria($crud, $query, $filters, $filterValues),
+            [] === $sort ? null : $sort,
+            $page,
+            $crud->getPaginatorPageSize(),
+        );
     }
 
     /**
-     * The list's conditions in the core's finder language (step B1b): the search, an OR group of the text fields
+     * The list's conditions in the core's finder language: the search, an OR group of the text fields
      * containing the words whatever their case, and each active filter's group (Filter::match()), all ANDed.
      * Override it to narrow a list on every persistence (add a criterion, a Group::of()...).
      *
@@ -1053,7 +963,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         return $criteria;
     }
 
-    /** The search (step B1b): LOWER(field) LIKE '%words%' over the search fields, ORed; null when there is none. */
+    /** The search: LOWER(field) LIKE '%words%' over the search fields, ORed; null when there is none. */
     protected function searchCriterion(Crud $crud, string $query): ?Group
     {
         $pattern = '%'.mb_strtolower($query).'%';
@@ -1081,59 +991,6 @@ abstract class AbstractCrudController extends AbstractController implements Crud
         }
 
         return array_values($searchFields);
-    }
-
-    /** Whether the list is read through the finder (indexPage()): else on Doctrine's QueryBuilder. */
-    private function indexOnFinder(Entities $entities, \Base\Admin\Filter\Filters $filters, array $filterValues): bool
-    {
-        if (!$this->readsFinderGroups($entities)) {
-            return false;
-        }
-        foreach (['createIndexQueryBuilder', 'applySearch', 'applyFilters'] as $hook) {
-            if (self::class !== (new \ReflectionMethod($this, $hook))->getDeclaringClass()->getName()) {
-                trigger_deprecation('omnibase/admin', 'dev-main', '%s overrides %s(), which builds its list on Doctrine\'s QueryBuilder: override indexCriteria() instead, which every persistence reads.', static::class, $hook);
-
-                return false;
-            }
-        }
-        foreach ($filters->getAll() as $property => $filter) {
-            if (!$filter->isNeutral() && \Base\Admin\Filter\Filter::isActive($filterValues[$property] ?? null)) {
-                trigger_deprecation('omnibase/admin', 'dev-main', 'The filter "%s" of %s has only applyWith(), which builds its list on Doctrine\'s QueryBuilder: give it matchWith(), which every persistence reads.', $property, static::class);
-
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Whether the core's finder reads groups built from their members (Group::of(): omnisense/omnibase 5.x, step B1b)
-     * and the repository reads the finder (omnibridge/doctrine's ServiceEntityRepository and omnibridge/eloquent's
-     * repositories answer it through __call(); a plain Doctrine EntityRepository does not).
-     */
-    private function readsFinderGroups(Entities $entities): bool
-    {
-        return method_exists(Group::class, 'of') && method_exists($entities, '__call');
-    }
-
-    /**
-     * The list's query on Doctrine's QueryBuilder, its order.
-     *
-     * @deprecated since omnibase's plan "omnibase agnostic", step B1b: a controller overriding it has its list built on
-     *             Doctrine; override indexCriteria() instead
-     */
-    public function createIndexQueryBuilder(Crud $crud, array $sort): QueryBuilder
-    {
-        $queryBuilder = $this->doctrine('createIndexQueryBuilder()')
-            ->getRepository(static::getEntityFqcn())
-            ->createQueryBuilder('entity');
-
-        foreach ($sort as $property => $direction) {
-            $queryBuilder->addOrderBy('entity.' . $property, $direction);
-        }
-
-        return $queryBuilder;
     }
 
     protected function getFiltersConfig(): \Base\Admin\Filter\Filters
@@ -1171,49 +1028,18 @@ abstract class AbstractCrudController extends AbstractController implements Crud
     }
 
     /**
-     * A filter added by its property alone, by the column's Doctrine type: boolean, numeric, or a
-     * date range for every moment - Doctrine's dates and the core's utc_datetime(_immutable).
+     * A filter added by its property alone, by the field's type in the entity's shape: boolean, numeric,
+     * or a date range for every moment - the dates and the core's utc_datetime(_immutable).
      */
-    protected static function guessFilterType(\Base\Admin\Filter\Filter $filter, string $doctrineType): void
+    protected static function guessFilterType(\Base\Admin\Filter\Filter $filter, string $fieldType): void
     {
-        match ($doctrineType) {
+        match ($fieldType) {
             'boolean' => $filter->asBoolean(),
             'integer', 'smallint', 'bigint', 'float', 'decimal' => $filter->asNumeric(),
             'date', 'date_immutable', 'datetime', 'datetime_immutable', 'datetimetz', 'datetimetz_immutable',
             'utc_datetime', 'utc_datetime_immutable' => $filter->asDate(),
             default => null,
         };
-    }
-
-    /** @deprecated since omnibase's plan "omnibase agnostic", step B1b: the filters' conditions are Filter::match()'s (indexCriteria()) */
-    protected function applyFilters(QueryBuilder $queryBuilder, \Base\Admin\Filter\Filters $filters, array $filterValues): void
-    {
-        foreach ($filters->getAll() as $property => $filter) {
-            $value = $filterValues[$property] ?? null;
-            if (\Base\Admin\Filter\Filter::isActive($value)) {
-                $filter->apply($queryBuilder, 'entity', $value);
-            }
-        }
-    }
-
-    /**
-     * Case-insensitive LIKE over the crud's searchFields (searchFields()) on Doctrine's QueryBuilder.
-     *
-     * @deprecated since omnibase's plan "omnibase agnostic", step B1b: the search is searchCriterion()'s
-     */
-    protected function applySearch(QueryBuilder $queryBuilder, Crud $crud, string $query): void
-    {
-        $searchFields = $this->searchFields($crud);
-        if ([] === $searchFields) {
-            return;
-        }
-
-        $or = $queryBuilder->expr()->orX();
-        foreach ($searchFields as $i => $property) {
-            $or->add($queryBuilder->expr()->like('LOWER(entity.' . $property . ')', ':admin_query'));
-        }
-
-        $queryBuilder->andWhere($or)->setParameter('admin_query', '%' . mb_strtolower($query) . '%');
     }
 
     // -----------------------------------------------------------------
@@ -1373,9 +1199,10 @@ abstract class AbstractCrudController extends AbstractController implements Crud
             return $crud->getDefaultSort();
         }
 
+        // A field, or a path one association deep (author.username): what every persistence orders on.
         $clean = [];
         foreach ($sort as $property => $direction) {
-            if (preg_match('/^[a-zA-Z0-9_.]+$/', (string) $property)) {
+            if (preg_match('/^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)?$/', (string) $property)) {
                 $clean[$property] = 'DESC' === strtoupper((string) $direction) ? 'DESC' : 'ASC';
             }
         }
@@ -1392,7 +1219,7 @@ abstract class AbstractCrudController extends AbstractController implements Crud
      * A purely numeric value is tried as the primary key FIRST: that is the
      * overwhelmingly common case and skips two pointless queries. Anything
      * else goes to the slug/uuid lookups, and only those fields that
-     * actually exist on the entity's Doctrine metadata are queried - asking
+     * actually exist in the entity's shape are queried - asking
      * for a missing field would throw rather than simply miss.
      */
     /**

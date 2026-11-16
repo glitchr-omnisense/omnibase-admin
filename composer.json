@@ -21,10 +21,7 @@
         "psr-4": {
             "Base\\Admin\\": "./src",
             "Base\\Admin\\Test\\": "./testing"
-        },
-        "files": [
-            "src/Resources/former-names.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -37,11 +34,11 @@
         "symfony/dependency-injection": "^6.0|^7.0|^8.0",
         "symfony/http-kernel": "^6.0|^7.0|^8.0",
         "symfony/form": "^6.0|^7.0|^8.0",
-        "omnibridge/symfony": "^1.1.2 || ^2.0",
-        "omnisense/omnibase": "^5.1 || ^6.0"
+        "omnibridge/symfony": "^1.0",
+        "omnisense/omnibase": "^1.0"
     },
     "suggest": {
-        "omnibridge/doctrine": "The persistence on Doctrine's ORM; also what a list still built on Doctrine's QueryBuilder (createIndexQueryBuilder(), Filter::applyWith()) and the former write hooks (persistEntity()...) need, both deprecated",
+        "omnibridge/doctrine": "The persistence on Doctrine's ORM (base.persistence: doctrine): the back office reads and writes through it",
         "omnibridge/eloquent": "The persistence on Illuminate's database (base.persistence: eloquent): the back office reads and writes through it"
     },
     "require-dev": {

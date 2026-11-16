@@ -3,9 +3,9 @@
 namespace Tests\Base\Admin\Settings;
 
 use Base\Admin\Settings\SiteSettingsSection;
-use Omnibridge\Symfony\Omnibase\Field\Type\DateTimePickerType;
-use Omnibridge\Symfony\Omnibase\Field\Type\ImageType;
-use Omnibridge\Symfony\Omnibase\Form\Type\LayoutSettingListType;
+use Base\Field\Type\DateTimePickerType;
+use Base\Field\Type\ImageType;
+use Base\Form\Type\LayoutSettingListType;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Form\FormInterface;
 

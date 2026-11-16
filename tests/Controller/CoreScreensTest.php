@@ -8,14 +8,13 @@ use Base\Enum\UserRole;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The core's screens moved here (omnisense/omnibase 4.0): their former names,
- * Base\Controller\Backoffice\Crud\*, are the moved classes themselves for one
- * release (src/Resources/former-names.php) - an alias, not a subclass - and the
- * screens keep their slugs, so their routes and addresses.
+ * The screens of the core's own entities live in this bundle
+ * (Base\Admin\Controller\Crud\*): each extends AbstractCrudController, keeps
+ * its slug, so its routes and addresses, and is found by its entity's name.
  */
-final class FormerNamesTest extends TestCase
+final class CoreScreensTest extends TestCase
 {
-    private const MOVED = [
+    private const SCREENS = [
         'UserCrudController' => 'users',
         'User\ConnectionCrudController' => 'users/connections',
         'User\GroupCrudController' => 'users/groups',
@@ -28,24 +27,20 @@ final class FormerNamesTest extends TestCase
         'Layout\Widget\PageCrudController' => 'layouts/widgets/pages',
     ];
 
-    public function testEachFormerNameIsTheMovedClass(): void
+    public function testEachScreenIsACrudController(): void
     {
-        foreach (array_keys(self::MOVED) as $name) {
-            $former = 'Base\\Controller\\Backoffice\\Crud\\'.$name;
-            $moved = 'Base\\Admin\\Controller\\Crud\\'.$name;
+        foreach (array_keys(self::SCREENS) as $name) {
+            $screen = 'Base\\Admin\\Controller\\Crud\\'.$name;
 
-            self::assertTrue(class_exists($moved), $moved);
-            self::assertContains(AbstractCrudController::class, class_parents($moved), $moved);
-            @self::assertTrue(class_exists($former), $former);
-            self::assertSame($moved, (new \ReflectionClass($former))->getName(), $former.' is an alias of '.$moved);
+            self::assertTrue(class_exists($screen), $screen);
+            self::assertContains(AbstractCrudController::class, class_parents($screen), $screen);
         }
     }
 
-    public function testTheSlugsAreThoseOfBefore(): void
+    public function testTheSlugs(): void
     {
-        foreach (self::MOVED as $name => $slug) {
+        foreach (self::SCREENS as $name => $slug) {
             self::assertSame($slug, AdminRouteRegistry::slugify('Base\\Admin\\Controller\\Crud\\'.$name));
-            self::assertSame($slug, AdminRouteRegistry::slugify('Base\\Controller\\Backoffice\\Crud\\'.$name));
         }
     }
 

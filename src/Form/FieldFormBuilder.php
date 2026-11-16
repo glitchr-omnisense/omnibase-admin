@@ -4,13 +4,12 @@ namespace Base\Admin\Form;
 
 use Base\Field\FieldDescriptor;
 use Base\Field\FieldInterface;
-use Omnibridge\Symfony\Omnibase\Field\Type\AssociationType;
-use Omnibridge\Symfony\Omnibase\Field\Type\SelectType;
+use Base\Field\Type\AssociationType;
+use Base\Field\Type\SelectType;
 use Base\Database\Mapping\EntityShapes;
 use Base\Database\UnitOfWorks;
-use Doctrine\Persistence\ManagerRegistry;
-use Omnibridge\Schema\Relation;
-use Omnibridge\Persistence\UnitOfWork;
+use Base\Database\Schema\Relation;
+use Base\Contract\UnitOfWork;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -42,20 +41,11 @@ class FieldFormBuilder
         'translation_domain', 'label_translation_parameters', 'help_translation_parameters',
     ];
 
-    protected ?UnitOfWork $unitOfWork;
-
     /**
-     * @param UnitOfWork|ManagerRegistry|null $unitOfWork the persistence chosen, whose entities' shapes say what an
-     *                                                    association points to (omnibase's plan "omnibase agnostic", step
-     *                                                    B1c); Doctrine's ManagerRegistry, as before, is deprecated
+     * @param UnitOfWork|null $unitOfWork the persistence chosen, whose entities' shapes say what an association points to
      */
-    public function __construct(protected FormFactoryInterface $formFactory, UnitOfWork|ManagerRegistry|null $unitOfWork = null)
+    public function __construct(protected FormFactoryInterface $formFactory, protected ?UnitOfWork $unitOfWork = null)
     {
-        if ($unitOfWork instanceof ManagerRegistry) {
-            trigger_deprecation('omnibase/admin', 'dev-main', 'Passing Doctrine\'s ManagerRegistry to %s is deprecated, pass the %s.', self::class, UnitOfWork::class);
-            $unitOfWork = UnitOfWorks::of($unitOfWork->getManager());
-        }
-        $this->unitOfWork = $unitOfWork;
     }
 
     private function shapes(): ?EntityShapes
@@ -176,16 +166,6 @@ class FieldFormBuilder
 
         // A picker needs an entity to look into.
         return $shapes->has($class) ? $class : null;
-    }
-
-    /**
-     * @deprecated use getPickedClass(): the picker is no longer for user accounts only
-     */
-    protected function getPickedUserClass(FormBuilderInterface $builder, FieldDescriptor $descriptor): ?string
-    {
-        $class = $this->getPickedClass($builder, $descriptor);
-
-        return null !== $class && is_a($class, UserInterface::class, true) ? $class : null;
     }
 
     /**

@@ -6,7 +6,7 @@ use Base\Enum\ThreadState;
 use Base\Service\Model\LinkableInterface;
 use Base\Database\Repository\Repositories;
 use Base\Database\UnitOfWorks;
-use Omnibridge\Persistence\UnitOfWork;
+use Base\Contract\UnitOfWork;
 
 /**
  * What EntityViewsWidgetType's own settings picker (and any future "pick a
@@ -119,22 +119,13 @@ final class LinkableEntityRegistry
     }
 
     /**
-     * The mapped entities' classes: the entities' shapes of the persistence chosen list them (classes(), omnisense/omnibase
-     * 5.x and omnibridge/doctrine since step B1d); a Doctrine bridge older than that, its entity manager's metadata.
+     * The mapped entities' classes: the entities' shapes of the persistence chosen list them.
      *
      * @return list<string>
      */
     private function mappedClasses(): array
     {
-        $shapes = UnitOfWorks::shapes($this->unitOfWork);
-        if (method_exists($shapes, 'classes')) {
-            return $shapes->classes();
-        }
-        if (method_exists($this->unitOfWork, 'entityManager')) {
-            return array_map(static fn (object $metadata): string => $metadata->getName(), $this->unitOfWork->entityManager()->getMetadataFactory()->getAllMetadata());
-        }
-
-        return [];
+        return UnitOfWorks::shapes($this->unitOfWork)->classes();
     }
 
     private function humanize(string $class): string

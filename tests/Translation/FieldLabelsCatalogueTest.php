@@ -45,7 +45,7 @@ class FieldLabelsCatalogueTest extends TestCase
     {
         $catalogues = [];
         // The core's `forms` domain, which the back office's form, columns and filters translate through.
-        $core = \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir();
+        $core = \Base\BaseBundle::getBundleDir();
         foreach (glob($core.'/translations/forms+intl-icu.*.yaml') ?: [] as $file) {
             $catalogues[explode('.', basename($file))[1]] = Yaml::parseFile($file) ?? [];
         }

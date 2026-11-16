@@ -4,11 +4,8 @@ namespace Base\Admin\Form;
 
 /**
  * A form type named in a string, compared with a class: the same type under
- * either of its names. omnibridge/symfony's form types were the core's
- * (Base\Field\Type\* is Omnibridge\Symfony\Omnibase\Field\Type\* until
- * omnisense/omnibase 6.0): a field's default type is still given by its former
- * name (omnibridge/symfony 1.x's SymfonyKinds), a bundle's settings may name
- * either, so a plain `===` on one name misses the other.
+ * any of its names (a class and an alias of it), with or without its leading
+ * backslash, so a plain `===` on one spelling does not miss another.
  *
  * @internal
  */

@@ -382,16 +382,16 @@
         </form>
     {% endfor %}
     <div class="paginator">
-        <span>{{ paginator.total }} {{ 'datagrid.results'|trans({}, 'admin') }}</span>
+        <span>{{ paginator.totalCount }} {{ 'datagrid.results'|trans({}, 'admin') }}</span>
         <div class="pages">
-            {% if paginator.hasPreviousPage %}
-                <a class="btn" href="{{ admin_url(controller_fqcn, 'index', null, {'page': paginator.previousPage, 'sort': sort}) }}">‹</a>
+            {% if paginator.page > 1 %}
+                <a class="btn" href="{{ admin_url(controller_fqcn, 'index', null, {'page': paginator.page - 1, 'sort': sort}) }}">‹</a>
             {% endif %}
             {# numbered pages with an ellipsis window (1 … n-1 n n+1 … last),
                matching the production paginator instead of a bare "n / total" #}
             {% set shown = [] %}
-            {% for p in 1..paginator.pageCount %}
-                {% if p == 1 or p == paginator.pageCount or (p >= paginator.page - 1 and p <= paginator.page + 1) %}
+            {% for p in 1..paginator.totalPages %}
+                {% if p == 1 or p == paginator.totalPages or (p >= paginator.page - 1 and p <= paginator.page + 1) %}
                     {% if shown is not empty and p > shown|last + 1 %}
                         <span class="btn pages-ellipsis">…</span>
                     {% endif %}
@@ -403,8 +403,8 @@
                     {% set shown = shown|merge([p]) %}
                 {% endif %}
             {% endfor %}
-            {% if paginator.hasNextPage %}
-                <a class="btn" href="{{ admin_url(controller_fqcn, 'index', null, {'page': paginator.nextPage, 'sort': sort}) }}">›</a>
+            {% if paginator.page < paginator.totalPages %}
+                <a class="btn" href="{{ admin_url(controller_fqcn, 'index', null, {'page': paginator.page + 1, 'sort': sort}) }}">›</a>
             {% endif %}
         </div>
     </div>

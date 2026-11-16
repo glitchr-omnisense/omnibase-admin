@@ -8,7 +8,8 @@ use Base\Admin\Controller\Crud\Thread\TaxonCrudController;
 use Base\Entity\Layout\Attribute\Adapter\TextAdapter;
 use Base\Entity\Thread\Taxon;
 use Base\Field\FieldDescriptor;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
+use Base\Database\Repository\Repositories;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -68,17 +69,17 @@ class TaxonLabelTest extends KernelTestCase
         self::assertTrue($form->isValid(), (string) $form->getErrors(true));
         self::assertSame([$default], array_keys($taxon->getTranslations()->toArray()), 'an empty translation is dropped');
 
-        $this->em()->persist($taxon);
-        $this->em()->flush();
+        $this->unitOfWork()->persist($taxon);
+        $this->unitOfWork()->flush();
         try {
-            $this->em()->clear();
-            $saved = $this->em()->find(Taxon::class, $taxon->getId());
+            $this->unitOfWork()->clear();
+            $saved = $this->repositories()->of(Taxon::class)->find($taxon->getId());
             self::assertNotNull($saved);
             self::assertSame($label, $saved->getTranslations()->get($default)?->getLabel());
             self::assertStringStartsWith('cours-elementaire-', (string) $saved->getSlug(), 'the slug is made from the label');
         } finally {
-            $this->em()->remove($this->em()->find(Taxon::class, $taxon->getId()));
-            $this->em()->flush();
+            $this->unitOfWork()->remove($this->repositories()->of(Taxon::class)->find($taxon->getId()));
+            $this->unitOfWork()->flush();
         }
     }
 
@@ -106,12 +107,17 @@ class TaxonLabelTest extends KernelTestCase
         // configureFields() needs none of the controller's services.
         $crud = (new \ReflectionClass($controller))->newInstanceWithoutConstructor();
 
-        return (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Omnibridge\Persistence\UnitOfWork::class)))
+        return (new FieldFormBuilder(static::getContainer()->get('form.factory'), static::getContainer()->get(\Base\Contract\UnitOfWork::class)))
             ->createForm($entity, $crud->configureFields(FieldDescriptor::PAGE_NEW), FieldDescriptor::PAGE_NEW, ['csrf_protection' => false]);
     }
 
-    private function em(): EntityManagerInterface
+    private function unitOfWork(): UnitOfWork
     {
-        return static::getContainer()->get('doctrine')->getManager();
+        return static::getContainer()->get(UnitOfWork::class);
+    }
+
+    private function repositories(): Repositories
+    {
+        return static::getContainer()->get(Repositories::class);
     }
 }

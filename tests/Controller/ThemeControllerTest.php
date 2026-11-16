@@ -2,7 +2,8 @@
 
 namespace Tests\Base\Admin\Controller;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Contract\UnitOfWork;
+use Base\Database\Repository\Repositories;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +23,7 @@ class ThemeControllerTest extends KernelTestCase
     use ReleasesWhatItHolds;
     use FirewallSessionTrait;
 
-    private EntityManagerInterface $em;
+    private UnitOfWork $unitOfWork;
     private SessionInterface $session;
     private ?object $user = null;
 
@@ -34,7 +35,7 @@ class ThemeControllerTest extends KernelTestCase
         self::bootKernel();
         $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
         $_SERVER['HTTP_USER_AGENT'] ??= 'phpunit';
-        $this->em = static::getContainer()->get('doctrine')->getManager();
+        $this->unitOfWork = static::getContainer()->get(UnitOfWork::class);
 
         $user = new \App\Entity\User();
         $name = 'theme'.bin2hex(random_bytes(4));
@@ -44,8 +45,8 @@ class ThemeControllerTest extends KernelTestCase
         $user->setEmail($name.'@example.org');
         $user->setPlainPassword('test-'.$name);
         $user->setRoles(['ROLE_SUPERADMIN']);
-        $this->em->persist($user);
-        $this->em->flush();
+        $this->unitOfWork->persist($user);
+        $this->unitOfWork->flush();
         $this->user = $user;
 
         $this->session = static::getContainer()->get('session.factory')->createSession();
@@ -54,11 +55,11 @@ class ThemeControllerTest extends KernelTestCase
 
     protected function tearDown(): void
     {
-        if (isset($this->em) && null !== $this->user) {
-            $this->em->clear();
-            if ($managed = $this->em->find($this->user::class, $this->user->getId())) {
-                $this->em->remove($managed);
-                $this->em->flush();
+        if (isset($this->unitOfWork) && null !== $this->user) {
+            $this->unitOfWork->clear();
+            if ($managed = static::getContainer()->get(Repositories::class)->of($this->user::class)->find($this->user->getId())) {
+                $this->unitOfWork->remove($managed);
+                $this->unitOfWork->flush();
             }
         }
         parent::tearDown();

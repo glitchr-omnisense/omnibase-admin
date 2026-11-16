@@ -42,12 +42,16 @@ return function (ContainerConfigurator $configurator) {
         ->arg('$accessor', null)
         ->arg('$identifierFields', null)
         ->arg('$identifierFieldsByEntity', [])
-        ->arg('$lowercaseIdentifiers', false);
+        ->arg('$lowercaseIdentifiers', false)
+        // the entities' shapes of the persistence chosen say which identifier fields are columns (isStoredField())
+        ->arg('$shapes', inline_service(\Base\Database\Mapping\EntityShapes::class)
+            ->factory([\Base\Database\UnitOfWorks::class, 'shapes'])
+            ->args([service(\Base\Contract\UnitOfWork::class)]));
 
     // the unit of work: an AssociationField is found by the association's target class (the entity's shape on the
     // persistence chosen) and built as a picker (FieldFormBuilder::addField()).
     $services->set(FieldFormBuilder::class)
-        ->args([service('form.factory'), service(\Omnibridge\Persistence\UnitOfWork::class)->nullOnInvalid()]);
+        ->args([service('form.factory'), service(\Base\Contract\UnitOfWork::class)->nullOnInvalid()]);
 
     $services->set(AdminRouteRegistry::class)
         ->arg('$controllerFqcns', [])
@@ -214,7 +218,7 @@ return function (ContainerConfigurator $configurator) {
         ->tag('base.admin.dashboard_widget_type.palette');
 
     $services->set(\Base\Admin\Widget\LinkableEntityRegistry::class)
-        ->args([service(\Omnibridge\Persistence\UnitOfWork::class), service(\Base\Database\Repository\Repositories::class)]);
+        ->args([service(\Base\Contract\UnitOfWork::class), service(\Base\Database\Repository\Repositories::class)]);
 
     $services->set(\Base\Admin\Widget\EntityViewsWidgetType::class)
         ->args([
@@ -231,7 +235,7 @@ return function (ContainerConfigurator $configurator) {
             service(\Base\Service\Analytics::class),
             service(\Base\Admin\Widget\LinkableEntityRegistry::class),
             service('translator'),
-            service(\Omnibridge\Persistence\UnitOfWork::class),
+            service(\Base\Contract\UnitOfWork::class),
             service(\Base\Admin\Router\AdminRouteRegistry::class),
             service('router'),
             service(\Base\Admin\Security\CrudAccessChecker::class),
@@ -312,8 +316,7 @@ return function (ContainerConfigurator $configurator) {
     // The screens of the core's own entities (accounts, groups, permissions, connections, tags, taxa,
     // settings, images, attribute adapters, pages), here since omnisense/omnibase 4.0: they extend
     // this bundle's AbstractCrudController. An application replaces one by a controller of its own
-    // for the same entity (AdminRouteRegistry: App\ wins); src/Resources/former-names.php keeps their
-    // former names, Base\Controller\Backoffice\Crud\*, for one release.
+    // for the same entity (AdminRouteRegistry: App\ wins).
     foreach ([
         \Base\Admin\Controller\Crud\UserCrudController::class,
         \Base\Admin\Controller\Crud\User\ConnectionCrudController::class,

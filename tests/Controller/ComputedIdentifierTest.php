@@ -5,6 +5,9 @@ namespace Tests\Base\Admin\Controller;
 use Base\Admin\Config\Action;
 use Base\Admin\Controller\Crud\ComplaintCrudController;
 use Base\Entity\User\Complaint;
+use Base\Contract\UnitOfWork;
+use Base\Database\Repository\Repositories;
+use Base\Database\UnitOfWorks;
 use Base\Field\FieldValueResolver;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,9 +51,9 @@ class ComputedIdentifierTest extends KernelTestCase
 
         $this->complaint = new Complaint(null, 'A word out of place.', 'test');
         $this->complaint->setComplainantName('A visitor');
-        $em = static::getContainer()->get('doctrine')->getManager();
-        $em->persist($this->complaint);
-        $em->flush();
+        $unitOfWork = static::getContainer()->get(UnitOfWork::class);
+        $unitOfWork->persist($this->complaint);
+        $unitOfWork->flush();
     }
 
     protected function tearDown(): void
@@ -58,10 +61,10 @@ class ComputedIdentifierTest extends KernelTestCase
         if ($this->complaint) {
             (new \ReflectionProperty(FieldValueResolver::class, 'identifierFields'))->setValue($this->resolver(), $this->identifierFields);
 
-            $em = static::getContainer()->get('doctrine')->getManager();
-            if ($managed = $em->find(Complaint::class, $this->complaint->getId())) {
-                $em->remove($managed);
-                $em->flush();
+            $unitOfWork = static::getContainer()->get(UnitOfWork::class);
+            if ($managed = static::getContainer()->get(Repositories::class)->of(Complaint::class)->find($this->complaint->getId())) {
+                $unitOfWork->remove($managed);
+                $unitOfWork->flush();
             }
             $this->complaint = null;
         }
@@ -84,15 +87,15 @@ class ComputedIdentifierTest extends KernelTestCase
 
     public function testTheResolverKnowsWhichFieldsAreColumns(): void
     {
-        $doctrine = new \ReflectionProperty(FieldValueResolver::class, 'doctrine');
+        $shapes = new \ReflectionProperty(FieldValueResolver::class, 'shapes');
 
-        $this->assertNotNull($doctrine->getValue($this->resolver()), 'AdminExtension gives the resolver Doctrine');
+        $this->assertNotNull($shapes->getValue($this->resolver()), 'the resolver is given the entities\' shapes');
     }
 
     public function testARecordWithAComputedIdentifierIsLinkedByItsId(): void
     {
         $this->assertNotSame('', $this->complaint->getStatusLabel(), 'the accessor answers');
-        $this->assertFalse(static::getContainer()->get('doctrine')->getManager()->getClassMetadata(Complaint::class)->hasField('statusLabel'), 'and is not a column');
+        $this->assertFalse(UnitOfWorks::shapes(static::getContainer()->get(UnitOfWork::class))->shape(Complaint::class)->hasField('statusLabel'), 'and is not a column');
 
         $this->assertSame($this->complaint->getId(), $this->resolver()->entityIdentifier($this->complaint));
     }

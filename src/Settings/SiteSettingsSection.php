@@ -2,11 +2,11 @@
 
 namespace Base\Admin\Settings;
 
-use Omnibridge\Symfony\Omnibase\Field\Type\BooleanType;
-use Omnibridge\Symfony\Omnibase\Field\Type\DateTimePickerType;
-use Omnibridge\Symfony\Omnibase\Field\Type\ImageType;
-use Omnibridge\Symfony\Omnibase\Field\Type\RouteType;
-use Omnibridge\Symfony\Omnibase\Field\Type\SelectType;
+use Base\Field\Type\BooleanType;
+use Base\Field\Type\DateTimePickerType;
+use Base\Field\Type\ImageType;
+use Base\Field\Type\RouteType;
+use Base\Field\Type\SelectType;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
