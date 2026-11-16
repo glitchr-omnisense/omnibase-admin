@@ -34,8 +34,8 @@
         "symfony/dependency-injection": "^6.0|^7.0|^8.0",
         "symfony/http-kernel": "^6.0|^7.0|^8.0",
         "symfony/form": "^6.0|^7.0|^8.0",
-        "omnibridge/symfony": "^1.0",
-        "omnisense/omnibase": "^1.0"
+        "omnibridge/symfony": "^3.0",
+        "omnisense/omnibase": "^7.0"
     },
     "suggest": {
         "omnibridge/doctrine": "The persistence on Doctrine's ORM (base.persistence: doctrine): the back office reads and writes through it",
@@ -60,7 +60,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "1.x-dev"
+            "dev-main": "2.x-dev"
         }
     }
 }

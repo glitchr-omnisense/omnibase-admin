@@ -14,7 +14,7 @@ This package owns the `Base\Admin\` namespace. It is a from-scratch replacement 
 composer require omnibase/admin
 ```
 
-Under Symfony it runs on the core's Symfony host: Composer brings `omnisense/omnibase` 5.1 and
+Under Symfony it runs on the core's Symfony host: Composer brings `omnisense/omnibase` 7.0 and
 `omnibridge/symfony` with it; `config/bundles.php` registers the core's bundle before this one
 (see the core's README for the other bundles a site usually adds):
 
@@ -32,7 +32,7 @@ back office for a signed-in `ROLE_ADMIN`.
 
 - PHP 8.1+
 - Symfony 6.0+ / 7.0+ / 8.0+
-- `omnisense/omnibase` 5.1 or later 5.x, `omnibridge/symfony` 1.1 or later 1.x
+- `omnisense/omnibase` 7.0 or later 7.x, `omnibridge/symfony` 3.0 or later 3.x
 
 ## Documentation
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - 1.0.0
+## 2.0.0
 
 omnibase/admin is the back office of omnisense/omnibase: CRUD screens built from field descriptors, the dashboard and
 its widgets, menus, system pages, and the screens of the core's own entities. It names only `Base\` classes and reads
